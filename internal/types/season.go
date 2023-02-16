@@ -10,10 +10,10 @@ import (
 // SeasonRequestData defines a Season domain model for data attributes request binding
 type SeasonRequestData struct {
 	Deleted     bool    `json:"deleted"`
-	Description *string `json:"description"`
+	Description *string `json:"description" validate:"gte=3"`
 	Enabled     bool    `json:"enabled"`
-	Status      *uint32 `json:"status"`
-	Title       string  `json:"title"`
+	Status      *uint32 `json:"status" validate:"numeric"`
+	Title       string  `json:"title" validate:"required,gte=2"`
 }
 
 // SeasonEntity defines a Season database entity

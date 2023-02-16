@@ -10,12 +10,12 @@ import (
 // EpisodeRequestData defines an Episode domain model for data attributes request binding
 type EpisodeRequestData struct {
 	Deleted     bool      `json:"deleted"`
-	Description *string   `json:"description"`
-	Director    *string   `json:"director"`
+	Description *string   `json:"description" validate:"gte=3"`
+	Director    *string   `json:"director" validate:"gte=2"`
 	Enabled     bool      `json:"enabled"`
-	SeasonID    uuid.UUID `json:"season_id"`
+	SeasonID    uuid.UUID `json:"season_id" validate:"required,uuid4"`
 	Status      *uint32   `json:"status"`
-	Title       string    `json:"title"`
+	Title       string    `json:"title" validate:"required,gte=2"`
 	Year        *uint32   `json:"year"`
 }
 

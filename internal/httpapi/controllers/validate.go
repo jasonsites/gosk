@@ -59,7 +59,9 @@ func validateBody(body *JSONRequestBody, log zerolog.Logger) *ErrorResponse {
 func formatErrorDetail(field, param, tag string) string {
 	switch tag {
 	// TODO: other relevant validation cases
-	case "gte":
+	case "max":
+		return fmt.Sprintf("'%s' field must contain a maximum of %s characters", field, param)
+	case "min":
 		return fmt.Sprintf("'%s' field must contain at least %s characters", field, param)
 	case "required":
 		return fmt.Sprintf("'%s' field is %s", field, tag)

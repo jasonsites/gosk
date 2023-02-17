@@ -37,7 +37,7 @@ func (c *Controller) Create(f func() *JSONRequestBody) fiber.Handler {
 
 		resource := f()
 		if err := ctx.BodyParser(resource); err != nil {
-			log.Error().Err(err).Msg("")
+			log.Error().Err(err).Msg("error parsing request body")
 			return err
 		}
 

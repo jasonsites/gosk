@@ -8,7 +8,7 @@ type JSONRequestBody struct {
 // RequestResource
 type RequestResource struct {
 	Type       string `json:"type" validate:"required"`
-	ID         string `json:"id"`
+	ID         string `json:"id" validate:"omitempty,uuid4"`
 	Properties any    `json:"properties" validate:"required"`
 }
 

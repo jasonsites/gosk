@@ -27,7 +27,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: postgres
-      POSTGRES_VERSION: 14
+      POSTGRES_VERSION: 15
       REDIS_DB: 0
       REDIS_HOST: host.docker.internal
       REDIS_PASSWORD: redis
@@ -43,7 +43,7 @@ services:
       - /app/vendor
 
   domain_db:
-    image: postgres:14
+    image: postgres:15.2-alpine
     deploy:
       restart_policy:
         condition: on-failure
@@ -61,7 +61,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   redis:
-    image: redis:6.2
+    image: redis:7.0.8-alpine
     command: redis-server /usr/local/etc/redis/redis.conf
     deploy:
       restart_policy:

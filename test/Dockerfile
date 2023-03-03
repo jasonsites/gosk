@@ -15,7 +15,10 @@ RUN \
     chmod +x /usr/bin/migrate && \
     # air
     curl -fLo install.sh https://raw.githubusercontent.com/cosmtrek/air/master/install.sh && \
-    chmod +x install.sh && sh install.sh && cp ./bin/air /bin/air
+    chmod +x install.sh && sh install.sh && cp ./bin/air /bin/air && \
+    # gotestsum
+    curl -sSL https://github.com/gotestyourself/gotestsum/releases/download/v1.9.0/gotestsum_1.9.0_linux_amd64.tar.gz | \
+    tar -xz -C /usr/bin gotestsum
 
 COPY . .
 RUN go mod vendor

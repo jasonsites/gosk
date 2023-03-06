@@ -1,4 +1,4 @@
-package seasontest
+package resourcetest
 
 import (
 	"bytes"
@@ -8,23 +8,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSeasonCreate(t *testing.T) {
+func TestResourceCreate(t *testing.T) {
 	var (
-		routePrefix = "/domain/seasons"
+		routePrefix = "/domain/resources"
 		method      = "POST"
 	)
 
 	tests := []utils.Setup{
 		{
-			Description: "create season succeeds (201) with valid payload",
+			Description: "create resource succeeds (201) with valid payload",
 			Route:       routePrefix,
 			Request: utils.Request{
 				Body: bytes.NewBuffer([]byte(`{
 					"data": {
-						"type": "season",
+						"type": "resource",
 						"properties": {
-							"title": "Season 1",
-							"description": "Season 1 Description...",
+							"title": "Resource Title",
+							"description": "Resource Description",
 							"enabled": true,
 							"status": 1
 						}

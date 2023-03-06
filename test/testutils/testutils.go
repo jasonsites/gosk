@@ -18,7 +18,7 @@ func Cleanup(r *resolver.Resolver) error {
 		return err
 	}
 
-	tables := []string{"episode", "season"}
+	tables := []string{"entity"}
 
 	for _, t := range tables {
 		sql := fmt.Sprintf("DELETE from %s", t)

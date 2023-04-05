@@ -4,19 +4,19 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/jasonsites/gosk-api/internal/application"
+	"github.com/jasonsites/gosk-api/internal/domain"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 // Config defines the input to NewServer
 type Config struct {
-	Application *application.Application `validate:"required"`
-	BaseURL     string                   `validate:"required"`
-	Logger      *types.Logger            `validate:"required"`
-	Mode        string                   `validate:"required"`
-	Namespace   string                   `validate:"required"`
-	Port        uint                     `validate:"required"`
+	BaseURL   string         `validate:"required"`
+	Domain    *domain.Domain `validate:"required"`
+	Logger    *types.Logger  `validate:"required"`
+	Mode      string         `validate:"required"`
+	Namespace string         `validate:"required"`
+	Port      uint           `validate:"required"`
 }
 
 // Server defines a server for handling HTTP API requests
@@ -47,7 +47,7 @@ func NewServer(c *Config) (*Server, error) {
 		Log:     &log,
 	}
 
-	controllers := registerControllers(logger, c.Application.Services)
+	controllers := registerControllers(logger, c.Domain.Services)
 
 	s := &Server{
 		Logger: logger,

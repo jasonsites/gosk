@@ -9,7 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/helmet/v2"
 
-	"github.com/jasonsites/gosk-api/internal/application"
+	"github.com/jasonsites/gosk-api/internal/domain"
 	"github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 	mw "github.com/jasonsites/gosk-api/internal/httpapi/middleware"
 	"github.com/jasonsites/gosk-api/internal/httpapi/routes"
@@ -84,7 +84,7 @@ func errorHandler(ctx *fiber.Ctx, err error) error {
 }
 
 // registerControllers
-func registerControllers(logger *types.Logger, services *application.Services) *controllerRegistry {
+func registerControllers(logger *types.Logger, services *domain.Services) *controllerRegistry {
 	return &controllerRegistry{
 		ResourceController: controllers.NewController(&controllers.Config{
 			Service: services.ResourceService,

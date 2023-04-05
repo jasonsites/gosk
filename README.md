@@ -1,11 +1,9 @@
 # gosk-api
 Go Starter Kit for HTTP API Applications
 
-## Architecture
-
-<p align="center">
-  <img src="./architecture.png" width="70%" alt="architecture" />
-</p>
+## Documentation
+- [Architecture](./documentation/architecture.md)
+- Getting Started (*Coming Soon*)
 
 ## Installation
 Clone the repository
@@ -58,12 +56,7 @@ $ docker compose run --rm api just coverage
 $ go build -mod vendor -o out/bin/domain ./cmd/httpserver
 ```
 
-## Contributing
-1. Create feature branch (`git switch -c new-feature`)
-1. Commit changes using [conventional changelog standards](https://www.conventionalcommits.org) (`git commit -m 'feat(scope): adds new feature'`)
-1. Push to the branch (`git push origin new-feature`)
-1. Ensure linting and tests are passing
-1. Create new pull request
-
 ## License
 Copyright (c) 2022 Jason Sites
+
+Licensed under the [MIT License](LICENSE.md)

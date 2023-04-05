@@ -1,4 +1,4 @@
-package application
+package domain
 
 import (
 	"context"
@@ -8,16 +8,19 @@ import (
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
+// ResourceServiceConfig
 type ResourceServiceConfig struct {
 	Logger *types.Logger    `validate:"required"`
 	Repo   types.Repository `validate:"required"`
 }
 
+// resourceService
 type resourceService struct {
 	logger *types.Logger
 	repo   types.Repository
 }
 
+// NewResourceService
 func NewResourceService(c *ResourceServiceConfig) (*resourceService, error) {
 	if err := validation.Validate.Struct(c); err != nil {
 		return nil, err

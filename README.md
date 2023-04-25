@@ -3,7 +3,7 @@ Go Starter Kit for HTTP API Applications
 
 ## Documentation
 - [Architecture](./documentation/architecture.md)
-- Getting Started (*Coming Soon*)
+- [Getting Started](./documentation/getting-started.md)
 
 ## Installation
 Clone the repository
@@ -36,6 +36,11 @@ $ docker compose run --rm api just migrate-up svcdb {n}
 **Run down migrations {n} steps**
 ```sh
 $ docker compose run --rm api just migrate-down svcdb {n}
+```
+
+**Create new migration**
+```sh
+$ docker compose run --rm api just migrate-create {name}
 ```
 
 ### Server

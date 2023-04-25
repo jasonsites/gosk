@@ -31,8 +31,8 @@ type Metadata struct {
 // Resolver provides singleton instances of app components
 type Resolver struct {
 	config           *config.Configuration
-	domain           *domain.Domain
 	context          context.Context
+	domain           *domain.Domain
 	httpServer       *httpapi.Server
 	log              *zerolog.Logger
 	metadata         *Metadata
@@ -48,8 +48,8 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 
 	r := &Resolver{
 		config:           c.Config,
-		domain:           c.Domain,
 		context:          ctx,
+		domain:           c.Domain,
 		httpServer:       c.HTTPServer,
 		log:              c.Log,
 		metadata:         c.Metadata,

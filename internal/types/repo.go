@@ -54,8 +54,8 @@ type RepoUpdater interface {
 // 				meta: {
 // 						...resource metadata
 // 				},
-// 				properties: {
-// 						...resource properties
+// 				attributes: {
+// 						...resource attributes
 // 				},
 // 				rel: [{
 // 						type: 'rel-type',

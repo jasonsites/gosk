@@ -1,6 +1,7 @@
 package resourcetest
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -12,39 +13,41 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type DetailSuite struct {
+type UpdateSuite struct {
 	suite.Suite
 	method   string
 	app      *fiber.App
 	db       *pgxpool.Pool
 	resolver *resolver.Resolver
-	record   *types.ResourceEntity
+	record   *types.ExampleEntity
 }
 
-func TestDetailSuite(t *testing.T) {
-	suite.Run(t, &DetailSuite{})
+func TestUpdateSuite(t *testing.T) {
+	suite.Run(t, &UpdateSuite{})
 }
 
 // SetupSuite runs setup before all suite tests
-func (s *DetailSuite) SetupSuite() {
+func (s *UpdateSuite) SetupSuite() {
+	s.T().Log("SetupSuite")
+
 	app, db, resolver, err := utils.InitializeApp(nil)
 	if err != nil {
 		s.T().Log(err)
 	}
 
-	s.method = "GET"
+	s.method = "PUT"
 	s.app = app
 	s.db = db
 	s.resolver = resolver
 }
 
 // TearDownSuite runs teardown after all suite tests
-func (s *DetailSuite) TearDownSuite() {
-	//
+func (s *UpdateSuite) TearDownSuite() {
+	s.T().Log("TearDownSuite")
 }
 
 // SetupTest runs setup before each test
-func (s *DetailSuite) SetupTest() {
+func (s *UpdateSuite) SetupTest() {
 	record, err := insertRecord(s.db)
 	if err != nil {
 		s.T().Log(err)
@@ -53,22 +56,38 @@ func (s *DetailSuite) SetupTest() {
 }
 
 // TearDownTest runs teardown after each test
-func (s *DetailSuite) TearDownTest() {
+func (s *UpdateSuite) TearDownTest() {
 	utils.Cleanup(s.resolver)
 }
 
-func (s *DetailSuite) TestResourceDetail() {
+func (s *UpdateSuite) TestResourceUpdate() {
 	tests := []utils.Setup{
 		{
-			Description: "resource detail succeeds (200)",
+			Description: "resource update succeeds (200) with valid payload",
 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-			Request:     utils.Request{},
-			Expected:    utils.Expected{Code: 200},
+			Request: utils.Request{
+				Body: bytes.NewBuffer([]byte(fmt.Sprintf(`{
+					"data": {
+						"type": "resource",
+						"id": "%s",
+						"attributes": {
+							"title": "Resource Title",
+							"description": "Updated resource description",
+							"enabled": true,
+							"status": 1
+						}
+					}
+				}`, s.record.ID.String()))),
+				Headers: map[string]string{
+					"Content-Type": "application/json",
+				},
+			},
+			Expected: utils.Expected{Code: 200},
 		},
 	}
 
 	for _, test := range tests {
-		req := utils.SetRequestData(s.method, test.Route, nil, nil)
+		req := utils.SetRequestData(s.method, test.Route, test.Request.Body, test.Request.Headers)
 		msTimeout := 1000
 
 		res, err := s.app.Test(req, msTimeout)

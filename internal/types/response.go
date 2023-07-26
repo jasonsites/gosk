@@ -34,7 +34,7 @@ type ResponseResource struct {
 	Type       string            `json:"type"`
 	ID         uuid.UUID         `json:"id"`
 	Meta       *ResourceMetadata `json:"meta,omitempty"`
-	Properties any               `json:"properties"` // TODO
+	Attributes any               `json:"attributes"` // TODO
 }
 
 // JSONResponseSolo

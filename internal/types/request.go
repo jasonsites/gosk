@@ -31,7 +31,7 @@ type JSONRequestBody struct {
 type RequestResource struct {
 	Type       string `json:"type" validate:"required"`
 	ID         string `json:"id" validate:"omitempty,uuid4"`
-	Properties any    `json:"properties" validate:"required"`
+	Attributes any    `json:"attributes" validate:"required"`
 }
 
 // Query ------------------------------------------------------------------------------------------

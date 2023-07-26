@@ -9,7 +9,7 @@ import (
 
 // ResourceRouter implements an example router group for a Resource resource
 func ResourceRouter(r *fiber.App, c *ctrl.Controller, ns string) {
-	prefix := "/" + ns + "/resources"
+	prefix := "/" + ns + "/examples"
 	g := r.Group(prefix)
 
 	// createResource provides a JSONRequestBody with data binding for the Resource model
@@ -17,7 +17,7 @@ func ResourceRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	createResource := func() *types.JSONRequestBody {
 		return &types.JSONRequestBody{
 			Data: &types.RequestResource{
-				Properties: &types.ResourceRequestData{},
+				Attributes: &types.ExampleRequestData{},
 			},
 		}
 	}

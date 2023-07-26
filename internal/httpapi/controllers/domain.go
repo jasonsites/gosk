@@ -50,7 +50,7 @@ func (c *Controller) Create(f func() *types.JSONRequestBody) fiber.Handler {
 			return nil
 		}
 
-		model := resource.Data.Properties
+		model := resource.Data.Attributes
 		result, err := c.service.Create(ctx.Context(), model)
 		if err != nil {
 			log.Error().Err(err).Send()
@@ -156,7 +156,7 @@ func (c *Controller) Update(f func() *types.JSONRequestBody) fiber.Handler {
 			return nil
 		}
 
-		model := resource.Data.Properties // TODO: problem here with ID
+		model := resource.Data.Attributes // TODO: problem here with ID
 		result, err := c.service.Update(ctx.Context(), model, id)
 		if err != nil {
 			log.Error().Err(err).Send()

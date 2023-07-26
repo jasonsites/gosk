@@ -62,7 +62,7 @@ func (s *CreateSuite) TestResourceCreate() {
 				Body: bytes.NewBuffer([]byte(`{
 					"data": {
 						"type": "resource",
-						"properties": {
+						"attributes": {
 							"title": "Resource Title",
 							"description": "Resource Description",
 							"enabled": true,

@@ -19,7 +19,7 @@ type Config struct {
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *pgxpool.Pool
-	RepoResource     types.Repository
+	RepoExample      types.Repository
 }
 
 // Application metadata
@@ -37,7 +37,7 @@ type Resolver struct {
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *pgxpool.Pool
-	repoResource     types.Repository
+	repoExample      types.Repository
 }
 
 // NewResolver returns a new Resolver instance
@@ -54,7 +54,7 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 		log:              c.Log,
 		metadata:         c.Metadata,
 		postgreSQLClient: c.PostgreSQLClient,
-		repoResource:     c.RepoResource,
+		repoExample:      c.RepoExample,
 	}
 
 	return r
@@ -74,7 +74,7 @@ func (r *Resolver) Initialize() error {
 	if _, err := r.PostgreSQLClient(); err != nil {
 		return err
 	}
-	if _, err := r.RepositoryResource(); err != nil {
+	if _, err := r.RepositoryExample(); err != nil {
 		return err
 	}
 	if _, err := r.Domain(); err != nil {

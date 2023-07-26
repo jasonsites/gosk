@@ -14,12 +14,12 @@ type DomainModel interface {
 
 // DomainRegistry defines a registry for all domain types to be used across the application
 type DomainRegistry struct {
-	Resource string
+	Example string
 }
 
 // DomainType exposes constants for all domain types
 var DomainType = DomainRegistry{
-	Resource: "resource",
+	Example: "example",
 }
 
 // TODO

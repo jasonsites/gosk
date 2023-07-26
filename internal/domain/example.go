@@ -8,32 +8,32 @@ import (
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
-// ResourceServiceConfig
-type ResourceServiceConfig struct {
+// ExampleServiceConfig
+type ExampleServiceConfig struct {
 	Logger *types.Logger    `validate:"required"`
 	Repo   types.Repository `validate:"required"`
 }
 
-// resourceService
-type resourceService struct {
+// exampleService
+type exampleService struct {
 	logger *types.Logger
 	repo   types.Repository
 }
 
-// NewResourceService
-func NewResourceService(c *ResourceServiceConfig) (*resourceService, error) {
+// NewExampleService
+func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 	if err := validation.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With().Str("tags", "service,resource").Logger()
+	log := c.Logger.Log.With().Str("tags", "service,example").Logger()
 	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
 	}
 
-	service := &resourceService{
+	service := &exampleService{
 		logger: logger,
 		repo:   c.Repo,
 	}
@@ -42,17 +42,17 @@ func NewResourceService(c *ResourceServiceConfig) (*resourceService, error) {
 }
 
 // Create
-func (s *resourceService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
+func (s *exampleService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	result, err := s.repo.Create(ctx, data.(*types.ResourceRequestData))
+	result, err := s.repo.Create(ctx, data.(*types.ExampleRequestData))
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err
 	}
 
-	model := &types.Resource{}
+	model := &types.Example{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
 		log.Error().Err(err).Send()
@@ -64,7 +64,7 @@ func (s *resourceService) Create(ctx context.Context, data any) (*types.JSONResp
 }
 
 // Delete
-func (s *resourceService) Delete(ctx context.Context, id uuid.UUID) error {
+func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -77,7 +77,7 @@ func (s *resourceService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (s *resourceService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
+func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -87,7 +87,7 @@ func (s *resourceService) Detail(ctx context.Context, id uuid.UUID) (*types.JSON
 		return nil, err
 	}
 
-	model := &types.Resource{}
+	model := &types.Example{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
 		log.Error().Err(err).Send()
@@ -99,7 +99,7 @@ func (s *resourceService) Detail(ctx context.Context, id uuid.UUID) (*types.JSON
 }
 
 // List
-func (s *resourceService) List(ctx context.Context, q types.QueryData) (*types.JSONResponseMult, error) {
+func (s *exampleService) List(ctx context.Context, q types.QueryData) (*types.JSONResponseMult, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -109,7 +109,7 @@ func (s *resourceService) List(ctx context.Context, q types.QueryData) (*types.J
 		return nil, err
 	}
 
-	model := &types.Resource{}
+	model := &types.Example{}
 	sr, err := model.SerializeResponse(result, false)
 	if err != nil {
 		log.Error().Err(err).Send()
@@ -121,17 +121,17 @@ func (s *resourceService) List(ctx context.Context, q types.QueryData) (*types.J
 }
 
 // Update
-func (s *resourceService) Update(ctx context.Context, data any, id uuid.UUID) (*types.JSONResponseSolo, error) {
+func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*types.JSONResponseSolo, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	result, err := s.repo.Update(ctx, data.(*types.ResourceRequestData), id)
+	result, err := s.repo.Update(ctx, data.(*types.ExampleRequestData), id)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err
 	}
 
-	model := &types.Resource{}
+	model := &types.Example{}
 	sr, err := model.SerializeResponse(result, true)
 	if err != nil {
 		log.Error().Err(err).Send()

@@ -11,7 +11,7 @@ import (
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/domain"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/jasonsites/gosk-api/internal/repo"
+	repo "github.com/jasonsites/gosk-api/internal/repository"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
@@ -33,13 +33,13 @@ func (r *Resolver) Config() (*config.Configuration, error) {
 // Domain provides a singleton domain.Domain instance
 func (r *Resolver) Domain() (*domain.Domain, error) {
 	if r.domain == nil {
-		svcResource, err := domain.NewResourceService(&domain.ResourceServiceConfig{
+		svcResource, err := domain.NewExampleService(&domain.ExampleServiceConfig{
 			Logger: &types.Logger{
 				Enabled: r.config.Logger.SvcExample.Enabled,
 				Level:   r.config.Logger.SvcExample.Level,
 				Log:     r.log,
 			},
-			Repo: r.repoResource,
+			Repo: r.repoExample,
 		})
 		if err != nil {
 			log.Printf("error resolving domain resource service: %v", err)
@@ -138,10 +138,10 @@ func (r *Resolver) PostgreSQLClient() (*pgxpool.Pool, error) {
 	return r.postgreSQLClient, nil
 }
 
-// RepositoryResource provides a singleton repo.resourceRepository instance
-func (r *Resolver) RepositoryResource() (types.Repository, error) {
-	if r.repoResource == nil {
-		repo, err := repo.NewResourceRepository(&repo.ResourceRepoConfig{
+// RepositoryExample provides a singleton repository.exampleRepository instance
+func (r *Resolver) RepositoryExample() (types.Repository, error) {
+	if r.repoExample == nil {
+		repo, err := repo.NewExampleRepository(&repo.ExampleRepoConfig{
 			DBClient: r.postgreSQLClient,
 			Logger: &types.Logger{
 				Enabled: r.config.Logger.Repo.Enabled,
@@ -150,12 +150,12 @@ func (r *Resolver) RepositoryResource() (types.Repository, error) {
 			},
 		})
 		if err != nil {
-			log.Printf("error resolving resource repository: %v", err)
+			log.Printf("error resolving example repository: %v", err)
 			return nil, err
 		}
 
-		r.repoResource = repo
+		r.repoExample = repo
 	}
 
-	return r.repoResource, nil
+	return r.repoExample, nil
 }

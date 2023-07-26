@@ -1,7 +1,6 @@
 package resourcetest
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,58 +11,63 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type DeleteSuite struct {
+type ListSuite struct {
 	suite.Suite
 	method   string
 	app      *fiber.App
 	db       *pgxpool.Pool
 	resolver *resolver.Resolver
-	record   *types.ResourceEntity
+	records  []*types.ExampleEntity
 }
 
-func TestDeleteSuite(t *testing.T) {
-	suite.Run(t, &DeleteSuite{})
+func TestListSuite(t *testing.T) {
+	suite.Run(t, &ListSuite{})
 }
 
 // SetupSuite runs setup before all suite tests
-func (s *DeleteSuite) SetupSuite() {
+func (s *ListSuite) SetupSuite() {
 	app, db, resolver, err := utils.InitializeApp(nil)
 	if err != nil {
 		s.T().Log(err)
 	}
 
-	s.method = "DELETE"
+	s.method = "GET"
 	s.app = app
 	s.db = db
 	s.resolver = resolver
 }
 
 // TearDownSuite runs teardown after all suite tests
-func (s *DeleteSuite) TearDownSuite() {
+func (s *ListSuite) TearDownSuite() {
 	//
 }
 
 // SetupTest runs setup before each test
-func (s *DeleteSuite) SetupTest() {
-	record, err := insertRecord(s.db)
-	if err != nil {
-		s.T().Log(err)
+func (s *ListSuite) SetupTest() {
+	records := make([]*types.ExampleEntity, 0, 4)
+
+	for range records {
+		record, err := insertRecord(s.db)
+		if err != nil {
+			s.T().Log(err)
+		}
+		records = append(records, record)
+		s.T().Log("\n\nHERE\n\n")
 	}
-	s.record = record
 }
 
 // TearDownTest runs teardown after each test
-func (s *DeleteSuite) TearDownTest() {
+func (s *ListSuite) TearDownTest() {
 	utils.Cleanup(s.resolver)
 }
 
-func (s *DeleteSuite) TestResourceDelete() {
+func (s *ListSuite) TestResourceList() {
 	tests := []utils.Setup{
 		{
-			Description: "resource delete succeeds (204)",
-			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
+			Description: "resource list succeeds (200)",
+			Route:       routePrefix,
 			Request:     utils.Request{},
-			Expected:    utils.Expected{Code: 204},
+			Expected:    utils.Expected{Code: 200},
 		},
 	}
 

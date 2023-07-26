@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// ResourceRequestData defines a Resource domain model for data attributes request binding
-type ResourceRequestData struct {
+// ExampleRequestData defines an Example domain model for data attributes request binding
+type ExampleRequestData struct {
 	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
 	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
 	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
@@ -16,8 +16,8 @@ type ResourceRequestData struct {
 	Title       string  `json:"title" validate:"required,omitempty,min=2,max=255"`
 }
 
-// ResourceEntity defines a Resource database entity
-type ResourceEntity struct {
+// ExampleEntity defines a Example database entity
+type ExampleEntity struct {
 	CreatedBy   uint32
 	CreatedOn   time.Time
 	Deleted     bool
@@ -30,8 +30,8 @@ type ResourceEntity struct {
 	Title       string
 }
 
-// Resource defines a Resource domain model for application logic and response serialization
-type Resource struct {
+// Example defines a Example domain model for application logic and response serialization
+type Example struct {
 	ID          uuid.UUID  `json:"-"`
 	Title       string     `json:"title"`
 	Description *string    `json:"description"`
@@ -45,9 +45,9 @@ type Resource struct {
 }
 
 // SerializeModel
-func (s *Resource) SerializeModel(r *RepoResult, solo bool) (*Resource, error) {
+func (s *Example) SerializeModel(r *RepoResult, solo bool) (*Example, error) {
 	if solo {
-		return r.Data[0].Attributes.(*Resource), nil
+		return r.Data[0].Attributes.(*Example), nil
 	}
 
 	// TODO: List case
@@ -56,16 +56,16 @@ func (s *Resource) SerializeModel(r *RepoResult, solo bool) (*Resource, error) {
 }
 
 // SerializeResponse
-func (s *Resource) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
-	// single resource response
+func (s *Example) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, error) {
+	// single example response
 	if solo {
-		resource := mapResourceEntityToResource(r.Data[0])
-		result := &JSONResponseSolo{Data: resource}
+		example := mapExampleEntityToExample(r.Data[0])
+		result := &JSONResponseSolo{Data: example}
 
 		return result, nil
 	}
 
-	// multiple resource response
+	// multiple example response
 	meta := &APIMetadata{
 		Paging: ListPaging{
 			Limit:  r.Metadata.Paging.Limit,
@@ -77,8 +77,8 @@ func (s *Resource) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, er
 	data := make([]ResponseResource, 0)
 	// TODO: go routine
 	for _, record := range r.Data {
-		resource := mapResourceEntityToResource(record)
-		data = append(data, resource)
+		example := mapExampleEntityToExample(record)
+		data = append(data, example)
 	}
 
 	result := &JSONResponseMult{
@@ -89,9 +89,9 @@ func (s *Resource) SerializeResponse(r *RepoResult, solo bool) (JSONResponse, er
 	return result, nil
 }
 
-// mapResourceEntityToResource maps a resource entity repo record to a resource response resource
-func mapResourceEntityToResource(record RepoResultEntity) ResponseResource {
-	model := record.Attributes.(ResourceEntity)
+// mapExampleEntityToExample maps a example entity repo record to a example response example
+func mapExampleEntityToExample(record RepoResultEntity) ResponseResource {
+	model := record.Attributes.(ExampleEntity)
 
 	var (
 		description *string
@@ -115,7 +115,7 @@ func mapResourceEntityToResource(record RepoResultEntity) ResponseResource {
 		status = &s
 	}
 
-	properties := &Resource{
+	attributes := &Example{
 		CreatedBy:   model.CreatedBy,
 		CreatedOn:   model.CreatedOn,
 		Description: description,
@@ -127,8 +127,8 @@ func mapResourceEntityToResource(record RepoResultEntity) ResponseResource {
 	}
 
 	return ResponseResource{
-		Type:       DomainType.Resource,
+		Type:       DomainType.Example,
 		ID:         model.ID,
-		Properties: properties,
+		Attributes: attributes,
 	}
 }

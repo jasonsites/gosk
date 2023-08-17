@@ -14,7 +14,7 @@ func HealthRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 
 	status := func(ctx *fiber.Ctx) error {
 		ctx.Status(http.StatusOK)
-		ctx.JSON(fiber.Map{"status": "healthy"})
+		ctx.JSON(fiber.Map{"meta": fiber.Map{"status": "healthy"}})
 		return nil
 	}
 

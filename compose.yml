@@ -2,7 +2,7 @@ version: '3.9'
 
 networks:
   local-dev:
-    name: local-dev
+    name: local-dev-1
     driver: bridge
 
 services:

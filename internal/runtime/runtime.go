@@ -12,20 +12,21 @@ import (
 )
 
 type Runtime struct {
+	Config *resolver.Config
 }
 
-func NewRuntime() *Runtime {
-	return &Runtime{}
+func NewRuntime(c *resolver.Config) *Runtime {
+	return &Runtime{Config: c}
 }
 
 // run creates a new resolver with associated context group,
 // then runs goroutines for serving http requests and graceful app shutdown
-func (rt *Runtime) Run(conf *resolver.Config) *resolver.Resolver {
+func (rt *Runtime) Run() *resolver.Resolver {
 	c, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	g, ctx := errgroup.WithContext(c)
-	r := resolver.NewResolver(ctx, conf)
+	r := resolver.NewResolver(ctx, rt.Config)
 
 	// initialize the app resolver and start the http server
 	g.Go(func() error {

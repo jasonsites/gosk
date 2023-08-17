@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	runtime.NewRuntime().Run(nil)
+	runtime.NewRuntime(nil).Run()
 }

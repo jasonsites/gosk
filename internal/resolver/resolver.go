@@ -13,13 +13,13 @@ import (
 
 // Config defines the input to NewResolver
 type Config struct {
-	Config           *config.Configuration
-	Domain           *domain.Domain
-	HTTPServer       *httpapi.Server
-	Log              *zerolog.Logger
-	Metadata         *Metadata
-	PostgreSQLClient *pgxpool.Pool
-	RepoExample      types.Repository
+	Config            *config.Configuration
+	Domain            *domain.Domain
+	HTTPServer        *httpapi.Server
+	Log               *zerolog.Logger
+	Metadata          *Metadata
+	PostgreSQLClient  *pgxpool.Pool
+	ExampleRepository types.Repository
 }
 
 // Application metadata
@@ -30,14 +30,14 @@ type Metadata struct {
 
 // Resolver provides singleton instances of app components
 type Resolver struct {
-	config           *config.Configuration
-	context          context.Context
-	domain           *domain.Domain
-	httpServer       *httpapi.Server
-	log              *zerolog.Logger
-	metadata         *Metadata
-	postgreSQLClient *pgxpool.Pool
-	repoExample      types.Repository
+	config            *config.Configuration
+	context           context.Context
+	domain            *domain.Domain
+	httpServer        *httpapi.Server
+	log               *zerolog.Logger
+	metadata          *Metadata
+	postgreSQLClient  *pgxpool.Pool
+	exampleRepository types.Repository
 }
 
 // NewResolver returns a new Resolver instance
@@ -47,14 +47,14 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 	}
 
 	r := &Resolver{
-		config:           c.Config,
-		context:          ctx,
-		domain:           c.Domain,
-		httpServer:       c.HTTPServer,
-		log:              c.Log,
-		metadata:         c.Metadata,
-		postgreSQLClient: c.PostgreSQLClient,
-		repoExample:      c.RepoExample,
+		config:            c.Config,
+		context:           ctx,
+		domain:            c.Domain,
+		httpServer:        c.HTTPServer,
+		log:               c.Log,
+		metadata:          c.Metadata,
+		postgreSQLClient:  c.PostgreSQLClient,
+		exampleRepository: c.ExampleRepository,
 	}
 
 	return r
@@ -74,7 +74,7 @@ func (r *Resolver) Initialize() error {
 	if _, err := r.PostgreSQLClient(); err != nil {
 		return err
 	}
-	if _, err := r.RepositoryExample(); err != nil {
+	if _, err := r.ExampleRepository(); err != nil {
 		return err
 	}
 	if _, err := r.Domain(); err != nil {

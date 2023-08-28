@@ -2,11 +2,12 @@ package resolver
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/domain"
@@ -21,7 +22,8 @@ func (r *Resolver) Config() (*config.Configuration, error) {
 	if r.config == nil {
 		c, err := config.LoadConfiguration()
 		if err != nil {
-			log.Printf("error resolving config: %v", err)
+			err = errors.Errorf("error resolving config: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 		r.config = c
@@ -39,10 +41,11 @@ func (r *Resolver) Domain() (*domain.Domain, error) {
 				Level:   r.config.Logger.SvcExample.Level,
 				Log:     r.log,
 			},
-			Repo: r.repoExample,
+			Repo: r.exampleRepository,
 		})
 		if err != nil {
-			log.Printf("error resolving domain resource service: %v", err)
+			err = errors.Errorf("error resolving domain resource service: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
@@ -72,7 +75,8 @@ func (r *Resolver) HTTPServer() (*httpapi.Server, error) {
 			Port:      r.config.HttpAPI.Port,
 		})
 		if err != nil {
-			log.Printf("error resolving http server: %v", err)
+			err = errors.Errorf("error resolving http server: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 		r.httpServer = server
@@ -103,12 +107,14 @@ func (r *Resolver) Metadata() (*Metadata, error) {
 
 		jsondata, err := os.ReadFile(r.config.Metadata.Path)
 		if err != nil {
-			log.Printf("error reading package.json file, %v:", err)
+			err = errors.Errorf("error reading package.json: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
 		if err := json.Unmarshal(jsondata, &metadata); err != nil {
-			log.Printf("error unmarshalling package.json, %v:", err)
+			err = errors.Errorf("error unmarshalling package.json: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
@@ -128,7 +134,8 @@ func (r *Resolver) PostgreSQLClient() (*pgxpool.Pool, error) {
 
 		client, err := pgxpool.New(r.context, postgresDSN(r.config.Postgres))
 		if err != nil {
-			log.Printf("error resolving postgres client: %v", err)
+			err = errors.Errorf("error resolving postgres client: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
@@ -138,9 +145,9 @@ func (r *Resolver) PostgreSQLClient() (*pgxpool.Pool, error) {
 	return r.postgreSQLClient, nil
 }
 
-// RepositoryExample provides a singleton repository.exampleRepository instance
-func (r *Resolver) RepositoryExample() (types.Repository, error) {
-	if r.repoExample == nil {
+// ExampleRepository provides a singleton repository.exampleRepository instance
+func (r *Resolver) ExampleRepository() (types.Repository, error) {
+	if r.exampleRepository == nil {
 		repo, err := repo.NewExampleRepository(&repo.ExampleRepoConfig{
 			DBClient: r.postgreSQLClient,
 			Logger: &types.Logger{
@@ -150,12 +157,13 @@ func (r *Resolver) RepositoryExample() (types.Repository, error) {
 			},
 		})
 		if err != nil {
-			log.Printf("error resolving example repository: %v", err)
+			err = errors.Errorf("error resolving example repository: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
-		r.repoExample = repo
+		r.exampleRepository = repo
 	}
 
-	return r.repoExample, nil
+	return r.exampleRepository, nil
 }

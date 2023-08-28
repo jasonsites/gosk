@@ -2,13 +2,15 @@ package runtime
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/jasonsites/gosk-api/internal/resolver"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/jasonsites/gosk-api/internal/resolver"
 )
 
 type Runtime struct {
@@ -19,9 +21,13 @@ func NewRuntime(c *resolver.Config) *Runtime {
 	return &Runtime{Config: c}
 }
 
+type RunConfig struct {
+	HTTPServer bool
+}
+
 // run creates a new resolver with associated context group,
 // then runs goroutines for serving http requests and graceful app shutdown
-func (rt *Runtime) Run() *resolver.Resolver {
+func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 	c, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
@@ -30,15 +36,21 @@ func (rt *Runtime) Run() *resolver.Resolver {
 
 	// initialize the app resolver and start the http server
 	g.Go(func() error {
+		log.Info().Msg("initializing resolver")
+
 		if err := r.Initialize(); err != nil {
 			return err
 		}
-		server, err := r.HTTPServer()
-		if err != nil {
-			return err
-		}
-		if err := server.Serve(); err != nil {
-			return err
+
+		if conf.HTTPServer {
+			log.Info().Msg("starting http server")
+			server, err := r.HTTPServer()
+			if err != nil {
+				return err
+			}
+			if err := server.Serve(); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -48,17 +60,19 @@ func (rt *Runtime) Run() *resolver.Resolver {
 	g.Go(func() error {
 		<-ctx.Done()
 
-		fmt.Println("\nshutdown initiated")
+		log.Info().Msg("shutdown initiated")
 
 		// shutdown server
-		server, err := r.HTTPServer()
-		if err != nil {
-			return err
+		if conf.HTTPServer {
+			server, err := r.HTTPServer()
+			if err != nil {
+				return err
+			}
+			if err := server.App.Shutdown(); err != nil {
+				return err
+			}
+			log.Info().Msg("http server shut down")
 		}
-		if err := server.App.Shutdown(); err != nil {
-			return err
-		}
-		fmt.Println("server shut down")
 
 		// close db pool
 		pool, err := r.PostgreSQLClient()
@@ -66,13 +80,16 @@ func (rt *Runtime) Run() *resolver.Resolver {
 			return err
 		}
 		pool.Close()
-		fmt.Println("db connection pool closed")
+		log.Info().Msg("db connection pool closed")
+
+		log.Info().Msg("shutdown complete")
 
 		return nil
 	})
 
 	if err := g.Wait(); err != nil {
-		fmt.Printf("exit reason: %s \n", err)
+		err = errors.Errorf("error running application: %+v", err)
+		log.Error().Err(err).Send()
 	}
 
 	return r

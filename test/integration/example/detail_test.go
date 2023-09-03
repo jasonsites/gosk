@@ -1,4 +1,4 @@
-package resourcetest
+package exampletest
 
 import (
 	"fmt"

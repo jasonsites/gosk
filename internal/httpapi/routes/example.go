@@ -7,12 +7,12 @@ import (
 	"github.com/jasonsites/gosk-api/internal/types"
 )
 
-// ResourceRouter implements an example router group for a Resource resource
-func ResourceRouter(r *fiber.App, c *ctrl.Controller, ns string) {
+// ExampleRouter implements a router group for an Example resource
+func ExampleRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 	prefix := "/" + ns + "/examples"
 	g := r.Group(prefix)
 
-	// createResource provides a JSONRequestBody with data binding for the Resource model
+	// createResource provides a JSONRequestBody with data binding for the Example model
 	// for use with Create/Update Controller methods
 	createResource := func() *types.JSONRequestBody {
 		return &types.JSONRequestBody{

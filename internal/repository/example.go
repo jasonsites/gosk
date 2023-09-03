@@ -84,7 +84,7 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 }
 
 // Create
-func (r *exampleRepository) Create(ctx context.Context, data any) (*types.RepoResult, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *types.ExampleRequestData) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -122,7 +122,7 @@ func (r *exampleRepository) Create(ctx context.Context, data any) (*types.RepoRe
 	}()
 
 	// gather data from request, handling for nullable fields
-	requestData := data.(*types.ExampleRequestData)
+	requestData := data
 
 	var (
 		createdBy   = 9999 // TODO: temp mock for user id
@@ -164,9 +164,12 @@ func (r *exampleRepository) Create(ctx context.Context, data any) (*types.RepoRe
 		return nil, err
 	}
 
-	// return new repo result from scanned entity
-	entityWrapper := types.RepoResultEntity{Attributes: entity}
-	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
+	model := &types.ExampleEntityModel{
+		Data: []types.ExampleEntity{entity},
+		Solo: true,
+	}
+
+	result := model.Unmarshal()
 
 	return result, nil
 }
@@ -200,7 +203,7 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*types.RepoResult, error) {
+func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -249,15 +252,18 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*types.Re
 		return nil, err
 	}
 
-	// return new repo result from scanned entity
-	entityWrapper := types.RepoResultEntity{Attributes: entity}
-	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
+	model := &types.ExampleEntityModel{
+		Data: []types.ExampleEntity{entity},
+		Solo: true,
+	}
+
+	result := model.Unmarshal()
 
 	return result, nil
 }
 
 // List
-func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (*types.RepoResult, error) {
+func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -302,9 +308,10 @@ func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (*types
 	}
 	defer rows.Close()
 
-	// create new repo result
-	result := &types.RepoResult{
-		Data: make([]types.RepoResultEntity, 0),
+	// create new entity model
+	model := &types.ExampleEntityModel{
+		Data: make([]types.ExampleEntity, 0),
+		Solo: false,
 	}
 
 	// scan row data into new entities, appending to repo result
@@ -327,8 +334,7 @@ func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (*types
 			return nil, err
 		}
 
-		entityWrapper := types.RepoResultEntity{Attributes: entity}
-		result.Data = append(result.Data, entityWrapper)
+		model.Data = append(model.Data, entity)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -346,19 +352,21 @@ func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (*types
 	}
 
 	// populate repo result paging metadata
-	result.Metadata = types.RepoResultMetadata{
-		Paging: types.ListPaging{
+	model.Meta = &types.ModelMetadata{
+		Paging: types.PageMetadata{
 			Limit:  uint32(limit),
 			Offset: uint32(offset),
 			Total:  uint32(total),
 		},
 	}
 
+	result := model.Unmarshal()
+
 	return result, nil
 }
 
 // Update
-func (r *exampleRepository) Update(ctx context.Context, data any, id uuid.UUID) (*types.RepoResult, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *types.ExampleRequestData, id uuid.UUID) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -397,7 +405,7 @@ func (r *exampleRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 	}()
 
 	// gather data from request, handling for nullable fields
-	requestData := data.(*types.ExampleRequestData)
+	requestData := data
 
 	var (
 		description *string
@@ -441,9 +449,12 @@ func (r *exampleRepository) Update(ctx context.Context, data any, id uuid.UUID) 
 		return nil, err
 	}
 
-	// return new repo result from scanned entity
-	entityWrapper := types.RepoResultEntity{Attributes: entity}
-	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
+	model := &types.ExampleEntityModel{
+		Data: []types.ExampleEntity{entity},
+		Solo: true,
+	}
+
+	result := model.Unmarshal()
 
 	return result, nil
 }

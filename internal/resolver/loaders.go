@@ -5,16 +5,15 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/domain"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
 	repo "github.com/jasonsites/gosk-api/internal/repository"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Config provides a singleton config.Configuration instance
@@ -35,28 +34,67 @@ func (r *Resolver) Config() (*config.Configuration, error) {
 // Domain provides a singleton domain.Domain instance
 func (r *Resolver) Domain() (*domain.Domain, error) {
 	if r.domain == nil {
-		svcResource, err := domain.NewExampleService(&domain.ExampleServiceConfig{
-			Logger: &types.Logger{
-				Enabled: r.config.Logger.SvcExample.Enabled,
-				Level:   r.config.Logger.SvcExample.Level,
-				Log:     r.log,
-			},
-			Repo: r.exampleRepository,
-		})
+		services := &domain.Services{
+			Example: r.exampleService,
+		}
+
+		app, err := domain.NewDomain(services)
 		if err != nil {
-			err = errors.Errorf("error resolving domain resource service: %+v", err)
+			err = errors.Errorf("error resolving domain: %+v", err)
 			log.Error().Err(err).Send()
 			return nil, err
 		}
 
-		services := &domain.Services{
-			ResourceService: svcResource,
-		}
-
-		r.domain = domain.NewDomain(services)
+		r.domain = app
 	}
 
 	return r.domain, nil
+}
+
+// ExampleRepository provides a singleton repo.exampleRepository instance
+func (r *Resolver) ExampleRepository() (types.ExampleRepository, error) {
+	if r.exampleRepo == nil {
+		repo, err := repo.NewExampleRepository(&repo.ExampleRepoConfig{
+			DBClient: r.postgreSQLClient,
+			Logger: &types.Logger{
+				Enabled: r.config.Logger.Repo.Enabled,
+				Level:   r.config.Logger.Repo.Level,
+				Log:     r.log,
+			},
+		})
+		if err != nil {
+			err = errors.Errorf("error resolving example respository: %+v", err)
+			log.Error().Err(err).Send()
+			return nil, err
+		}
+
+		r.exampleRepo = repo
+	}
+
+	return r.exampleRepo, nil
+}
+
+// ExampleService provides a singleton domain.exampleService instance
+func (r *Resolver) ExampleService() (types.Service, error) {
+	if r.exampleService == nil {
+		svc, err := domain.NewExampleService(&domain.ExampleServiceConfig{
+			Logger: &types.Logger{
+				Enabled: r.config.Logger.Domain.Enabled,
+				Level:   r.config.Logger.Domain.Level,
+				Log:     r.log,
+			},
+			Repo: r.exampleRepo,
+		})
+		if err != nil {
+			err = errors.Errorf("error resolving example service: %+v", err)
+			log.Error().Err(err).Send()
+			return nil, err
+		}
+
+		r.exampleService = svc
+	}
+
+	return r.exampleService, nil
 }
 
 // HTTPServer provides a singleton httpapi.Server instance
@@ -128,11 +166,12 @@ func (r *Resolver) Metadata() (*Metadata, error) {
 func (r *Resolver) PostgreSQLClient() (*pgxpool.Pool, error) {
 	if r.postgreSQLClient == nil {
 		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
-			log.Printf("invalid postgres config: %v", err)
+			err = errors.Errorf("invalid postgres config: %+v", err)
+			log.Error().Err(err).Send()
 			return nil, err
 		}
 
-		client, err := pgxpool.New(r.context, postgresDSN(r.config.Postgres))
+		client, err := pgxpool.New(r.appContext, postgresDSN(r.config.Postgres))
 		if err != nil {
 			err = errors.Errorf("error resolving postgres client: %+v", err)
 			log.Error().Err(err).Send()
@@ -143,27 +182,4 @@ func (r *Resolver) PostgreSQLClient() (*pgxpool.Pool, error) {
 	}
 
 	return r.postgreSQLClient, nil
-}
-
-// ExampleRepository provides a singleton repository.exampleRepository instance
-func (r *Resolver) ExampleRepository() (types.Repository, error) {
-	if r.exampleRepository == nil {
-		repo, err := repo.NewExampleRepository(&repo.ExampleRepoConfig{
-			DBClient: r.postgreSQLClient,
-			Logger: &types.Logger{
-				Enabled: r.config.Logger.Repo.Enabled,
-				Level:   r.config.Logger.Repo.Level,
-				Log:     r.log,
-			},
-		})
-		if err != nil {
-			err = errors.Errorf("error resolving example repository: %+v", err)
-			log.Error().Err(err).Send()
-			return nil, err
-		}
-
-		r.exampleRepository = repo
-	}
-
-	return r.exampleRepository, nil
 }

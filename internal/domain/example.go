@@ -6,18 +6,19 @@ import (
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/pkg/errors"
 )
 
 // ExampleServiceConfig
 type ExampleServiceConfig struct {
-	Logger *types.Logger    `validate:"required"`
-	Repo   types.Repository `validate:"required"`
+	Logger *types.Logger           `validate:"required"`
+	Repo   types.ExampleRepository `validate:"required"`
 }
 
 // exampleService
 type exampleService struct {
 	logger *types.Logger
-	repo   types.Repository
+	repo   types.ExampleRepository
 }
 
 // NewExampleService
@@ -42,25 +43,24 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 }
 
 // Create
-func (s *exampleService) Create(ctx context.Context, data any) (*types.JSONResponseSolo, error) {
+func (s *exampleService) Create(ctx context.Context, data any) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	result, err := s.repo.Create(ctx, data.(*types.ExampleRequestData))
+	d, ok := data.(*types.ExampleRequestData)
+	if !ok {
+		err := errors.Errorf("error asserting data as types.ExampleRequestData")
+		log.Error().Err(err).Send()
+		return nil, err
+	}
+
+	model, err := s.repo.Create(ctx, d)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err
 	}
 
-	model := &types.Example{}
-	sr, err := model.SerializeResponse(result, true)
-	if err != nil {
-		log.Error().Err(err).Send()
-		return nil, err
-	}
-	res := sr.(*types.JSONResponseSolo)
-
-	return res, nil
+	return model, nil
 }
 
 // Delete
@@ -77,67 +77,43 @@ func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*types.JSONResponseSolo, error) {
+func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	result, err := s.repo.Detail(ctx, id)
+	model, err := s.repo.Detail(ctx, id)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err
 	}
 
-	model := &types.Example{}
-	sr, err := model.SerializeResponse(result, true)
-	if err != nil {
-		log.Error().Err(err).Send()
-		return nil, err
-	}
-	res := sr.(*types.JSONResponseSolo)
-
-	return res, nil
+	return model, nil
 }
 
 // List
-func (s *exampleService) List(ctx context.Context, q types.QueryData) (*types.JSONResponseMult, error) {
+func (s *exampleService) List(ctx context.Context, q types.QueryData) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	result, err := s.repo.List(ctx, q)
+	model, err := s.repo.List(ctx, q)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err
 	}
 
-	model := &types.Example{}
-	sr, err := model.SerializeResponse(result, false)
-	if err != nil {
-		log.Error().Err(err).Send()
-		return nil, err
-	}
-	res := sr.(*types.JSONResponseMult)
-
-	return res, nil
+	return model, nil
 }
 
 // Update
-func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*types.JSONResponseSolo, error) {
+func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	result, err := s.repo.Update(ctx, data.(*types.ExampleRequestData), id)
+	model, err := s.repo.Update(ctx, data.(*types.ExampleRequestData), id)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err
 	}
 
-	model := &types.Example{}
-	sr, err := model.SerializeResponse(result, true)
-	if err != nil {
-		log.Error().Err(err).Send()
-		return nil, err
-	}
-	res := sr.(*types.JSONResponseSolo)
-
-	return res, nil
+	return model, nil
 }

@@ -5,5 +5,6 @@ import (
 )
 
 func main() {
-	runtime.NewRuntime().Run(nil)
+	runconf := &runtime.RunConfig{HTTPServer: true}
+	runtime.NewRuntime(nil).Run(runconf)
 }

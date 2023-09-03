@@ -5,16 +5,15 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/domain"
 	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/jasonsites/gosk-api/internal/repo"
+	repo "github.com/jasonsites/gosk-api/internal/repository"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Config provides a singleton config.Configuration instance

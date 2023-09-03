@@ -2,11 +2,11 @@ package domain
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/pkg/errors"
 )
 
 // ExampleServiceConfig
@@ -27,7 +27,7 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With().Str("tags", "service,resource").Logger()
+	log := c.Logger.Log.With().Str("tags", "service,example").Logger()
 	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
@@ -47,11 +47,9 @@ func (s *exampleService) Create(ctx context.Context, data any) (types.DomainMode
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := s.logger.Log.With().Str("req_id", requestId).Logger()
 
-	fmt.Printf("data in CREATE: %+v\n", data)
-
 	d, ok := data.(*types.ExampleRequestData)
 	if !ok {
-		err := fmt.Errorf("error asserting data as types.ExampleRequestData")
+		err := errors.Errorf("error asserting data as types.ExampleRequestData")
 		log.Error().Err(err).Send()
 		return nil, err
 	}

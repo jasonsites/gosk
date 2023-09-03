@@ -17,7 +17,7 @@ import (
 )
 
 type controllerRegistry struct {
-	ResourceController *controllers.Controller
+	ExampleController *controllers.Controller
 }
 
 // configureMiddleware
@@ -86,8 +86,8 @@ func errorHandler(ctx *fiber.Ctx, err error) error {
 // registerControllers
 func registerControllers(logger *types.Logger, services *domain.Services) *controllerRegistry {
 	return &controllerRegistry{
-		ResourceController: controllers.NewController(&controllers.Config{
-			Service: services.ResourceService,
+		ExampleController: controllers.NewController(&controllers.Config{
+			Service: services.Example,
 			Logger:  logger,
 		}),
 	}
@@ -101,5 +101,5 @@ func (s *Server) registerRoutes() {
 
 	routes.BaseRouter(app, nil, ns)
 	routes.HealthRouter(app, nil, ns)
-	routes.ResourceRouter(app, c.ResourceController, ns)
+	routes.ExampleRouter(app, c.ExampleController, ns)
 }

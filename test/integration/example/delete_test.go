@@ -1,7 +1,6 @@
-package resourcetest
+package exampletest
 
 import (
-	"bytes"
 	"fmt"
 	"testing"
 
@@ -13,41 +12,39 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type UpdateSuite struct {
+type DeleteSuite struct {
 	suite.Suite
 	method   string
 	app      *fiber.App
 	db       *pgxpool.Pool
 	resolver *resolver.Resolver
-	record   *types.ResourceEntity
+	record   *types.ExampleEntity
 }
 
-func TestUpdateSuite(t *testing.T) {
-	suite.Run(t, &UpdateSuite{})
+func TestDeleteSuite(t *testing.T) {
+	suite.Run(t, &DeleteSuite{})
 }
 
 // SetupSuite runs setup before all suite tests
-func (s *UpdateSuite) SetupSuite() {
-	s.T().Log("SetupSuite")
-
+func (s *DeleteSuite) SetupSuite() {
 	app, db, resolver, err := utils.InitializeApp(nil)
 	if err != nil {
 		s.T().Log(err)
 	}
 
-	s.method = "PUT"
+	s.method = "DELETE"
 	s.app = app
 	s.db = db
 	s.resolver = resolver
 }
 
 // TearDownSuite runs teardown after all suite tests
-func (s *UpdateSuite) TearDownSuite() {
-	s.T().Log("TearDownSuite")
+func (s *DeleteSuite) TearDownSuite() {
+	//
 }
 
 // SetupTest runs setup before each test
-func (s *UpdateSuite) SetupTest() {
+func (s *DeleteSuite) SetupTest() {
 	record, err := insertRecord(s.db)
 	if err != nil {
 		s.T().Log(err)
@@ -56,38 +53,22 @@ func (s *UpdateSuite) SetupTest() {
 }
 
 // TearDownTest runs teardown after each test
-func (s *UpdateSuite) TearDownTest() {
+func (s *DeleteSuite) TearDownTest() {
 	utils.Cleanup(s.resolver)
 }
 
-func (s *UpdateSuite) TestResourceUpdate() {
+func (s *DeleteSuite) TestResourceDelete() {
 	tests := []utils.Setup{
 		{
-			Description: "resource update succeeds (200) with valid payload",
+			Description: "resource delete succeeds (204)",
 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-			Request: utils.Request{
-				Body: bytes.NewBuffer([]byte(fmt.Sprintf(`{
-					"data": {
-						"type": "resource",
-						"id": "%s",
-						"properties": {
-							"title": "Resource Title",
-							"description": "Updated resource description",
-							"enabled": true,
-							"status": 1
-						}
-					}
-				}`, s.record.ID.String()))),
-				Headers: map[string]string{
-					"Content-Type": "application/json",
-				},
-			},
-			Expected: utils.Expected{Code: 200},
+			Request:     utils.Request{},
+			Expected:    utils.Expected{Code: 204},
 		},
 	}
 
 	for _, test := range tests {
-		req := utils.SetRequestData(s.method, test.Route, test.Request.Body, test.Request.Headers)
+		req := utils.SetRequestData(s.method, test.Route, nil, nil)
 		msTimeout := 1000
 
 		res, err := s.app.Test(req, msTimeout)

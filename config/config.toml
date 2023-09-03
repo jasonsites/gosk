@@ -32,6 +32,6 @@ password = "postgres"
 port = 5432
 user = "postgres"
 
-[services.example]
+[external.services.example]
 baseURL = "http://www.google.com"
 timeout = 25000

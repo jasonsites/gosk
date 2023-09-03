@@ -1,4 +1,4 @@
-package resourcetest
+package exampletest
 
 import (
 	"testing"
@@ -17,7 +17,7 @@ type ListSuite struct {
 	app      *fiber.App
 	db       *pgxpool.Pool
 	resolver *resolver.Resolver
-	records  []*types.ResourceEntity
+	records  []*types.ExampleEntity
 }
 
 func TestListSuite(t *testing.T) {
@@ -44,7 +44,7 @@ func (s *ListSuite) TearDownSuite() {
 
 // SetupTest runs setup before each test
 func (s *ListSuite) SetupTest() {
-	records := make([]*types.ResourceEntity, 0, 4)
+	records := make([]*types.ExampleEntity, 0, 4)
 
 	for range records {
 		record, err := insertRecord(s.db)

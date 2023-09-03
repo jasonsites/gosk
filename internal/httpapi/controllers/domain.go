@@ -50,8 +50,14 @@ func (c *Controller) Create(f func() *types.JSONRequestBody) fiber.Handler {
 			return nil
 		}
 
-		model := resource.Data.Properties
-		result, err := c.service.Create(ctx.Context(), model)
+		data := resource.Data.Attributes
+		model, err := c.service.Create(ctx.Context(), data)
+		if err != nil {
+			log.Error().Err(err).Send()
+			return err
+		}
+
+		result, err := model.Serialize()
 		if err != nil {
 			log.Error().Err(err).Send()
 			return err
@@ -98,7 +104,13 @@ func (c *Controller) Detail() fiber.Handler {
 			return err
 		}
 
-		result, err := c.service.Detail(ctx.Context(), uuid)
+		model, err := c.service.Detail(ctx.Context(), uuid)
+		if err != nil {
+			log.Error().Err(err).Send()
+			return err
+		}
+
+		result, err := model.Serialize()
 		if err != nil {
 			log.Error().Err(err).Send()
 			return err
@@ -119,7 +131,13 @@ func (c *Controller) List() fiber.Handler {
 		qs := ctx.Request().URI().QueryString()
 		query := parseQuery(qs)
 
-		result, err := c.service.List(ctx.Context(), *query)
+		model, err := c.service.List(ctx.Context(), *query)
+		if err != nil {
+			log.Error().Err(err).Send()
+			return err
+		}
+
+		result, err := model.Serialize()
 		if err != nil {
 			log.Error().Err(err).Send()
 			return err
@@ -156,8 +174,14 @@ func (c *Controller) Update(f func() *types.JSONRequestBody) fiber.Handler {
 			return nil
 		}
 
-		model := resource.Data.Properties // TODO: problem here with ID
-		result, err := c.service.Update(ctx.Context(), model, id)
+		data := resource.Data.Attributes // TODO: problem here with ID
+		model, err := c.service.Update(ctx.Context(), data, id)
+		if err != nil {
+			log.Error().Err(err).Send()
+			return err
+		}
+
+		result, err := model.Serialize()
 		if err != nil {
 			log.Error().Err(err).Send()
 			return err

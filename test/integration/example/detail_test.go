@@ -1,4 +1,4 @@
-package resourcetest
+package exampletest
 
 import (
 	"fmt"
@@ -12,39 +12,39 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type DeleteSuite struct {
+type DetailSuite struct {
 	suite.Suite
 	method   string
 	app      *fiber.App
 	db       *pgxpool.Pool
 	resolver *resolver.Resolver
-	record   *types.ResourceEntity
+	record   *types.ExampleEntity
 }
 
-func TestDeleteSuite(t *testing.T) {
-	suite.Run(t, &DeleteSuite{})
+func TestDetailSuite(t *testing.T) {
+	suite.Run(t, &DetailSuite{})
 }
 
 // SetupSuite runs setup before all suite tests
-func (s *DeleteSuite) SetupSuite() {
+func (s *DetailSuite) SetupSuite() {
 	app, db, resolver, err := utils.InitializeApp(nil)
 	if err != nil {
 		s.T().Log(err)
 	}
 
-	s.method = "DELETE"
+	s.method = "GET"
 	s.app = app
 	s.db = db
 	s.resolver = resolver
 }
 
 // TearDownSuite runs teardown after all suite tests
-func (s *DeleteSuite) TearDownSuite() {
+func (s *DetailSuite) TearDownSuite() {
 	//
 }
 
 // SetupTest runs setup before each test
-func (s *DeleteSuite) SetupTest() {
+func (s *DetailSuite) SetupTest() {
 	record, err := insertRecord(s.db)
 	if err != nil {
 		s.T().Log(err)
@@ -53,17 +53,17 @@ func (s *DeleteSuite) SetupTest() {
 }
 
 // TearDownTest runs teardown after each test
-func (s *DeleteSuite) TearDownTest() {
+func (s *DetailSuite) TearDownTest() {
 	utils.Cleanup(s.resolver)
 }
 
-func (s *DeleteSuite) TestResourceDelete() {
+func (s *DetailSuite) TestResourceDetail() {
 	tests := []utils.Setup{
 		{
-			Description: "resource delete succeeds (204)",
+			Description: "resource detail succeeds (200)",
 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
 			Request:     utils.Request{},
-			Expected:    utils.Expected{Code: 204},
+			Expected:    utils.Expected{Code: 200},
 		},
 	}
 

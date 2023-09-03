@@ -8,11 +8,11 @@ import (
 
 // Configuration defines app configuration on startup
 type Configuration struct {
+	External External `validate:"required"`
 	HttpAPI  HttpAPI  `validate:"required"`
 	Logger   Logger   `validate:"required"`
 	Metadata Metadata `validate:"required"`
 	Postgres Postgres `validate:"required"`
-	Services Services `validate:"required"`
 }
 
 type HttpAPI struct {
@@ -24,10 +24,10 @@ type HttpAPI struct {
 }
 
 type Logger struct {
-	App        LoggerConfig `validate:"required"`
-	Http       LoggerConfig `validate:"required"`
-	Repo       LoggerConfig `validate:"required"`
-	SvcExample LoggerConfig `validate:"required"`
+	App    LoggerConfig `validate:"required"`
+	Domain LoggerConfig `validate:"required"`
+	Http   LoggerConfig `validate:"required"`
+	Repo   LoggerConfig `validate:"required"`
 }
 
 type LoggerConfig struct {
@@ -47,11 +47,11 @@ type Postgres struct {
 	User     string `validate:"required"`
 }
 
-type Services struct {
-	Example ServiceConfig
+type External struct {
+	Example ExternalServiceConfig
 }
 
-type ServiceConfig struct {
+type ExternalServiceConfig struct {
 	BaseURL string
 	Timeout uint
 }
@@ -133,12 +133,12 @@ func LoadConfiguration() (*Configuration, error) {
 		log.Fatalf("error binding env var `POSTGRES_USER`: %v", err)
 	}
 
-	// service - example
-	if err := viper.BindEnv("services.example.baseURL", "SVC_EXAMPLE_BASEURL"); err != nil {
-		log.Fatalf("error binding env var `SVC_EXAMPLE_BASEURL`: %v", err)
+	// external service - example
+	if err := viper.BindEnv("external.services.example.baseURL", "EXTSVC_EXAMPLE_BASEURL"); err != nil {
+		log.Fatalf("error binding env var `EXTSVC_EXAMPLE_BASEURL`: %v", err)
 	}
-	if err := viper.BindEnv("services.example.timeout", "SVC_EXAMPLE_TIMEOUT"); err != nil {
-		log.Fatalf("error binding env var `SVC_EXAMPLE_TIMEOUT`: %v", err)
+	if err := viper.BindEnv("external.services.example.timeout", "EXTSVC_EXAMPLE_TIMEOUT"); err != nil {
+		log.Fatalf("error binding env var `EXTSVC_EXAMPLE_TIMEOUT`: %v", err)
 	}
 
 	// read and unmarshal config

@@ -8,18 +8,17 @@ import (
 
 // DomainModel defines the interface for all domain models
 type DomainModel interface {
-	// Discoverable
 	ResponseSerializer
 }
 
 // DomainRegistry defines a registry for all domain types to be used across the application
 type DomainRegistry struct {
-	Resource string
+	Example string
 }
 
 // DomainType exposes constants for all domain types
 var DomainType = DomainRegistry{
-	Resource: "resource",
+	Example: "example",
 }
 
 // TODO
@@ -31,7 +30,7 @@ type Discoverable interface {
 // TODO
 // ResponseSerializer defines the interface for all types that serialize to JSON response
 type ResponseSerializer interface {
-	SerializeResponse(any, bool) (JSONResponse, error)
+	Serialize() (JSONResponse, error)
 }
 
 // Service
@@ -44,7 +43,7 @@ type Service interface {
 }
 
 type ServiceCreator interface {
-	Create(context.Context, any) (*JSONResponseSolo, error)
+	Create(context.Context, any) (DomainModel, error)
 }
 
 type ServiceDeleter interface {
@@ -52,13 +51,13 @@ type ServiceDeleter interface {
 }
 
 type ServiceDetailRetriever interface {
-	Detail(context.Context, uuid.UUID) (*JSONResponseSolo, error)
+	Detail(context.Context, uuid.UUID) (DomainModel, error)
 }
 
 type ServiceListRetriever interface {
-	List(context.Context, QueryData) (*JSONResponseMult, error)
+	List(context.Context, QueryData) (DomainModel, error)
 }
 
 type ServiceUpdater interface {
-	Update(context.Context, any, uuid.UUID) (*JSONResponseSolo, error)
+	Update(context.Context, any, uuid.UUID) (DomainModel, error)
 }

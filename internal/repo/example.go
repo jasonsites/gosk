@@ -11,14 +11,14 @@ import (
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
-// resourceEntityDefinition
-type resourceEntityDefinition struct {
-	Field resourceEntityFields
+// exampleEntityDefinition
+type exampleEntityDefinition struct {
+	Field exampleEntityFields
 	Name  string
 }
 
-// resourceEntityFields
-type resourceEntityFields struct {
+// exampleEntityFields
+type exampleEntityFields struct {
 	CreatedBy   string
 	CreatedOn   string
 	Deleted     string
@@ -31,10 +31,10 @@ type resourceEntityFields struct {
 	Title       string
 }
 
-// resourceEntity
-var resourceEntity = resourceEntityDefinition{
-	Name: "resource_entity",
-	Field: resourceEntityFields{
+// exampleEntity
+var exampleEntity = exampleEntityDefinition{
+	Name: "example_entity",
+	Field: exampleEntityFields{
 		CreatedBy:   "created_by",
 		CreatedOn:   "created_on",
 		Deleted:     "deleted",
@@ -48,34 +48,34 @@ var resourceEntity = resourceEntityDefinition{
 	},
 }
 
-// ResourceRepoConfig defines the input to NewResourceRepository
-type ResourceRepoConfig struct {
+// ExampleRepoConfig defines the input to NewExampleRepository
+type ExampleRepoConfig struct {
 	DBClient *pgxpool.Pool `validate:"required"`
 	Logger   *types.Logger `validate:"required"`
 }
 
-// resourceRepository
-type resourceRepository struct {
-	Entity resourceEntityDefinition
+// exampleRepository
+type exampleRepository struct {
+	Entity exampleEntityDefinition
 	db     *pgxpool.Pool
 	logger *types.Logger
 }
 
-// NewResourceRepository
-func NewResourceRepository(c *ResourceRepoConfig) (*resourceRepository, error) {
+// NewExampleRepository
+func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 	if err := validation.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With().Str("tags", "repo,resource").Logger()
+	log := c.Logger.Log.With().Str("tags", "repo,example").Logger()
 	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
 	}
 
-	repo := &resourceRepository{
-		Entity: resourceEntity,
+	repo := &exampleRepository{
+		Entity: exampleEntity,
 		db:     c.DBClient,
 		logger: logger,
 	}
@@ -84,7 +84,7 @@ func NewResourceRepository(c *ResourceRepoConfig) (*resourceRepository, error) {
 }
 
 // Create
-func (r *resourceRepository) Create(ctx context.Context, data any) (*types.RepoResult, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *types.ExampleRequestData) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -122,7 +122,7 @@ func (r *resourceRepository) Create(ctx context.Context, data any) (*types.RepoR
 	}()
 
 	// gather data from request, handling for nullable fields
-	requestData := data.(*types.ResourceRequestData)
+	requestData := data
 
 	var (
 		createdBy   = 9999 // TODO: temp mock for user id
@@ -138,7 +138,7 @@ func (r *resourceRepository) Create(ctx context.Context, data any) (*types.RepoR
 	}
 
 	// create new entity for db row scan and execute query
-	entity := types.ResourceEntity{}
+	entity := types.ExampleEntity{}
 	if err := r.db.QueryRow(
 		ctx,
 		query,
@@ -164,15 +164,18 @@ func (r *resourceRepository) Create(ctx context.Context, data any) (*types.RepoR
 		return nil, err
 	}
 
-	// return new repo result from scanned entity
-	entityWrapper := types.RepoResultEntity{Attributes: entity}
-	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
+	model := &types.ExampleEntityModel{
+		Data: []types.ExampleEntity{entity},
+		Solo: true,
+	}
+
+	result := model.Unmarshal()
 
 	return result, nil
 }
 
 // Delete
-func (r *resourceRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -190,7 +193,7 @@ func (r *resourceRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	}()
 
 	// create new entity for db row scan and execute query
-	entity := types.ResourceEntity{}
+	entity := types.ExampleEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
 		log.Error().Err(err).Send()
 		return err
@@ -200,7 +203,7 @@ func (r *resourceRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (r *resourceRepository) Detail(ctx context.Context, id uuid.UUID) (*types.RepoResult, error) {
+func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -229,7 +232,7 @@ func (r *resourceRepository) Detail(ctx context.Context, id uuid.UUID) (*types.R
 	}()
 
 	// create new entity for db row scan and execute query
-	entity := types.ResourceEntity{}
+	entity := types.ExampleEntity{}
 	if scanErr := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
 		&entity.CreatedOn,
@@ -249,15 +252,18 @@ func (r *resourceRepository) Detail(ctx context.Context, id uuid.UUID) (*types.R
 		return nil, err
 	}
 
-	// return new repo result from scanned entity
-	entityWrapper := types.RepoResultEntity{Attributes: entity}
-	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
+	model := &types.ExampleEntityModel{
+		Data: []types.ExampleEntity{entity},
+		Solo: true,
+	}
+
+	result := model.Unmarshal()
 
 	return result, nil
 }
 
 // List
-func (r *resourceRepository) List(ctx context.Context, q types.QueryData) (*types.RepoResult, error) {
+func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -302,14 +308,15 @@ func (r *resourceRepository) List(ctx context.Context, q types.QueryData) (*type
 	}
 	defer rows.Close()
 
-	// create new repo result
-	result := &types.RepoResult{
-		Data: make([]types.RepoResultEntity, 0),
+	// create new entity model
+	model := &types.ExampleEntityModel{
+		Data: make([]types.ExampleEntity, 0),
+		Solo: false,
 	}
 
 	// scan row data into new entities, appending to repo result
 	for rows.Next() {
-		entity := types.ResourceEntity{}
+		entity := types.ExampleEntity{}
 
 		if err := rows.Scan(
 			&entity.CreatedBy,
@@ -327,8 +334,7 @@ func (r *resourceRepository) List(ctx context.Context, q types.QueryData) (*type
 			return nil, err
 		}
 
-		entityWrapper := types.RepoResultEntity{Attributes: entity}
-		result.Data = append(result.Data, entityWrapper)
+		model.Data = append(model.Data, entity)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -346,19 +352,21 @@ func (r *resourceRepository) List(ctx context.Context, q types.QueryData) (*type
 	}
 
 	// populate repo result paging metadata
-	result.Metadata = types.RepoResultMetadata{
-		Paging: types.ListPaging{
+	model.Meta = &types.ModelMetadata{
+		Paging: types.PageMetadata{
 			Limit:  uint32(limit),
 			Offset: uint32(offset),
 			Total:  uint32(total),
 		},
 	}
 
+	result := model.Unmarshal()
+
 	return result, nil
 }
 
 // Update
-func (r *resourceRepository) Update(ctx context.Context, data any, id uuid.UUID) (*types.RepoResult, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *types.ExampleRequestData, id uuid.UUID) (types.DomainModel, error) {
 	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
 	log := r.logger.Log.With().Str("req_id", requestId).Logger()
 
@@ -397,7 +405,7 @@ func (r *resourceRepository) Update(ctx context.Context, data any, id uuid.UUID)
 	}()
 
 	// gather data from request, handling for nullable fields
-	requestData := data.(*types.ResourceRequestData)
+	requestData := data
 
 	var (
 		description *string
@@ -414,7 +422,7 @@ func (r *resourceRepository) Update(ctx context.Context, data any, id uuid.UUID)
 	}
 
 	// create new entity for db row scan and execute query
-	entity := types.ResourceEntity{}
+	entity := types.ExampleEntity{}
 	if err := r.db.QueryRow(
 		ctx,
 		query,
@@ -441,9 +449,12 @@ func (r *resourceRepository) Update(ctx context.Context, data any, id uuid.UUID)
 		return nil, err
 	}
 
-	// return new repo result from scanned entity
-	entityWrapper := types.RepoResultEntity{Attributes: entity}
-	result := &types.RepoResult{Data: []types.RepoResultEntity{entityWrapper}}
+	model := &types.ExampleEntityModel{
+		Data: []types.ExampleEntity{entity},
+		Solo: true,
+	}
+
+	result := model.Unmarshal()
 
 	return result, nil
 }

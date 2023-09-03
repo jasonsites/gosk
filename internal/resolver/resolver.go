@@ -15,11 +15,12 @@ import (
 type Config struct {
 	Config           *config.Configuration
 	Domain           *domain.Domain
+	ExampleRepo      types.ExampleRepository
+	ExampleService   types.Service
 	HTTPServer       *httpapi.Server
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *pgxpool.Pool
-	RepoResource     types.Repository
 }
 
 // Application metadata
@@ -30,14 +31,15 @@ type Metadata struct {
 
 // Resolver provides singleton instances of app components
 type Resolver struct {
+	appContext       context.Context
 	config           *config.Configuration
-	context          context.Context
 	domain           *domain.Domain
+	exampleRepo      types.ExampleRepository
+	exampleService   types.Service
 	httpServer       *httpapi.Server
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *pgxpool.Pool
-	repoResource     types.Repository
 }
 
 // NewResolver returns a new Resolver instance
@@ -47,14 +49,15 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 	}
 
 	r := &Resolver{
+		appContext:       ctx,
 		config:           c.Config,
-		context:          ctx,
 		domain:           c.Domain,
+		exampleRepo:      c.ExampleRepo,
+		exampleService:   c.ExampleService,
 		httpServer:       c.HTTPServer,
 		log:              c.Log,
 		metadata:         c.Metadata,
 		postgreSQLClient: c.PostgreSQLClient,
-		repoResource:     c.RepoResource,
 	}
 
 	return r
@@ -74,7 +77,10 @@ func (r *Resolver) Initialize() error {
 	if _, err := r.PostgreSQLClient(); err != nil {
 		return err
 	}
-	if _, err := r.RepositoryResource(); err != nil {
+	if _, err := r.ExampleRepository(); err != nil {
+		return err
+	}
+	if _, err := r.ExampleService(); err != nil {
 		return err
 	}
 	if _, err := r.Domain(); err != nil {

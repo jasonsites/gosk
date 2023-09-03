@@ -1,4 +1,4 @@
-package resourcetest
+package exampletest
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 const routePrefix = "/domain/resources"
 
 // insertRecord inserts a db record for use in test setup
-func insertRecord(db *pgxpool.Pool) (*types.ResourceEntity, error) {
+func insertRecord(db *pgxpool.Pool) (*types.ExampleEntity, error) {
 	var (
 		statement    = "INSERT INTO %s %s VALUES %s RETURNING id"
 		name         = "resource_entity"
@@ -30,7 +30,7 @@ func insertRecord(db *pgxpool.Pool) (*types.ResourceEntity, error) {
 	)
 
 	// create new entity for db row scan and execute query
-	entity := &types.ResourceEntity{}
+	entity := &types.ExampleEntity{}
 	if err := db.QueryRow(
 		context.Background(),
 		query,

@@ -8,3 +8,8 @@ type Logger struct {
 	Level   string
 	Log     *zerolog.Logger
 }
+
+// CreateContextLogger returns a new child logger with attached trace ID
+func (l *Logger) CreateContextLogger(traceID string) zerolog.Logger {
+	return l.Log.With().Str(string(TraceIDContextKey), traceID).Logger()
+}

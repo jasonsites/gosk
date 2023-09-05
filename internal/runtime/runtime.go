@@ -62,13 +62,13 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 		log.Info().Msg("shutdown initiated")
 
 		if conf.HTTPServer {
-			server, err := r.HTTPServer()
-			if err != nil {
-				return err
-			}
-			if err := server.App.Shutdown(); err != nil {
-				return err
-			}
+			// server, err := r.HTTPServer()
+			// if err != nil {
+			// 	return err
+			// }
+			// if err := server.App.Shutdown(); err != nil {
+			// 	return err
+			// }
 			log.Info().Msg("http server shut down")
 		}
 

@@ -44,8 +44,8 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 
 // Create
 func (s *exampleService) Create(ctx context.Context, data any) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := s.logger.CreateContextLogger(traceID)
 
 	d, ok := data.(*types.ExampleRequestData)
 	if !ok {
@@ -65,8 +65,8 @@ func (s *exampleService) Create(ctx context.Context, data any) (types.DomainMode
 
 // Delete
 func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := s.logger.CreateContextLogger(traceID)
 
 	if err := s.repo.Delete(ctx, id); err != nil {
 		log.Error().Err(err).Send()
@@ -78,8 +78,8 @@ func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 
 // Detail
 func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := s.logger.CreateContextLogger(traceID)
 
 	model, err := s.repo.Detail(ctx, id)
 	if err != nil {
@@ -92,8 +92,8 @@ func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (types.Domain
 
 // List
 func (s *exampleService) List(ctx context.Context, q types.QueryData) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := s.logger.CreateContextLogger(traceID)
 
 	model, err := s.repo.List(ctx, q)
 	if err != nil {
@@ -106,8 +106,8 @@ func (s *exampleService) List(ctx context.Context, q types.QueryData) (types.Dom
 
 // Update
 func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := s.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := s.logger.CreateContextLogger(traceID)
 
 	model, err := s.repo.Update(ctx, data.(*types.ExampleRequestData), id)
 	if err != nil {

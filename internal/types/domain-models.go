@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -33,18 +34,24 @@ type ExampleDomainObjectAttributes struct {
 }
 
 // SerializeResponse
-func (m *ExampleDomainModel) Serialize() (JSONResponse, error) {
+func (m *ExampleDomainModel) Serialize() ([]byte, error) {
+	var result []byte
+
 	// single resource response
 	if m.Solo {
 		resource := serializeResource(&m.Data[0])
-		result := &JSONResponseSolo{Data: resource}
+		response := &JSONResponseSolo{Data: resource}
+		result, err := json.Marshal(response)
+		if err != nil {
+			return nil, err
+		}
 
 		return result, nil
 	}
 
 	// multiple resource response
 	meta := &APIMetadata{
-		Paging: ListPaging{
+		Paging: PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
 			Total:  m.Meta.Paging.Total,
@@ -52,15 +59,17 @@ func (m *ExampleDomainModel) Serialize() (JSONResponse, error) {
 	}
 
 	data := make([]ResponseResource, 0)
-	// TODO: go routine
 	for _, domo := range m.Data {
 		resource := serializeResource(&domo)
 		data = append(data, resource)
 	}
-
-	result := &JSONResponseMult{
+	response := &JSONResponseMult{
 		Meta: meta,
 		Data: data,
+	}
+	result, err := json.Marshal(response)
+	if err != nil {
+		return nil, err
 	}
 
 	return result, nil

@@ -1,36 +1,36 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/go-chi/chi/v5"
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
+	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // BaseRouter only exists to easily verify a working app and should normally be removed
-func BaseRouter(r *fiber.App, c *ctrl.Controller, ns string) {
-	prefix := "/" + ns
-	g := r.Group(prefix)
+func BaseRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
+	prefix := fmt.Sprintf("/%s", ns)
 
-	get := func(ctx *fiber.Ctx) error {
-		headers := ctx.GetReqHeaders()
-		host := ctx.Hostname()
-		path := ctx.Path()
-		remoteAddress := ctx.Context().RemoteAddr()
+	get := func(w http.ResponseWriter, r *http.Request) {
+		headers := r.Header
+		host := r.Host
+		path := r.URL.Path
+		remoteAddress := r.RemoteAddr
 
-		ctx.Status(http.StatusOK)
-		ctx.JSON(fiber.Map{
+		c.WriteJSON(w, http.StatusOK, types.Map{
 			"data": "base router is working...",
-			"request": fiber.Map{
+			"request": types.Map{
 				"headers":       headers,
 				"host":          host,
 				"path":          path,
 				"remoteAddress": remoteAddress,
 			},
 		})
-
-		return nil
 	}
 
-	g.Get("/", get)
+	r.Route(prefix, func(r chi.Router) {
+		r.Get("/", get)
+	})
 }

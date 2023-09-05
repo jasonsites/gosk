@@ -1,45 +1,66 @@
 package middleware
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
+	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/rs/zerolog"
 )
 
+// ExtendedResponseWriter extends gin.ResponseWriter with a bytes.Buffer to capture the response body
+type ExtendedResponseWriter struct {
+	http.ResponseWriter
+	BodyLogBuffer *bytes.Buffer
+}
+
+// Write extends ResponseWriter.Write by first capturing response body to the ExtendedResponseWriter.BodyLogBuffer
+func (erw *ExtendedResponseWriter) Write(b []byte) (int, error) {
+	erw.BodyLogBuffer.Write(b)
+	return erw.ResponseWriter.Write(b)
+}
+
 // ResponseLoggerConfig defines necessary components for the response logger middleware
 type ResponseLoggerConfig struct {
 	Logger *types.Logger
-	Next   func(c *fiber.Ctx) bool
+	Next   func(r *http.Request) bool
 }
 
 // ResponseLogger returns the response logger middleware
-func ResponseLogger(config *ResponseLoggerConfig) fiber.Handler {
+func ResponseLogger(config *ResponseLoggerConfig) func(http.Handler) http.Handler {
 	conf := setResponseLoggerConfig(config)
 	logger := conf.Logger
 
-	return func(ctx *fiber.Ctx) error {
-		if conf.Next != nil && conf.Next(ctx) {
-			return ctx.Next()
-		}
-
-		// TODO: ensure upstream errors are not masked by possible log errors (json marshalling)
-		if err := ctx.Next(); err != nil {
-			if logError := logResponse(ctx, logger); logError != nil {
-				return logError
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if conf.Next != nil && conf.Next(r) {
+				next.ServeHTTP(w, r)
+				return
 			}
-			return err
-		}
 
-		if logError := logResponse(ctx, logger); logError != nil {
-			return logError
-		}
+			start := time.Now()
 
-		return nil
+			erw := &ExtendedResponseWriter{
+				BodyLogBuffer:  bytes.NewBufferString(""),
+				ResponseWriter: w,
+			}
+			w = erw
+
+			// TODO: ensure upstream errors are not masked by possible log errors (json marshalling)
+			next.ServeHTTP(w, r)
+
+			rt := calcResponseTime(start)
+			erw.Header().Set("X-Response-Time", rt)
+
+			if err := logResponse(erw, r, logger, rt); err != nil {
+				logger.Log.Error().Err(err)
+				return
+			}
+		})
 	}
 }
 
@@ -48,27 +69,23 @@ func setResponseLoggerConfig(c *ResponseLoggerConfig) *ResponseLoggerConfig {
 	if c.Logger == nil {
 		log.Panicf("request logger middleware missing logger configuration")
 	}
+
 	return c
 }
 
 // logResponse logs the captured response data
-func logResponse(ctx *fiber.Ctx, logger *types.Logger) error {
+func logResponse(erw *ExtendedResponseWriter, r *http.Request, logger *types.Logger, rt string) error {
 	if logger.Enabled {
-		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
-		log := logger.Log.With().Str("req_id", requestID).Logger()
+		traceID := types.GetTraceIDFromContext(r.Context())
+		log := logger.CreateContextLogger(traceID)
 
-		var body []byte
-		if len(ctx.Response().Body()) > 0 {
-			body = ctx.Response().Body()
-		}
-
-		headers, err := json.Marshal(ctx.GetRespHeaders())
+		body := erw.BodyLogBuffer.Bytes()
+		headers, err := json.Marshal(erw.Header())
 		if err != nil {
-			log.Error().Err(err).Msg("error marshalling response headers")
-			return err
+			log.Error().Err(err)
 		}
 
-		data := newResponseLogData(ctx, body, headers)
+		data := newResponseLogData(erw, r, body, headers, rt)
 		event := newResponseLogEvent(data, logger.Level, log)
 		event.Send()
 	}
@@ -76,7 +93,7 @@ func logResponse(ctx *fiber.Ctx, logger *types.Logger) error {
 	return nil
 }
 
-// responseLogData defines the data captured for response logging
+// ResponseLogData defines the data captured for response logging
 type ResponseLogData struct {
 	Body         []byte
 	BodySize     int
@@ -85,18 +102,20 @@ type ResponseLogData struct {
 	Status       int
 }
 
-// newResponseLogData captures relevant data from the response
-func newResponseLogData(ctx *fiber.Ctx, body, headers []byte) *ResponseLogData {
-	start := ctx.Locals("RequestLogData").(*RequestLogData).Start
+func calcResponseTime(start time.Time) string {
 	elapsed := time.Since(start).Milliseconds()
-	rt := strconv.FormatInt(int64(elapsed), 10) + "ms"
+	return strconv.FormatInt(int64(elapsed), 10) + "ms"
+}
+
+// newResponseLogData captures relevant data from the response
+func newResponseLogData(w *ExtendedResponseWriter, r *http.Request, body, headers []byte, rt string) *ResponseLogData {
 
 	return &ResponseLogData{
 		Body:         body,
 		BodySize:     len(body),
 		Headers:      headers,
 		ResponseTime: rt,
-		Status:       ctx.Response().StatusCode(),
+		Status:       200, // TODO
 	}
 }
 

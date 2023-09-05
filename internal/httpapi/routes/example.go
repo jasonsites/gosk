@@ -1,16 +1,16 @@
 package routes
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"fmt"
 
+	"github.com/go-chi/chi/v5"
 	ctrl "github.com/jasonsites/gosk-api/internal/httpapi/controllers"
 	"github.com/jasonsites/gosk-api/internal/types"
 )
 
 // ExampleRouter implements a router group for an Example resource
-func ExampleRouter(r *fiber.App, c *ctrl.Controller, ns string) {
-	prefix := "/" + ns + "/examples"
-	g := r.Group(prefix)
+func ExampleRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
+	prefix := fmt.Sprintf("/%s/examples", ns)
 
 	// createResource provides a JSONRequestBody with data binding for the Example model
 	// for use with Create/Update Controller methods
@@ -22,9 +22,12 @@ func ExampleRouter(r *fiber.App, c *ctrl.Controller, ns string) {
 		}
 	}
 
-	g.Get("/", c.List())
-	g.Get("/:id", c.Detail())
-	g.Post("/", c.Create(createResource))
-	g.Put("/:id", c.Update(createResource))
-	g.Delete("/:id", c.Delete())
+	r.Route(prefix, func(r chi.Router) {
+		// r.With(httpin.NewInput(ListUserReposInput{})).Get("/", c.List())
+		r.Get("/", c.List())
+		r.Get("/{id}", c.Detail())
+		r.Post("/", c.Create(createResource))
+		r.Put("/{id}", c.Update(createResource))
+		r.Delete("/{id}", c.Delete())
+	})
 }

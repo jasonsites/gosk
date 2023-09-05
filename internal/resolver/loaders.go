@@ -97,10 +97,10 @@ func (r *Resolver) ExampleService() (types.Service, error) {
 	return r.exampleService, nil
 }
 
-// HTTPServer provides a singleton httpapi.Server instance
-func (r *Resolver) HTTPServer() (*httpapi.Server, error) {
+// HTTPServer provides a singleton httpapi.HTTPServer instance
+func (r *Resolver) HTTPServer() (*httpapi.HTTPServer, error) {
 	if r.httpServer == nil {
-		server, err := httpapi.NewServer(&httpapi.Config{
+		server, err := httpapi.NewServer(&httpapi.HTTPServerConfig{
 			BaseURL: r.config.HttpAPI.BaseURL,
 			Domain:  r.domain,
 			Logger: &types.Logger{

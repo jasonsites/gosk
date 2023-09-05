@@ -2,6 +2,8 @@ package types
 
 import "github.com/google/uuid"
 
+type Map map[string]any
+
 // JSON Request -----------------------------------------------------------------------------------
 
 // JSONRequestBody
@@ -33,6 +35,11 @@ type QueryData struct {
 	Options QueryOptions `query:"o"`
 	Paging  QueryPaging  `query:"p"`
 	Sorting QuerySorting `query:"s"`
+
+	// Token    string `in:"query=access_token;header=x-access-token"`
+	// Page     int    `in:"query=page;default=1"`
+	// PerPage  int    `in:"query=per_page;default=20"`
+	// IsMember bool   `in:"query=is_member"`
 }
 
 // QueryFilters defines the filter-related query paramaters
@@ -65,30 +72,15 @@ type QuerySorting struct {
 
 // Response ---------------------------------------------------------------------------------------
 
-// JSONResponse defines the interface for a JSON serialized response
-type JSONResponse interface {
-	Discoverable
-}
-
 // APIMetadata
 type APIMetadata struct {
-	Paging ListPaging `json:"paging,omitempty"`
+	Paging PageMetadata `json:"paging,omitempty"`
 }
 
 // ListMeta
-type ListMeta struct {
-	Paging ListPaging
+type ListMetadata struct {
+	Paging PageMetadata
 }
-
-// ListPaging
-type ListPaging struct {
-	Limit  uint32
-	Offset uint32
-	Total  uint32
-}
-
-// ResourceMetadata
-type ResourceMetadata struct{}
 
 // Resource
 type ResponseResource struct {
@@ -98,24 +90,17 @@ type ResponseResource struct {
 	Attributes any               `json:"attributes"` // TODO
 }
 
+// ResourceMetadata
+type ResourceMetadata struct{}
+
 // JSONResponseSolo
 type JSONResponseSolo struct {
 	Meta *APIMetadata     `json:"meta,omitempty"`
 	Data ResponseResource `json:"data"`
 }
 
-// Discover
-func (r *JSONResponseSolo) Discover() Discoverable {
-	return r
-}
-
 // JSONResponseMult
 type JSONResponseMult struct {
 	Meta *APIMetadata       `json:"meta"`
 	Data []ResponseResource `json:"data"`
-}
-
-// Discover
-func (r *JSONResponseMult) Discover() Discoverable {
-	return r
 }

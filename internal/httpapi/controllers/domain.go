@@ -1,12 +1,19 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/ggicci/httpin"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
 )
+
+func init() {
+	// registers a directive named "path" to retrieve values from chi.URLParam
+	httpin.UseGochiURLParam("path", chi.URLParam)
+}
 
 // Config
 type Config struct {
@@ -29,165 +36,224 @@ func NewController(c *Config) *Controller {
 }
 
 // Create
-func (c *Controller) Create(f func() *types.JSONRequestBody) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
-		log := c.logger.Log.With().Str("req_id", requestID).Logger()
+func (c *Controller) Create(f func() *types.JSONRequestBody) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		traceID := types.GetTraceIDFromContext(ctx)
+		log := c.logger.CreateContextLogger(traceID)
 		log.Info().Msg("Create Controller called")
 
 		resource := f()
-		if err := ctx.BodyParser(resource); err != nil {
+		if err := c.ReadJSON(w, r, resource); err != nil {
+			fmt.Printf("JSON PARSING ERROR: %+v\n", err) // TODO
 			message := "error parsing request body"
 			log.Error().Err(err).Msg(message)
-			return fiber.NewError(http.StatusBadRequest, message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
 		// TODO: validation errors bypass default error handler
 		if err := validateBody(resource, log); err != nil {
-			log.Error().Msg("validation error")
-			ctx.Status(http.StatusBadRequest)
-			ctx.JSON(err.Errors)
-			return nil
+			message := "validation error"
+			log.Error().Msg(message)
+			http.Error(w, message, http.StatusBadRequest)
+			return
 		}
 
 		data := resource.Data.Attributes
-		model, err := c.service.Create(ctx.Context(), data)
+		model, err := c.service.Create(ctx, data)
 		if err != nil {
 			log.Error().Err(err).Send()
-			return err
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		result, err := model.Serialize()
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "serialization error"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
-		ctx.Status(http.StatusCreated)
-		return ctx.JSON(result)
+		if err := c.JSONResponse(w, http.StatusCreated, result); err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
 // Delete
-func (c *Controller) Delete() fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
-		log := c.logger.Log.With().Str("req_id", requestID).Logger()
+func (c *Controller) Delete() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		traceID := types.GetTraceIDFromContext(ctx)
+		log := c.logger.CreateContextLogger(traceID)
+		log.Info().Msg("Delete Controller called")
 
-		id := ctx.Params("id")
+		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "error parsing uuid"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
-		if err := c.service.Delete(ctx.Context(), uuid); err != nil {
-			log.Error().Err(err).Send()
-			return err
+		if err := c.service.Delete(ctx, uuid); err != nil {
+			message := "example service error"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
-		ctx.Status(http.StatusNoContent)
-		return nil
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
 // Detail
-func (c *Controller) Detail() fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
-		log := c.logger.Log.With().Str("req_id", requestID).Logger()
+func (c *Controller) Detail() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		traceID := types.GetTraceIDFromContext(ctx)
+		log := c.logger.CreateContextLogger(traceID)
 		log.Info().Msg("Detail Controller called")
 
-		id := ctx.Params("id")
+		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "error parsing uuid"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
-		model, err := c.service.Detail(ctx.Context(), uuid)
+		model, err := c.service.Detail(ctx, uuid)
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "example service error"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
 		result, err := model.Serialize()
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "serialization error"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
-		ctx.Status(http.StatusOK)
-		return ctx.JSON(result)
+		if err := c.JSONResponse(w, http.StatusOK, result); err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
 // List
-func (c *Controller) List() fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
-		log := c.logger.Log.With().Str("req_id", requestID).Logger()
+func (c *Controller) List() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		traceID := types.GetTraceIDFromContext(ctx)
+		log := c.logger.CreateContextLogger(traceID)
 		log.Info().Msg("List Controller called")
 
-		qs := ctx.Request().URI().QueryString()
-		query := parseQuery(qs)
+		// TEMP ----------------------------------------------
+		// qs := ctx.Request().URI().QueryString()
+		// query := parseQuery(qs)
+		var (
+			defaultLimit  = 20           // TODO: move to config
+			defaultOffset = 0            // TODO: move to config
+			defaultOrder  = "desc"       // TODO: move to config
+			defaultProp   = "created_on" // TODO: move to config
+		)
 
-		model, err := c.service.List(ctx.Context(), *query)
+		model, err := c.service.List(ctx, types.QueryData{
+			Paging: types.QueryPaging{
+				Limit:  &defaultLimit,
+				Offset: &defaultOffset,
+			},
+			Sorting: types.QuerySorting{
+				Order: &defaultOrder,
+				Prop:  &defaultProp,
+			},
+		}) // *query
+		// END TEMP -------------------------------------------
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "example service error"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
 		result, err := model.Serialize()
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "serialization error"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
-		ctx.Status(http.StatusOK)
-		return ctx.JSON(result)
+		if err := c.JSONResponse(w, http.StatusOK, result); err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
 // Update
-func (c *Controller) Update(f func() *types.JSONRequestBody) fiber.Handler {
-	return func(ctx *fiber.Ctx) error {
-		requestID := ctx.Locals(types.CorrelationContextKey).(*types.Trace).RequestID
-		log := c.logger.Log.With().Str("req_id", requestID).Logger()
+func (c *Controller) Update(f func() *types.JSONRequestBody) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		traceID := types.GetTraceIDFromContext(ctx)
+		log := c.logger.CreateContextLogger(traceID)
 		log.Info().Msg("Update Controller called")
 
-		idString := ctx.Params("id")
-		id, err := uuid.Parse(idString)
+		id := chi.URLParam(r, "id")
+		uuid, err := uuid.Parse(id)
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "error parsing uuid"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
 		resource := f()
-		if err := ctx.BodyParser(resource); err != nil {
-			log.Error().Err(err).Send()
-			return err
+		if err := c.ReadJSON(w, r, resource); err != nil {
+			fmt.Printf("JSON PARSING ERROR: %+v\n", err) // TODO
+			message := "error parsing request body"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
+		// TODO: validation errors bypass default error handler
 		if err := validateBody(resource, log); err != nil {
-			ctx.Status(http.StatusBadRequest)
-			ctx.JSON(err)
-			return nil
+			message := "validation error"
+			log.Error().Msg(message)
+			http.Error(w, message, http.StatusBadRequest)
+			return
 		}
 
 		data := resource.Data.Attributes // TODO: problem here with ID
-		model, err := c.service.Update(ctx.Context(), data, id)
+		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
 			log.Error().Err(err).Send()
-			return err
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		result, err := model.Serialize()
 		if err != nil {
-			log.Error().Err(err).Send()
-			return err
+			message := "serialization error"
+			log.Error().Err(err).Msg(message)
+			http.Error(w, message, http.StatusInternalServerError)
+			return
 		}
 
-		ctx.Status(http.StatusOK)
-		return ctx.JSON(result)
+		if err := c.JSONResponse(w, http.StatusCreated, result); err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	}
 }

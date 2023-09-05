@@ -85,8 +85,8 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 
 // Create
 func (r *exampleRepository) Create(ctx context.Context, data *types.ExampleRequestData) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := r.logger.CreateContextLogger(traceID)
 
 	// build sql query
 	query := func() string {
@@ -176,8 +176,8 @@ func (r *exampleRepository) Create(ctx context.Context, data *types.ExampleReque
 
 // Delete
 func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := r.logger.CreateContextLogger(traceID)
 
 	// build sql query
 	query := func() string {
@@ -204,8 +204,8 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 
 // Detail
 func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := r.logger.CreateContextLogger(traceID)
 
 	// build sql query
 	query := func() string {
@@ -264,8 +264,8 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (types.Dom
 
 // List
 func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := r.logger.CreateContextLogger(traceID)
 
 	var (
 		limit  = *q.Paging.Limit
@@ -367,8 +367,8 @@ func (r *exampleRepository) List(ctx context.Context, q types.QueryData) (types.
 
 // Update
 func (r *exampleRepository) Update(ctx context.Context, data *types.ExampleRequestData, id uuid.UUID) (types.DomainModel, error) {
-	requestId := ctx.Value(types.CorrelationContextKey).(*types.Trace).RequestID
-	log := r.logger.Log.With().Str("req_id", requestId).Logger()
+	traceID := types.GetTraceIDFromContext(ctx)
+	log := r.logger.CreateContextLogger(traceID)
 
 	// build sql query
 	query := func() string {

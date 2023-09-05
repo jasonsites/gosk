@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jasonsites/gosk-api/internal/httpapi"
 	"github.com/jasonsites/gosk-api/internal/resolver"
 )
 
@@ -33,7 +33,7 @@ func Cleanup(r *resolver.Resolver) error {
 }
 
 // InitializeApp creates a new Resolver from the given config and returns a reference to the HTTP Server's App (Fiber) instance and the Resolver itself
-func InitializeApp(conf *resolver.Config) (*fiber.App, *pgxpool.Pool, *resolver.Resolver, error) {
+func InitializeApp(conf *resolver.Config) (*httpapi.HTTPServer, *pgxpool.Pool, *resolver.Resolver, error) {
 	resolver := resolver.NewResolver(context.Background(), conf)
 	if err := resolver.Initialize(); err != nil {
 		return nil, nil, nil, err
@@ -46,10 +46,10 @@ func InitializeApp(conf *resolver.Config) (*fiber.App, *pgxpool.Pool, *resolver.
 
 	db, err := resolver.PostgreSQLClient()
 	if err != nil {
-		return server.App, nil, resolver, err
+		return server, nil, resolver, err
 	}
 
-	return server.App, db, resolver, nil
+	return server, db, resolver, nil
 }
 
 // SetRequestData creates a new HTTP Request instance from the give data

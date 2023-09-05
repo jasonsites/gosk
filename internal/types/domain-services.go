@@ -22,15 +22,9 @@ var DomainType = DomainRegistry{
 }
 
 // TODO
-// Discoverable defines the interface for all types with self discovery
-type Discoverable interface {
-	Discover() Discoverable
-}
-
-// TODO
 // ResponseSerializer defines the interface for all types that serialize to JSON response
 type ResponseSerializer interface {
-	Serialize() (JSONResponse, error)
+	Serialize() ([]byte, error)
 }
 
 // Service

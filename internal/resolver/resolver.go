@@ -17,7 +17,7 @@ type Config struct {
 	Domain           *domain.Domain
 	ExampleRepo      types.ExampleRepository
 	ExampleService   types.Service
-	HTTPServer       *httpapi.Server
+	HTTPServer       *httpapi.HTTPServer
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *pgxpool.Pool
@@ -36,7 +36,7 @@ type Resolver struct {
 	domain           *domain.Domain
 	exampleRepo      types.ExampleRepository
 	exampleService   types.Service
-	httpServer       *httpapi.Server
+	httpServer       *httpapi.HTTPServer
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *pgxpool.Pool

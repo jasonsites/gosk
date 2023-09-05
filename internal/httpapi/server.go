@@ -1,16 +1,18 @@
 package httpapi
 
 import (
+	"fmt"
+	"net/http"
 	"strconv"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/go-chi/chi/v5"
 	"github.com/jasonsites/gosk-api/internal/domain"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
-// Config defines the input to NewServer
-type Config struct {
+// HTTPServerConfig defines the input to NewServer
+type HTTPServerConfig struct {
 	BaseURL   string         `validate:"required"`
 	Domain    *domain.Domain `validate:"required"`
 	Logger    *types.Logger  `validate:"required"`
@@ -19,53 +21,44 @@ type Config struct {
 	Port      uint           `validate:"required"`
 }
 
-// Server defines a server for handling HTTP API requests
-type Server struct {
-	App         *fiber.App
-	Logger      *types.Logger
-	baseURL     string
-	controllers *controllerRegistry
-	namespace   string
-	port        uint
+// HTTPServer defines a server for handling HTTP API requests
+type HTTPServer struct {
+	Logger *types.Logger
+	port   uint
+	server *http.Server
 }
 
 // NewServer returns a new Server instance
-func NewServer(c *Config) (*Server, error) {
+func NewServer(c *HTTPServerConfig) (*HTTPServer, error) {
 	if err := validation.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
-	app := fiber.New(fiber.Config{
-		AppName:      c.Namespace,
-		ErrorHandler: errorHandler,
-	})
-
-	log := c.Logger.Log.With().Str("tags", "httpapi").Logger()
+	log := c.Logger.Log.With().Str("tags", "http").Logger()
 	logger := &types.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
 	}
 
-	controllers := registerControllers(logger, c.Domain.Services)
+	controllers := registerControllers(c.Domain.Services, logger)
+	router := chi.NewRouter()
+	configureMiddleware(router, c.Namespace, logger)
+	registerRoutes(router, controllers, c.Namespace)
 
-	s := &Server{
+	addr := fmt.Sprintf(":%s", strconv.FormatUint(uint64(c.Port), 10))
+
+	s := &HTTPServer{
 		Logger: logger,
-		App:    app,
-		// baseURL:    c.BaseURL,
-		controllers: controllers,
-		namespace:   c.Namespace,
-		port:        c.Port,
+		port:   c.Port,
+		server: &http.Server{Addr: addr, Handler: router},
 	}
-
-	s.configureMiddleware()
-	s.registerRoutes()
 
 	return s, nil
 }
 
 // Serve starts the HTTP server on the configured address
-func (s *Server) Serve() error {
-	addr := s.baseURL + ":" + strconv.FormatUint(uint64(s.port), 10)
-	return s.App.Listen(addr)
+func (s *HTTPServer) Serve() error {
+	s.Logger.Log.Info().Msg(fmt.Sprintf("server listening on port :%d", s.port))
+	return s.server.ListenAndServe()
 }

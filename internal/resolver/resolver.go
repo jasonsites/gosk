@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/config"
@@ -10,6 +11,12 @@ import (
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/rs/zerolog"
 )
+
+// Application metadata
+type Metadata struct {
+	Name    string
+	Version string
+}
 
 // Config defines the input to NewResolver
 type Config struct {
@@ -23,13 +30,7 @@ type Config struct {
 	PostgreSQLClient *pgxpool.Pool
 }
 
-// Application metadata
-type Metadata struct {
-	Name    string
-	Version string
-}
-
-// Resolver provides singleton instances of app components
+// Resolver provides a configurable app component graph
 type Resolver struct {
 	appContext       context.Context
 	config           *config.Configuration
@@ -63,32 +64,18 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 	return r
 }
 
-// initialize bootstraps the application in dependency order
-func (r *Resolver) Initialize() error {
-	if _, err := r.Config(); err != nil {
-		return err
-	}
-	if _, err := r.Metadata(); err != nil {
-		return err
-	}
-	if _, err := r.Log(); err != nil {
-		return err
-	}
-	if _, err := r.PostgreSQLClient(); err != nil {
-		return err
-	}
-	if _, err := r.ExampleRepository(); err != nil {
-		return err
-	}
-	if _, err := r.ExampleService(); err != nil {
-		return err
-	}
-	if _, err := r.Domain(); err != nil {
-		return err
-	}
-	if _, err := r.HTTPServer(); err != nil {
-		return err
-	}
+// LoadEntries provides option strings for loading the resolver from various entry nodes
+// in the app component graph (cli, grpc, http)
+var LoadEntries = struct{ HTTPServer string }{
+	HTTPServer: "http",
+}
 
-	return nil
+// Load resolves app components starting from the given entry node of the component graph
+func (r *Resolver) Load(entry string) {
+	switch entry {
+	case LoadEntries.HTTPServer:
+		r.HTTPServer()
+	default:
+		panic(fmt.Errorf("invalid resolver load entry point '%s'", entry))
+	}
 }

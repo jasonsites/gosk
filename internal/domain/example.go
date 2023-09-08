@@ -2,11 +2,11 @@ package domain
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
-	"github.com/pkg/errors"
 )
 
 // ExampleServiceConfig
@@ -49,7 +49,7 @@ func (s *exampleService) Create(ctx context.Context, data any) (types.DomainMode
 
 	d, ok := data.(*types.ExampleRequestData)
 	if !ok {
-		err := errors.Errorf("error asserting data as types.ExampleRequestData")
+		err := fmt.Errorf("error asserting data as ExampleRequestData")
 		log.Error().Err(err).Send()
 		return nil, err
 	}

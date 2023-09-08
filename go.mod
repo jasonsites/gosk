@@ -10,7 +10,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hetiansu5/urlquery v1.2.7
 	github.com/jackc/pgx/v5 v5.3.0
-	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.29.0
 	github.com/spf13/viper v1.15.0
 	golang.org/x/sync v0.1.0

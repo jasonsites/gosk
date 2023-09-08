@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,175 +12,175 @@ import (
 	repo "github.com/jasonsites/gosk-api/internal/repository"
 	"github.com/jasonsites/gosk-api/internal/types"
 	"github.com/jasonsites/gosk-api/internal/validation"
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 // Config provides a singleton config.Configuration instance
-func (r *Resolver) Config() (*config.Configuration, error) {
+func (r *Resolver) Config() *config.Configuration {
 	if r.config == nil {
 		c, err := config.LoadConfiguration()
 		if err != nil {
-			err = errors.Errorf("error resolving config: %+v", err)
+			err = fmt.Errorf("error resolving config: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 		r.config = c
 	}
 
-	return r.config, nil
+	return r.config
 }
 
 // Domain provides a singleton domain.Domain instance
-func (r *Resolver) Domain() (*domain.Domain, error) {
+func (r *Resolver) Domain() *domain.Domain {
 	if r.domain == nil {
 		services := &domain.Services{
-			Example: r.exampleService,
+			Example: r.ExampleService(),
 		}
 
 		app, err := domain.NewDomain(services)
 		if err != nil {
-			err = errors.Errorf("error resolving domain: %+v", err)
+			err = fmt.Errorf("error resolving domain: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 
 		r.domain = app
 	}
 
-	return r.domain, nil
+	return r.domain
 }
 
 // ExampleRepository provides a singleton repo.exampleRepository instance
-func (r *Resolver) ExampleRepository() (types.ExampleRepository, error) {
+func (r *Resolver) ExampleRepository() types.ExampleRepository {
 	if r.exampleRepo == nil {
 		repo, err := repo.NewExampleRepository(&repo.ExampleRepoConfig{
-			DBClient: r.postgreSQLClient,
+			DBClient: r.PostgreSQLClient(),
 			Logger: &types.Logger{
-				Enabled: r.config.Logger.Repo.Enabled,
-				Level:   r.config.Logger.Repo.Level,
-				Log:     r.log,
+				Enabled: r.Config().Logger.Repo.Enabled,
+				Level:   r.Config().Logger.Repo.Level,
+				Log:     r.Log(),
 			},
 		})
 		if err != nil {
-			err = errors.Errorf("error resolving example respository: %+v", err)
+			err = fmt.Errorf("error resolving example respository: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 
 		r.exampleRepo = repo
 	}
 
-	return r.exampleRepo, nil
+	return r.exampleRepo
 }
 
 // ExampleService provides a singleton domain.exampleService instance
-func (r *Resolver) ExampleService() (types.Service, error) {
+func (r *Resolver) ExampleService() types.Service {
 	if r.exampleService == nil {
 		svc, err := domain.NewExampleService(&domain.ExampleServiceConfig{
 			Logger: &types.Logger{
-				Enabled: r.config.Logger.Domain.Enabled,
-				Level:   r.config.Logger.Domain.Level,
-				Log:     r.log,
+				Enabled: r.Config().Logger.Domain.Enabled,
+				Level:   r.Config().Logger.Domain.Level,
+				Log:     r.Log(),
 			},
-			Repo: r.exampleRepo,
+			Repo: r.ExampleRepository(),
 		})
 		if err != nil {
-			err = errors.Errorf("error resolving example service: %+v", err)
+			err = fmt.Errorf("error resolving example service: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 
 		r.exampleService = svc
 	}
 
-	return r.exampleService, nil
+	return r.exampleService
 }
 
 // HTTPServer provides a singleton httpapi.HTTPServer instance
-func (r *Resolver) HTTPServer() (*httpapi.HTTPServer, error) {
+func (r *Resolver) HTTPServer() *httpapi.HTTPServer {
 	if r.httpServer == nil {
+		c := r.Config()
 		server, err := httpapi.NewServer(&httpapi.HTTPServerConfig{
-			BaseURL: r.config.HttpAPI.BaseURL,
-			Domain:  r.domain,
+			BaseURL: c.HttpAPI.BaseURL,
+			Domain:  r.Domain(),
 			Logger: &types.Logger{
-				Enabled: r.config.Logger.Http.Enabled,
-				Level:   r.config.Logger.Http.Level,
-				Log:     r.log,
+				Enabled: c.Logger.Http.Enabled,
+				Level:   c.Logger.Http.Level,
+				Log:     r.Log(),
 			},
-			Mode:      r.config.HttpAPI.Mode,
-			Namespace: r.config.HttpAPI.Namespace,
-			Port:      r.config.HttpAPI.Port,
+			Mode:      c.HttpAPI.Mode,
+			Namespace: c.HttpAPI.Namespace,
+			Port:      c.HttpAPI.Port,
 		})
 		if err != nil {
-			err = errors.Errorf("error resolving http server: %+v", err)
+			err = fmt.Errorf("error resolving http server: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 		r.httpServer = server
 	}
 
-	return r.httpServer, nil
+	return r.httpServer
 }
 
 // Log provides a singleton zerolog.Logger instance
-func (r *Resolver) Log() (*zerolog.Logger, error) {
+func (r *Resolver) Log() *zerolog.Logger {
 	if r.log == nil {
 		logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().
 			Int("pid", os.Getpid()).
-			Str("name", r.metadata.Name).
-			Str("version", r.metadata.Version).
+			Str("name", r.Metadata().Name).
+			Str("version", r.Metadata().Version).
 			Timestamp().Logger()
 
 		r.log = &logger
 	}
 
-	return r.log, nil
+	return r.log
 }
 
 // Metadata provides a singleton application Metadata instance
-func (r *Resolver) Metadata() (*Metadata, error) {
+func (r *Resolver) Metadata() *Metadata {
 	if r.metadata == nil {
 		var metadata *Metadata
 
 		jsondata, err := os.ReadFile(r.config.Metadata.Path)
 		if err != nil {
-			err = errors.Errorf("error reading package.json: %+v", err)
+			err = fmt.Errorf("error reading package.json: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 
 		if err := json.Unmarshal(jsondata, &metadata); err != nil {
-			err = errors.Errorf("error unmarshalling package.json: %+v", err)
+			err = fmt.Errorf("error unmarshalling package.json: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 
 		r.metadata = metadata
 	}
 
-	return r.metadata, nil
+	return r.metadata
 }
 
 // PostgreSQLClient provides a singleton postgres pgxpool.Pool instance
-func (r *Resolver) PostgreSQLClient() (*pgxpool.Pool, error) {
+func (r *Resolver) PostgreSQLClient() *pgxpool.Pool {
 	if r.postgreSQLClient == nil {
 		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
-			err = errors.Errorf("invalid postgres config: %+v", err)
+			err = fmt.Errorf("invalid postgres config: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 
 		client, err := pgxpool.New(r.appContext, postgresDSN(r.config.Postgres))
 		if err != nil {
-			err = errors.Errorf("error resolving postgres client: %+v", err)
+			err = fmt.Errorf("error resolving postgres client: %w", err)
 			log.Error().Err(err).Send()
-			return nil, err
+			panic(err)
 		}
 
 		r.postgreSQLClient = client
 	}
 
-	return r.postgreSQLClient, nil
+	return r.postgreSQLClient
 }

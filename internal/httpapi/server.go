@@ -24,8 +24,8 @@ type HTTPServerConfig struct {
 // HTTPServer defines a server for handling HTTP API requests
 type HTTPServer struct {
 	Logger *types.Logger
-	port   uint
-	server *http.Server
+	Port   uint
+	Server *http.Server
 }
 
 // NewServer returns a new Server instance
@@ -50,8 +50,8 @@ func NewServer(c *HTTPServerConfig) (*HTTPServer, error) {
 
 	s := &HTTPServer{
 		Logger: logger,
-		port:   c.Port,
-		server: &http.Server{Addr: addr, Handler: router},
+		Port:   c.Port,
+		Server: &http.Server{Addr: addr, Handler: router},
 	}
 
 	return s, nil
@@ -59,6 +59,6 @@ func NewServer(c *HTTPServerConfig) (*HTTPServer, error) {
 
 // Serve starts the HTTP server on the configured address
 func (s *HTTPServer) Serve() error {
-	s.Logger.Log.Info().Msg(fmt.Sprintf("server listening on port :%d", s.port))
-	return s.server.ListenAndServe()
+	s.Logger.Log.Info().Msg(fmt.Sprintf("server listening on port :%d", s.Port))
+	return s.Server.ListenAndServe()
 }

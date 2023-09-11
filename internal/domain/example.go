@@ -5,30 +5,34 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/core/interfaces"
+	"github.com/jasonsites/gosk-api/internal/core/logger"
+	"github.com/jasonsites/gosk-api/internal/core/models"
+	"github.com/jasonsites/gosk-api/internal/core/query"
+	"github.com/jasonsites/gosk-api/internal/core/trace"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
-// ExampleServiceConfig
+// ExampleServiceConfig defines the input to NewExampleService
 type ExampleServiceConfig struct {
-	Logger *types.Logger           `validate:"required"`
-	Repo   types.ExampleRepository `validate:"required"`
+	Logger *logger.Logger               `validate:"required"`
+	Repo   interfaces.ExampleRepository `validate:"required"`
 }
 
 // exampleService
 type exampleService struct {
-	logger *types.Logger
-	repo   types.ExampleRepository
+	logger *logger.Logger
+	repo   interfaces.ExampleRepository
 }
 
-// NewExampleService
+// NewExampleService returns a new exampleService instance
 func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 	if err := validation.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
 	log := c.Logger.Log.With().Str("tags", "service,example").Logger()
-	logger := &types.Logger{
+	logger := &logger.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
 		Log:     &log,
@@ -43,11 +47,11 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 }
 
 // Create
-func (s *exampleService) Create(ctx context.Context, data any) (types.DomainModel, error) {
-	traceID := types.GetTraceIDFromContext(ctx)
+func (s *exampleService) Create(ctx context.Context, data any) (interfaces.DomainModel, error) {
+	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*types.ExampleRequestData)
+	d, ok := data.(*models.ExampleRequestData)
 	if !ok {
 		err := fmt.Errorf("error asserting data as ExampleRequestData")
 		log.Error().Err(err).Send()
@@ -65,7 +69,7 @@ func (s *exampleService) Create(ctx context.Context, data any) (types.DomainMode
 
 // Delete
 func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
-	traceID := types.GetTraceIDFromContext(ctx)
+	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
 	if err := s.repo.Delete(ctx, id); err != nil {
@@ -77,8 +81,8 @@ func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (types.DomainModel, error) {
-	traceID := types.GetTraceIDFromContext(ctx)
+func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (interfaces.DomainModel, error) {
+	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
 	model, err := s.repo.Detail(ctx, id)
@@ -91,8 +95,8 @@ func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (types.Domain
 }
 
 // List
-func (s *exampleService) List(ctx context.Context, q types.QueryData) (types.DomainModel, error) {
-	traceID := types.GetTraceIDFromContext(ctx)
+func (s *exampleService) List(ctx context.Context, q query.QueryData) (interfaces.DomainModel, error) {
+	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
 	model, err := s.repo.List(ctx, q)
@@ -105,11 +109,11 @@ func (s *exampleService) List(ctx context.Context, q types.QueryData) (types.Dom
 }
 
 // Update
-func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (types.DomainModel, error) {
-	traceID := types.GetTraceIDFromContext(ctx)
+func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (interfaces.DomainModel, error) {
+	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	model, err := s.repo.Update(ctx, data.(*types.ExampleRequestData), id)
+	model, err := s.repo.Update(ctx, data.(*models.ExampleRequestData), id)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err

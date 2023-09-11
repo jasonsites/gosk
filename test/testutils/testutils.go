@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/httpapi"
+	"github.com/jasonsites/gosk-api/internal/http/httpserver"
 	"github.com/jasonsites/gosk-api/internal/resolver"
 )
 
@@ -30,7 +30,7 @@ func Cleanup(r *resolver.Resolver) error {
 }
 
 // InitializeApp creates a new Resolver from the given config and returns a reference to the HTTP Server instance, the DB driver, and the Resolver itself
-func InitializeApp(conf *resolver.Config) (*httpapi.HTTPServer, *pgxpool.Pool, *resolver.Resolver, error) {
+func InitializeApp(conf *resolver.Config) (*httpserver.Server, *pgxpool.Pool, *resolver.Resolver, error) {
 	r := resolver.NewResolver(context.Background(), conf)
 	r.Load(resolver.LoadEntries.HTTPServer)
 	server := r.HTTPServer()

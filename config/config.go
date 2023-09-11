@@ -8,14 +8,14 @@ import (
 
 // Configuration defines app configuration on startup
 type Configuration struct {
-	External External `validate:"required"`
-	HttpAPI  HttpAPI  `validate:"required"`
-	Logger   Logger   `validate:"required"`
-	Metadata Metadata `validate:"required"`
-	Postgres Postgres `validate:"required"`
+	External   External   `validate:"required"`
+	HTTPServer HTTPServer `validate:"required"`
+	Logger     Logger     `validate:"required"`
+	Metadata   Metadata   `validate:"required"`
+	Postgres   Postgres   `validate:"required"`
 }
 
-type HttpAPI struct {
+type HTTPServer struct {
 	BaseURL   string
 	Mode      string `validate:"required,oneof=debug release test"`
 	Namespace string `validate:"required"`
@@ -26,7 +26,7 @@ type HttpAPI struct {
 type Logger struct {
 	App    LoggerConfig `validate:"required"`
 	Domain LoggerConfig `validate:"required"`
-	Http   LoggerConfig `validate:"required"`
+	HTTP   LoggerConfig `validate:"required"`
 	Repo   LoggerConfig `validate:"required"`
 }
 
@@ -68,15 +68,15 @@ func LoadConfiguration() (*Configuration, error) {
 
 	viper.AllowEmptyEnv(true)
 
-	// http api
-	if err := viper.BindEnv("httpapi.mode", "HTTPAPI_MODE"); err != nil {
-		log.Fatalf("error binding env var `HTTPAPI_MODE`: %v", err)
+	// http server
+	if err := viper.BindEnv("httpserver.mode", "HTTPSERVER_MODE"); err != nil {
+		log.Fatalf("error binding env var `HTTPSERVER_MODE`: %v", err)
 	}
-	if err := viper.BindEnv("httpapi.baseURL", "HTTPAPI_BASEURL"); err != nil {
-		log.Fatalf("error binding env var `HTTPAPI_BASEURL`: %v", err)
+	if err := viper.BindEnv("httpserver.baseURL", "HTTPSERVER_BASEURL"); err != nil {
+		log.Fatalf("error binding env var `HTTPSERVER_BASEURL`: %v", err)
 	}
-	if err := viper.BindEnv("httpapi.port", "HTTPAPI_PORT"); err != nil {
-		log.Fatalf("error binding env var `HTTPAPI_PORT`: %v", err)
+	if err := viper.BindEnv("httpserver.port", "HTTPSERVER_PORT"); err != nil {
+		log.Fatalf("error binding env var `HTTPSERVER_PORT`: %v", err)
 	}
 
 	// logger - app

@@ -5,16 +5,16 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/core/entities"
 )
 
-const routePrefix = "/domain/resources"
+const routePrefix = "/domain/examples"
 
 // insertRecord inserts a db record for use in test setup
-func insertRecord(db *pgxpool.Pool) (*types.ExampleEntity, error) {
+func insertRecord(db *pgxpool.Pool) (*entities.ExampleEntity, error) {
 	var (
 		statement    = "INSERT INTO %s %s VALUES %s RETURNING id"
-		name         = "resource_entity"
+		name         = "example_entity"
 		insertFields = "(created_by,deleted,description,enabled,status,title)"
 		values       = "($1,$2,$3,$4,$5,$6)"
 		query        = fmt.Sprintf(statement, name, insertFields, values)
@@ -30,7 +30,7 @@ func insertRecord(db *pgxpool.Pool) (*types.ExampleEntity, error) {
 	)
 
 	// create new entity for db row scan and execute query
-	entity := &types.ExampleEntity{}
+	entity := &entities.ExampleEntity{}
 	if err := db.QueryRow(
 		context.Background(),
 		query,

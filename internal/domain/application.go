@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
@@ -12,7 +12,7 @@ type Domain struct {
 
 // Services contains all individual resource services
 type Services struct {
-	Example types.Service
+	Example interfaces.Service
 }
 
 // NewDomain creates a new Domain instance

@@ -7,10 +7,11 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/config"
+	"github.com/jasonsites/gosk-api/internal/core/interfaces"
+	"github.com/jasonsites/gosk-api/internal/core/logger"
 	"github.com/jasonsites/gosk-api/internal/domain"
-	"github.com/jasonsites/gosk-api/internal/httpapi"
-	repo "github.com/jasonsites/gosk-api/internal/repository"
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/http/httpserver"
+	"github.com/jasonsites/gosk-api/internal/repos"
 	"github.com/jasonsites/gosk-api/internal/validation"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -52,11 +53,11 @@ func (r *Resolver) Domain() *domain.Domain {
 }
 
 // ExampleRepository provides a singleton repo.exampleRepository instance
-func (r *Resolver) ExampleRepository() types.ExampleRepository {
+func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 	if r.exampleRepo == nil {
-		repo, err := repo.NewExampleRepository(&repo.ExampleRepoConfig{
+		repo, err := repos.NewExampleRepository(&repos.ExampleRepoConfig{
 			DBClient: r.PostgreSQLClient(),
-			Logger: &types.Logger{
+			Logger: &logger.Logger{
 				Enabled: r.Config().Logger.Repo.Enabled,
 				Level:   r.Config().Logger.Repo.Level,
 				Log:     r.Log(),
@@ -75,10 +76,10 @@ func (r *Resolver) ExampleRepository() types.ExampleRepository {
 }
 
 // ExampleService provides a singleton domain.exampleService instance
-func (r *Resolver) ExampleService() types.Service {
+func (r *Resolver) ExampleService() interfaces.Service {
 	if r.exampleService == nil {
 		svc, err := domain.NewExampleService(&domain.ExampleServiceConfig{
-			Logger: &types.Logger{
+			Logger: &logger.Logger{
 				Enabled: r.Config().Logger.Domain.Enabled,
 				Level:   r.Config().Logger.Domain.Level,
 				Log:     r.Log(),
@@ -98,20 +99,20 @@ func (r *Resolver) ExampleService() types.Service {
 }
 
 // HTTPServer provides a singleton httpapi.HTTPServer instance
-func (r *Resolver) HTTPServer() *httpapi.HTTPServer {
+func (r *Resolver) HTTPServer() *httpserver.Server {
 	if r.httpServer == nil {
 		c := r.Config()
-		server, err := httpapi.NewServer(&httpapi.HTTPServerConfig{
-			BaseURL: c.HttpAPI.BaseURL,
+		server, err := httpserver.NewServer(&httpserver.ServerConfig{
+			BaseURL: c.HTTPServer.BaseURL,
 			Domain:  r.Domain(),
-			Logger: &types.Logger{
-				Enabled: c.Logger.Http.Enabled,
-				Level:   c.Logger.Http.Level,
+			Logger: &logger.Logger{
+				Enabled: c.Logger.HTTP.Enabled,
+				Level:   c.Logger.HTTP.Level,
 				Log:     r.Log(),
 			},
-			Mode:      c.HttpAPI.Mode,
-			Namespace: c.HttpAPI.Namespace,
-			Port:      c.HttpAPI.Port,
+			Mode:      c.HTTPServer.Mode,
+			Namespace: c.HTTPServer.Namespace,
+			Port:      c.HTTPServer.Port,
 		})
 		if err != nil {
 			err = fmt.Errorf("error resolving http server: %w", err)

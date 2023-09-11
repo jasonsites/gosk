@@ -1,5 +1,5 @@
 
-[httpapi]
+[httpserver]
 baseURL = "localhost"
 mode = "debug"
 namespace = "domain"

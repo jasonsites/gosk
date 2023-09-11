@@ -6,9 +6,9 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk-api/config"
+	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/domain"
-	"github.com/jasonsites/gosk-api/internal/httpapi"
-	"github.com/jasonsites/gosk-api/internal/types"
+	"github.com/jasonsites/gosk-api/internal/http/httpserver"
 	"github.com/rs/zerolog"
 )
 
@@ -22,9 +22,9 @@ type Metadata struct {
 type Config struct {
 	Config           *config.Configuration
 	Domain           *domain.Domain
-	ExampleRepo      types.ExampleRepository
-	ExampleService   types.Service
-	HTTPServer       *httpapi.HTTPServer
+	ExampleRepo      interfaces.ExampleRepository
+	ExampleService   interfaces.Service
+	HTTPServer       *httpserver.Server
 	Log              *zerolog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *pgxpool.Pool
@@ -35,9 +35,9 @@ type Resolver struct {
 	appContext       context.Context
 	config           *config.Configuration
 	domain           *domain.Domain
-	exampleRepo      types.ExampleRepository
-	exampleService   types.Service
-	httpServer       *httpapi.HTTPServer
+	exampleRepo      interfaces.ExampleRepository
+	exampleService   interfaces.Service
+	httpServer       *httpserver.Server
 	log              *zerolog.Logger
 	metadata         *Metadata
 	postgreSQLClient *pgxpool.Pool

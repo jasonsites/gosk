@@ -9,10 +9,10 @@ import (
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/core/logger"
+	"github.com/jasonsites/gosk-api/internal/core/validation"
 	"github.com/jasonsites/gosk-api/internal/domain"
 	"github.com/jasonsites/gosk-api/internal/http/httpserver"
 	"github.com/jasonsites/gosk-api/internal/repos"
-	"github.com/jasonsites/gosk-api/internal/validation"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

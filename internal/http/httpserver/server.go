@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jasonsites/gosk-api/internal/core/logger"
+	"github.com/jasonsites/gosk-api/internal/core/validation"
 	"github.com/jasonsites/gosk-api/internal/domain"
-	"github.com/jasonsites/gosk-api/internal/validation"
 )
 
 // ServerConfig defines the input to NewServer

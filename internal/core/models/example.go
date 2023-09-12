@@ -57,7 +57,7 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 		return response, nil
 	}
 
-	meta := &jsonapi.ListMetadata{
+	meta := &jsonapi.ResponseMetadata{
 		Paging: paging.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
@@ -65,7 +65,7 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 		},
 	}
 
-	data := make([]jsonapi.ResponseResource, 0)
+	data := make([]jsonapi.ResponseResource, 0, len(m.Data))
 	for _, domo := range m.Data {
 		resource := formatResource(&domo)
 		data = append(data, resource)

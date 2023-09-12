@@ -1,4 +1,4 @@
-package cerrors
+package cerror
 
 // CustomError
 type CustomError struct {

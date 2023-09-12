@@ -7,6 +7,7 @@ import (
 	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/jasonsites/gosk-api/internal/core/cerror"
 	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/core/logger"
 	"github.com/jasonsites/gosk-api/internal/core/query"
@@ -44,22 +45,20 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
-		log.Info().Msg("Create Controller called")
 
 		resource := f()
 		if err := c.JSONDecode(w, r, resource); err != nil {
-			fmt.Printf("JSON PARSING ERROR: %+v\n", err) // TODO
-			message := "error parsing request body"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error parsing request body")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
-		// TODO: validation errors bypass default error handler
-		if err := validateBody(resource, log); err != nil {
-			message := "validation error"
-			log.Error().Msg(message)
-			http.Error(w, message, http.StatusBadRequest)
+		// TODO: validation errors bypass default error handler (rethink this)
+		if response := validateBody(resource, log); response != nil {
+			err := fmt.Errorf("validation error(s) %+v", response)
+			log.Error().Err(err).Send()
+			c.JSONEncode(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -67,15 +66,15 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 		model, err := c.service.Create(ctx, data)
 		if err != nil {
 			log.Error().Err(err).Send()
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			c.Error(w, r, err)
 			return
 		}
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			message := "serialization error"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error formatting response from model")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
@@ -89,21 +88,19 @@ func (c *Controller) Delete() http.HandlerFunc {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
-		log.Info().Msg("Delete Controller called")
 
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			message := "error parsing uuid"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error parsing resource id")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
 		if err := c.service.Delete(ctx, uuid); err != nil {
-			message := "example service error"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
@@ -117,30 +114,28 @@ func (c *Controller) Detail() http.HandlerFunc {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
-		log.Info().Msg("Detail Controller called")
 
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			message := "error parsing uuid"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error parsing resource id")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
 		model, err := c.service.Detail(ctx, uuid)
 		if err != nil {
-			message := "example service error"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			message := "serialization error"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error formatting response from model")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
@@ -154,7 +149,6 @@ func (c *Controller) List() http.HandlerFunc {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
-		log.Info().Msg("List Controller called")
 
 		// TEMP ----------------------------------------------
 		// qs := ctx.Request().URI().QueryString()
@@ -178,17 +172,16 @@ func (c *Controller) List() http.HandlerFunc {
 		}) // *query
 		// END TEMP -------------------------------------------
 		if err != nil {
-			message := "example service error"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			message := "serialization error"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error formatting response from model")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
@@ -202,31 +195,29 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
-		log.Info().Msg("Update Controller called")
 
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			message := "error parsing uuid"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error parsing resource id")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
 		resource := f()
 		if err := c.JSONDecode(w, r, resource); err != nil {
-			fmt.Printf("JSON PARSING ERROR: %+v\n", err) // TODO
-			message := "error parsing request body"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error parsing request body")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 
 		// TODO: validation errors bypass default error handler
-		if err := validateBody(resource, log); err != nil {
-			message := "validation error"
-			log.Error().Msg(message)
-			http.Error(w, message, http.StatusBadRequest)
+		if response := validateBody(resource, log); response != nil {
+			err := fmt.Errorf("validation error(s) %+v", response)
+			log.Error().Err(err).Send()
+			c.JSONEncode(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -234,15 +225,15 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
 			log.Error().Err(err).Send()
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			c.Error(w, r, err)
 			return
 		}
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			message := "serialization error"
-			log.Error().Err(err).Msg(message)
-			http.Error(w, message, http.StatusInternalServerError)
+			err = cerror.NewInternalServerError("error formatting response from model")
+			log.Error().Err(err).Send()
+			c.Error(w, r, err)
 			return
 		}
 

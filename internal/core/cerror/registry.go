@@ -1,4 +1,4 @@
-package cerrors
+package cerror
 
 // ErrorRegistry defines a registry for all errors to be used across the application
 type ErrorRegistry struct {

@@ -10,7 +10,7 @@ import (
 	"github.com/jasonsites/gosk-api/internal/core/models"
 	"github.com/jasonsites/gosk-api/internal/core/query"
 	"github.com/jasonsites/gosk-api/internal/core/trace"
-	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/jasonsites/gosk-api/internal/core/validation"
 )
 
 // ExampleServiceConfig defines the input to NewExampleService

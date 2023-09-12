@@ -5,8 +5,14 @@ import (
 	"github.com/jasonsites/gosk-api/internal/core/paging"
 )
 
+// Response
+type Response struct {
+	Meta *ResponseMetadata `json:"meta"`
+	Data any               `json:"data"`
+}
+
 // ListMeta
-type ListMetadata struct {
+type ResponseMetadata struct {
 	Paging paging.PageMetadata `json:"paging,omitempty"`
 }
 
@@ -20,20 +26,3 @@ type ResponseResource struct {
 
 // ResourceMetadata
 type ResourceMetadata struct{}
-
-// // ResponseSolo
-// type ResponseSolo struct {
-// 	Meta *ListMetadata    `json:"meta,omitempty"`
-// 	Data ResponseResource `json:"data"`
-// }
-
-// // ResponseMult
-// type ResponseMult struct {
-// 	Meta *ListMetadata      `json:"meta"`
-// 	Data []ResponseResource `json:"data"`
-// }
-
-type Response struct {
-	Meta *ListMetadata `json:"meta"`
-	Data any           `json:"data"`
-}

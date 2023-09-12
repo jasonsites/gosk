@@ -2,7 +2,7 @@ package jsonapi
 
 import (
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/core/paging"
+	"github.com/jasonsites/gosk-api/internal/core/pagination"
 )
 
 // Response
@@ -13,7 +13,7 @@ type Response struct {
 
 // ListMeta
 type ResponseMetadata struct {
-	Paging paging.PageMetadata `json:"paging,omitempty"`
+	Paging pagination.PageMetadata `json:"paging,omitempty"`
 }
 
 // Resource

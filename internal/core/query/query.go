@@ -6,11 +6,6 @@ type QueryData struct {
 	Options QueryOptions `query:"o"`
 	Paging  QueryPaging  `query:"p"`
 	Sorting QuerySorting `query:"s"`
-
-	// Token    string `in:"query=access_token;header=x-access-token"`
-	// Page     int    `in:"query=page;default=1"`
-	// PerPage  int    `in:"query=per_page;default=20"`
-	// IsMember bool   `in:"query=is_member"`
 }
 
 // QueryFilters defines the filter-related query paramaters
@@ -35,8 +30,8 @@ type QueryPaging struct {
 }
 
 // QuerySorting defines the sorting-related query paramaters
-// s[order]=desc&s[prop]=name
+// s[order]=desc&s[attr]=name
 type QuerySorting struct {
+	Attr  *string `query:"attr"`
 	Order *string `query:"order"`
-	Prop  *string `query:"prop"`
 }

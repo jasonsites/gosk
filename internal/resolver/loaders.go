@@ -9,8 +9,10 @@ import (
 	"github.com/jasonsites/gosk-api/config"
 	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/core/logger"
+	"github.com/jasonsites/gosk-api/internal/core/query"
 	"github.com/jasonsites/gosk-api/internal/core/validation"
 	"github.com/jasonsites/gosk-api/internal/domain"
+	"github.com/jasonsites/gosk-api/internal/http/controllers"
 	"github.com/jasonsites/gosk-api/internal/http/httpserver"
 	"github.com/jasonsites/gosk-api/internal/repos"
 	"github.com/rs/zerolog"
@@ -20,13 +22,14 @@ import (
 // Config provides a singleton config.Configuration instance
 func (r *Resolver) Config() *config.Configuration {
 	if r.config == nil {
-		c, err := config.LoadConfiguration()
+		conf, err := config.LoadConfiguration()
 		if err != nil {
 			err = fmt.Errorf("error resolving config: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
-		r.config = c
+
+		r.config = conf
 	}
 
 	return r.config
@@ -98,27 +101,53 @@ func (r *Resolver) ExampleService() interfaces.Service {
 	return r.exampleService
 }
 
-// HTTPServer provides a singleton httpapi.HTTPServer instance
+// HTTPServer provides a singleton httpserver.Server instance
 func (r *Resolver) HTTPServer() *httpserver.Server {
 	if r.httpServer == nil {
 		c := r.Config()
+
+		queryConfig := func() *controllers.QueryConfig {
+			limit := int(c.HTTP.API.Paging.DefaultLimit)
+			offset := int(c.HTTP.API.Paging.DefaultOffset)
+
+			attr := c.HTTP.API.Sorting.DefaultAttr
+			order := c.HTTP.API.Sorting.DefaultOrder
+
+			return &controllers.QueryConfig{
+				Defaults: &controllers.QueryDefaults{
+					Paging: &query.QueryPaging{
+						Limit:  &limit,
+						Offset: &offset,
+					},
+					Sorting: &query.QuerySorting{
+						Attr:  &attr,
+						Order: &order,
+					},
+				},
+			}
+		}()
+
+		routeConfig := &httpserver.RouteConfig{Namespace: c.HTTP.Server.Namespace}
+
 		server, err := httpserver.NewServer(&httpserver.ServerConfig{
-			BaseURL: c.HTTPServer.BaseURL,
+			BaseURL: c.HTTP.Server.BaseURL,
 			Domain:  r.Domain(),
 			Logger: &logger.Logger{
 				Enabled: c.Logger.HTTP.Enabled,
 				Level:   c.Logger.HTTP.Level,
 				Log:     r.Log(),
 			},
-			Mode:      c.HTTPServer.Mode,
-			Namespace: c.HTTPServer.Namespace,
-			Port:      c.HTTPServer.Port,
+			Mode:        c.HTTP.Server.Mode,
+			Port:        c.HTTP.Server.Port,
+			QueryConfig: queryConfig,
+			RouteConfig: routeConfig,
 		})
 		if err != nil {
 			err = fmt.Errorf("error resolving http server: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
+
 		r.httpServer = server
 	}
 

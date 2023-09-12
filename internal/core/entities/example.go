@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/core/models"
-	"github.com/jasonsites/gosk-api/internal/core/paging"
+	"github.com/jasonsites/gosk-api/internal/core/pagination"
 )
 
 // ExampleEntity defines an Example database entity
@@ -34,7 +34,7 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 	if m.Solo {
 		edo := unmarshalEntity(&m.Data[0])
 		model := &models.ExampleDomainModel{
-			Data: []models.ExampleDomainObject{*edo},
+			Data: []models.ExampleObject{*edo},
 			Solo: m.Solo,
 		}
 
@@ -43,14 +43,14 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 
 	// multiple entity model
 	meta := &models.ModelMetadata{
-		Paging: paging.PageMetadata{
+		Paging: pagination.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
 			Total:  m.Meta.Paging.Total,
 		},
 	}
 
-	data := make([]models.ExampleDomainObject, 0)
+	data := make([]models.ExampleObject, 0)
 	// TODO: go routine?
 	for _, record := range m.Data {
 		edo := unmarshalEntity(&record)
@@ -65,7 +65,7 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 	return result
 }
 
-func unmarshalEntity(e *ExampleEntity) *models.ExampleDomainObject {
+func unmarshalEntity(e *ExampleEntity) *models.ExampleObject {
 	var (
 		description *string
 		modifiedBy  *uint32
@@ -88,7 +88,7 @@ func unmarshalEntity(e *ExampleEntity) *models.ExampleDomainObject {
 		status = &s
 	}
 
-	attributes := &models.ExampleDomainObjectAttributes{
+	attributes := &models.ExampleObjectAttributes{
 		CreatedBy:   e.CreatedBy,
 		CreatedOn:   e.CreatedOn,
 		Deleted:     e.Deleted,
@@ -101,7 +101,7 @@ func unmarshalEntity(e *ExampleEntity) *models.ExampleDomainObject {
 		Title:       e.Title,
 	}
 
-	return &models.ExampleDomainObject{
+	return &models.ExampleObject{
 		Attributes: *attributes,
 	}
 }

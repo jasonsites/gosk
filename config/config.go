@@ -8,11 +8,31 @@ import (
 
 // Configuration defines app configuration on startup
 type Configuration struct {
-	External   External   `validate:"required"`
-	HTTPServer HTTPServer `validate:"required"`
-	Logger     Logger     `validate:"required"`
-	Metadata   Metadata   `validate:"required"`
-	Postgres   Postgres   `validate:"required"`
+	External External `validate:"required"`
+	HTTP     HTTP     `validate:"required"`
+	Logger   Logger   `validate:"required"`
+	Metadata Metadata `validate:"required"`
+	Postgres Postgres `validate:"required"`
+}
+
+type HTTP struct {
+	API    HTTPAPI    `validate:"required"`
+	Server HTTPServer `validate:"required"`
+}
+
+type HTTPAPI struct {
+	Paging  HTTPAPIPaging  `validate:"required"`
+	Sorting HTTPAPISorting `validate:"required"`
+}
+
+type HTTPAPIPaging struct {
+	DefaultLimit  uint `validate:"required"`
+	DefaultOffset uint `validate:"required"`
+}
+
+type HTTPAPISorting struct {
+	DefaultAttr  string `validate:"required"`
+	DefaultOrder string `validate:"required"`
 }
 
 type HTTPServer struct {
@@ -69,14 +89,14 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.AllowEmptyEnv(true)
 
 	// http server
-	if err := viper.BindEnv("httpserver.mode", "HTTPSERVER_MODE"); err != nil {
-		log.Fatalf("error binding env var `HTTPSERVER_MODE`: %v", err)
+	if err := viper.BindEnv("http.server.mode", "HTTP_SERVER_MODE"); err != nil {
+		log.Fatalf("error binding env var `HTTP_SERVER_MODE`: %v", err)
 	}
-	if err := viper.BindEnv("httpserver.baseURL", "HTTPSERVER_BASEURL"); err != nil {
-		log.Fatalf("error binding env var `HTTPSERVER_BASEURL`: %v", err)
+	if err := viper.BindEnv("http.server.baseURL", "HTTP_SERVER_BASEURL"); err != nil {
+		log.Fatalf("error binding env var `HTTP_SERVER_BASEURL`: %v", err)
 	}
-	if err := viper.BindEnv("httpserver.port", "HTTPSERVER_PORT"); err != nil {
-		log.Fatalf("error binding env var `HTTPSERVER_PORT`: %v", err)
+	if err := viper.BindEnv("http.server.port", "HTTP_SERVER_PORT"); err != nil {
+		log.Fatalf("error binding env var `HTTP_SERVER_PORT`: %v", err)
 	}
 
 	// logger - app

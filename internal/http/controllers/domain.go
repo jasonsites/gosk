@@ -4,38 +4,35 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ggicci/httpin"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/core/cerror"
 	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/core/logger"
-	"github.com/jasonsites/gosk-api/internal/core/query"
 	"github.com/jasonsites/gosk-api/internal/core/trace"
 )
 
-func init() {
-	// registers a directive named "path" to retrieve values from chi.URLParam
-	httpin.UseGochiURLParam("path", chi.URLParam)
-}
-
 // Config defines the input to NewController
 type Config struct {
-	Service interfaces.Service
-	Logger  *logger.Logger
+	Logger      *logger.Logger
+	QueryConfig *QueryConfig
+	Service     interfaces.Service
 }
 
 // Controller
 type Controller struct {
-	service interfaces.Service
 	logger  *logger.Logger
+	query   *queryHandler
+	service interfaces.Service
 }
 
 // NewController returns a new Controller instance
 func NewController(c *Config) *Controller {
+	queryHandler := NewQueryHandler(c.QueryConfig)
 	return &Controller{
-		service: c.Service,
 		logger:  c.Logger,
+		query:   queryHandler,
+		service: c.Service,
 	}
 }
 
@@ -150,27 +147,10 @@ func (c *Controller) List() http.HandlerFunc {
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
 
-		// TEMP ----------------------------------------------
-		// qs := ctx.Request().URI().QueryString()
-		// query := parseQuery(qs)
-		var (
-			defaultLimit  = 20           // TODO: move to config
-			defaultOffset = 0            // TODO: move to config
-			defaultOrder  = "desc"       // TODO: move to config
-			defaultProp   = "created_on" // TODO: move to config
-		)
+		qs := []byte(r.URL.RawQuery)
+		query := c.query.parseQuery(qs)
 
-		model, err := c.service.List(ctx, query.QueryData{
-			Paging: query.QueryPaging{
-				Limit:  &defaultLimit,
-				Offset: &defaultOffset,
-			},
-			Sorting: query.QuerySorting{
-				Order: &defaultOrder,
-				Prop:  &defaultProp,
-			},
-		}) // *query
-		// END TEMP -------------------------------------------
+		model, err := c.service.List(ctx, *query)
 		if err != nil {
 			log.Error().Err(err).Send()
 			c.Error(w, r, err)

@@ -5,11 +5,11 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk-api/internal/core/jsonapi"
-	"github.com/jasonsites/gosk-api/internal/core/paging"
+	"github.com/jasonsites/gosk-api/internal/core/pagination"
 )
 
 type ModelMetadata struct {
-	Paging paging.PageMetadata
+	Paging pagination.PageMetadata
 }
 
 // ExampleRequestData defines an Example resource for data attributes request binding
@@ -21,23 +21,23 @@ type ExampleRequestData struct {
 	Title       string  `json:"title" validate:"required,omitempty,min=2,max=255"`
 }
 
-// ExampleDomainModel an Example domain model that contains one or more ExampleDomainObject(s)
+// ExampleDomainModel an Example domain model that contains one or more ExampleObject(s)
 // and related metadata
 type ExampleDomainModel struct {
-	Data []ExampleDomainObject
+	Data []ExampleObject
 	Meta *ModelMetadata
 	Solo bool
 }
 
-// ExampleDomainObject
-type ExampleDomainObject struct {
-	Attributes ExampleDomainObjectAttributes
+// ExampleObject
+type ExampleObject struct {
+	Attributes ExampleObjectAttributes
 	Meta       any
 	Related    any
 }
 
 // Example defines an Example domain model for application logic
-type ExampleDomainObjectAttributes struct {
+type ExampleObjectAttributes struct {
 	ID          uuid.UUID  `json:"-"`
 	Title       string     `json:"title"`
 	Description *string    `json:"description"`
@@ -58,7 +58,7 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 	}
 
 	meta := &jsonapi.ResponseMetadata{
-		Paging: paging.PageMetadata{
+		Paging: pagination.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
 			Total:  m.Meta.Paging.Total,
@@ -79,12 +79,12 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 }
 
 // serializeResource
-func formatResource(domo *ExampleDomainObject) jsonapi.ResponseResource {
+func formatResource(domo *ExampleObject) jsonapi.ResponseResource {
 	return jsonapi.ResponseResource{
 		Type: "example", // TODO
 		ID:   domo.Attributes.ID,
 		// Meta: domo.Meta,
-		Attributes: ExampleDomainObjectAttributes{
+		Attributes: ExampleObjectAttributes{
 			Title:       domo.Attributes.Title,
 			Description: domo.Attributes.Description,
 			Status:      domo.Attributes.Status,

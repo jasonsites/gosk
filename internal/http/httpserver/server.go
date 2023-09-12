@@ -9,16 +9,18 @@ import (
 	"github.com/jasonsites/gosk-api/internal/core/logger"
 	"github.com/jasonsites/gosk-api/internal/core/validation"
 	"github.com/jasonsites/gosk-api/internal/domain"
+	ctrl "github.com/jasonsites/gosk-api/internal/http/controllers"
 )
 
 // ServerConfig defines the input to NewServer
 type ServerConfig struct {
-	BaseURL   string         `validate:"required"`
-	Domain    *domain.Domain `validate:"required"`
-	Logger    *logger.Logger `validate:"required"`
-	Mode      string         `validate:"required"`
-	Namespace string         `validate:"required"`
-	Port      uint           `validate:"required"`
+	BaseURL     string            `validate:"required"`
+	Domain      *domain.Domain    `validate:"required"`
+	Logger      *logger.Logger    `validate:"required"`
+	Mode        string            `validate:"required"`
+	Port        uint              `validate:"required"`
+	QueryConfig *ctrl.QueryConfig `validate:"required"`
+	RouteConfig *RouteConfig      `validate:"required"`
 }
 
 // Server defines a server for handling HTTP API requests
@@ -41,10 +43,10 @@ func NewServer(c *ServerConfig) (*Server, error) {
 		Log:     &log,
 	}
 
-	controllers := registerControllers(c.Domain.Services, logger)
+	controllers := registerControllers(c.Domain.Services, logger, c.QueryConfig)
 	router := chi.NewRouter()
-	configureMiddleware(router, c.Namespace, logger)
-	registerRoutes(router, controllers, c.Namespace)
+	configureMiddleware(router, c.RouteConfig, logger)
+	registerRoutes(router, controllers, c.RouteConfig)
 
 	addr := fmt.Sprintf(":%s", strconv.FormatUint(uint64(c.Port), 10))
 

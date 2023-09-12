@@ -12,7 +12,7 @@ import (
 	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/core/logger"
 	"github.com/jasonsites/gosk-api/internal/core/models"
-	"github.com/jasonsites/gosk-api/internal/core/paging"
+	"github.com/jasonsites/gosk-api/internal/core/pagination"
 	"github.com/jasonsites/gosk-api/internal/core/query"
 	"github.com/jasonsites/gosk-api/internal/core/trace"
 	"github.com/jasonsites/gosk-api/internal/core/validation"
@@ -285,7 +285,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 			statement  = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
 			field      = r.Entity.Field
 			name       = r.Entity.Name
-			orderField = *q.Sorting.Prop
+			orderField = *q.Sorting.Attr
 			orderDir   = *q.Sorting.Order
 			limit      = fmt.Sprint(limit)
 			offset     = fmt.Sprint(offset)
@@ -360,7 +360,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 
 	// populate repo result paging metadata
 	model.Meta = &models.ModelMetadata{
-		Paging: paging.PageMetadata{
+		Paging: pagination.PageMetadata{
 			Limit:  uint32(limit),
 			Offset: uint32(offset),
 			Total:  uint32(total),

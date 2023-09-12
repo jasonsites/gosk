@@ -48,8 +48,8 @@ The following is a list of locations where code needs to be modified to add the 
 - add `/internal/domain/tshirt.go` service code
 - modify `/internal/domain/domain.go` to add:
   - `TShirtService types.Service` to the `Services` struct
-- add `/internal/httpapi/routes/tshirt.go` with `TShirtRouter` route definitions
-- modify `/internal/httpapi/router.go` to add:
+- add `/internal/http/routes/tshirt.go` with `TShirtRouter` route definitions
+- modify `/internal/http/httpserver/router.go` to add:
   - `TShirtController *controllers.Controller` to the `controllerRegistry` struct
   - `TShirtController: ...` to the `controllerRegistry` in the `registerControllers` function
   - `routes.TShirtRouter(app, c.TShirtController, ns)` to the `registerRoutes` method

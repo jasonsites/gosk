@@ -70,9 +70,9 @@ The `validation` package creates a new singleton validator used across the appli
 
 ### HTTP API
 ```
-internal/httpapi
+internal/http
 ```
-The `httpapi` package contains everything related to the HTTP interface layer of the application. It handles server and router instantiation, and contains 3 sub-packages:
+The `http` package contains everything related to the HTTP interface layer of the application. It handles server and router instantiation, and contains 3 sub-packages:
 1. The `routes` package declares and manages all HTTP API routes
 1. The `middleware` package houses the middleware available to all routes
 1. The `controllers` package provides the route handlers, which parse and validate request data before passing data along to the `application` services layer.

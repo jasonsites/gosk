@@ -15,6 +15,7 @@ RUN \
   && sh install.sh \
   && mv ./bin/air /bin/air \
   && rm -rf ./bin install.sh \
+  && mkdir -p out/tmp \
   # gotestsum
   && curl -sSL https://github.com/gotestyourself/gotestsum/releases/download/v1.9.0/gotestsum_1.9.0_linux_amd64.tar.gz | tar -xz -C /usr/bin gotestsum \
   # migrate

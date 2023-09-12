@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/jasonsites/gosk-api/internal/core/cerrors"
+	"github.com/jasonsites/gosk-api/internal/core/cerror"
 	"github.com/jasonsites/gosk-api/internal/core/jsonapi"
-	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/jasonsites/gosk-api/internal/core/validation"
 	"github.com/rs/zerolog"
 )
 
@@ -44,7 +44,7 @@ func validateBody(body *RequestBody, log zerolog.Logger) *jsonapi.ErrorResponse 
 			verr := jsonapi.ErrorData{
 				Status: http.StatusBadRequest,
 				Source: &jsonapi.ErrorSource{Pointer: pointer},
-				Title:  cerrors.ErrorType.Validation,
+				Title:  cerror.ErrorType.Validation,
 				Detail: formatErrorDetail(field, param, tag),
 			}
 

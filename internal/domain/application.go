@@ -2,7 +2,7 @@ package domain
 
 import (
 	"github.com/jasonsites/gosk-api/internal/core/interfaces"
-	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/jasonsites/gosk-api/internal/core/validation"
 )
 
 // Domain is the top-level container for the application domain layer

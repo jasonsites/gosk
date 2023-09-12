@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	// "go.opentelemetry.io/otel"
+	// "go.opentelemetry.io/otel/trace"
 )
 
 // Envelope
@@ -43,13 +45,24 @@ func (c *Controller) JSONDecode(w http.ResponseWriter, r *http.Request, dest any
 }
 
 // JSONEncode
-func (c *Controller) JSONEncode(w http.ResponseWriter, r *http.Request, status int, data any) {
-	w.Header().Add("Content-Type", "application/json") // TODO: .Set("Content-Type", ...) ?
-	w.WriteHeader(status)
+func (c *Controller) JSONEncode(w http.ResponseWriter, r *http.Request, code int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 
 	encoder := json.NewEncoder(w)
 	err := encoder.Encode(data)
 	if err != nil {
-		c.Error(w, r, err)
+		w.Write([]byte("internal server error"))
 	}
 }
+
+// ------------------------------------------------------------------------------------------------
+// Tracer
+
+// var Tracer = otel.GetTracerProvider().Tracer("")
+
+// func StartSpan(ctx context.Context) (context.Context, trace.Span) {
+// 	pc, _, _, _ := runtime.Caller(1)
+// 	details := runtime.FuncForPC(pc)
+// 	return Tracer.Start(ctx, details.Name())
+// }

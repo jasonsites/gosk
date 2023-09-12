@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/core/cerrors"
+	"github.com/jasonsites/gosk-api/internal/core/cerror"
 	"github.com/jasonsites/gosk-api/internal/core/entities"
 	"github.com/jasonsites/gosk-api/internal/core/interfaces"
 	"github.com/jasonsites/gosk-api/internal/core/logger"
@@ -15,7 +15,7 @@ import (
 	"github.com/jasonsites/gosk-api/internal/core/paging"
 	"github.com/jasonsites/gosk-api/internal/core/query"
 	"github.com/jasonsites/gosk-api/internal/core/trace"
-	"github.com/jasonsites/gosk-api/internal/validation"
+	"github.com/jasonsites/gosk-api/internal/core/validation"
 )
 
 // exampleEntityDefinition
@@ -253,7 +253,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 		&entity.Title,
 	); scanErr != nil {
 		log.Error().Err(scanErr).Send()
-		err := cerrors.NewNotFoundError(
+		err := cerror.NewNotFoundError(
 			fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id),
 		)
 		return nil, err

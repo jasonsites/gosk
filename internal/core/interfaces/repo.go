@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/core/models"
-	"github.com/jasonsites/gosk-api/internal/core/query"
+	"github.com/jasonsites/gosk/internal/core/models"
+	"github.com/jasonsites/gosk/internal/core/query"
 )
 
 // ModelCreator

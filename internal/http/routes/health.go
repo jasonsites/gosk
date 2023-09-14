@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	ctrl "github.com/jasonsites/gosk-api/internal/http/controllers"
+	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
 
 // HealthRouter implements a router for healthcheck

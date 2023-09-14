@@ -6,10 +6,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/core/cerror"
-	"github.com/jasonsites/gosk-api/internal/core/interfaces"
-	"github.com/jasonsites/gosk-api/internal/core/logger"
-	"github.com/jasonsites/gosk-api/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/core/cerror"
+	"github.com/jasonsites/gosk/internal/core/interfaces"
+	"github.com/jasonsites/gosk/internal/core/logger"
+	"github.com/jasonsites/gosk/internal/core/trace"
 )
 
 // Config defines the input to NewController

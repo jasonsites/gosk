@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/jasonsites/gosk-api/internal/core/cerror"
-	"github.com/jasonsites/gosk-api/internal/core/jsonapi"
-	"github.com/jasonsites/gosk-api/internal/core/validation"
+	"github.com/jasonsites/gosk/internal/core/cerror"
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
+	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/rs/zerolog"
 )
 

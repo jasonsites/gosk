@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/jasonsites/gosk-api/internal/resolver"
+	"github.com/jasonsites/gosk/internal/resolver"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )

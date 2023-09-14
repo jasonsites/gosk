@@ -7,15 +7,15 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/core/cerror"
-	"github.com/jasonsites/gosk-api/internal/core/entities"
-	"github.com/jasonsites/gosk-api/internal/core/interfaces"
-	"github.com/jasonsites/gosk-api/internal/core/logger"
-	"github.com/jasonsites/gosk-api/internal/core/models"
-	"github.com/jasonsites/gosk-api/internal/core/pagination"
-	"github.com/jasonsites/gosk-api/internal/core/query"
-	"github.com/jasonsites/gosk-api/internal/core/trace"
-	"github.com/jasonsites/gosk-api/internal/core/validation"
+	"github.com/jasonsites/gosk/internal/core/cerror"
+	"github.com/jasonsites/gosk/internal/core/entities"
+	"github.com/jasonsites/gosk/internal/core/interfaces"
+	"github.com/jasonsites/gosk/internal/core/logger"
+	"github.com/jasonsites/gosk/internal/core/models"
+	"github.com/jasonsites/gosk/internal/core/pagination"
+	"github.com/jasonsites/gosk/internal/core/query"
+	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 // exampleEntityDefinition

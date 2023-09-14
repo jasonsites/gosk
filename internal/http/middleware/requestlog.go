@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/jasonsites/gosk-api/internal/core/logger"
-	"github.com/jasonsites/gosk-api/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/core/logger"
+	"github.com/jasonsites/gosk/internal/core/trace"
 	"github.com/rs/zerolog"
 )
 

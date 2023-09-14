@@ -1,6 +1,6 @@
 package interfaces
 
-import "github.com/jasonsites/gosk-api/internal/core/jsonapi"
+import "github.com/jasonsites/gosk/internal/core/jsonapi"
 
 // DomainModel defines the interface for all domain models
 type DomainModel interface {

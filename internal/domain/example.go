@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/core/interfaces"
-	"github.com/jasonsites/gosk-api/internal/core/logger"
-	"github.com/jasonsites/gosk-api/internal/core/models"
-	"github.com/jasonsites/gosk-api/internal/core/query"
-	"github.com/jasonsites/gosk-api/internal/core/trace"
-	"github.com/jasonsites/gosk-api/internal/core/validation"
+	"github.com/jasonsites/gosk/internal/core/interfaces"
+	"github.com/jasonsites/gosk/internal/core/logger"
+	"github.com/jasonsites/gosk/internal/core/models"
+	"github.com/jasonsites/gosk/internal/core/query"
+	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 // ExampleServiceConfig defines the input to NewExampleService

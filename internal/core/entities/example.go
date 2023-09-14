@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/core/models"
-	"github.com/jasonsites/gosk-api/internal/core/pagination"
+	"github.com/jasonsites/gosk/internal/core/models"
+	"github.com/jasonsites/gosk/internal/core/pagination"
 )
 
 // ExampleEntity defines an Example database entity

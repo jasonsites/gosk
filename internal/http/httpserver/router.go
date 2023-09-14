@@ -9,11 +9,11 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/goddtriffin/helmet"
-	"github.com/jasonsites/gosk-api/internal/core/logger"
-	"github.com/jasonsites/gosk-api/internal/domain"
-	ctrl "github.com/jasonsites/gosk-api/internal/http/controllers"
-	mw "github.com/jasonsites/gosk-api/internal/http/middleware"
-	"github.com/jasonsites/gosk-api/internal/http/routes"
+	"github.com/jasonsites/gosk/internal/core/logger"
+	"github.com/jasonsites/gosk/internal/domain"
+	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
+	mw "github.com/jasonsites/gosk/internal/http/middleware"
+	"github.com/jasonsites/gosk/internal/http/routes"
 )
 
 type RouteConfig struct {

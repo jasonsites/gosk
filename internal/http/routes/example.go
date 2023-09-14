@@ -17,7 +17,7 @@ func ExampleRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
 	createResource := func() *ctrl.RequestBody {
 		return &ctrl.RequestBody{
 			Data: &ctrl.RequestResource{
-				Attributes: &models.ExampleRequestData{},
+				Attributes: &models.ExampleInputData{},
 			},
 		}
 	}

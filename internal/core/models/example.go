@@ -8,12 +8,9 @@ import (
 	"github.com/jasonsites/gosk-api/internal/core/pagination"
 )
 
-type ModelMetadata struct {
-	Paging pagination.PageMetadata
-}
-
-// ExampleRequestData defines an Example resource for data attributes request binding
-type ExampleRequestData struct {
+// ExampleInputData defines the subset of Example domain model attributes that are accepted
+// for input data request binding
+type ExampleInputData struct {
 	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
 	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
 	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
@@ -27,6 +24,10 @@ type ExampleDomainModel struct {
 	Data []ExampleObject
 	Meta *ModelMetadata
 	Solo bool
+}
+
+type ModelMetadata struct {
+	Paging pagination.PageMetadata
 }
 
 // ExampleObject

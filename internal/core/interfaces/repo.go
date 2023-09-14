@@ -35,9 +35,9 @@ type ModelUpdater interface {
 
 // ExampleRepository defines the interface for repository managing the Example domain/entity model
 type ExampleRepository interface {
-	Create(context.Context, *models.ExampleRequestData) (DomainModel, error)
+	Create(context.Context, *models.ExampleInputData) (DomainModel, error)
 	ModelDeleter
 	ModelDetailRetriever
 	ModelListRetriever
-	Update(context.Context, *models.ExampleRequestData, uuid.UUID) (DomainModel, error)
+	Update(context.Context, *models.ExampleInputData, uuid.UUID) (DomainModel, error)
 }

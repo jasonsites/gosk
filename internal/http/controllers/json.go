@@ -37,7 +37,6 @@ func (c *Controller) JSONDecode(w http.ResponseWriter, r *http.Request, dest any
 
 	err := dec.Decode(&struct{}{})
 	if err != io.EOF {
-		// err = fmt.Errorf("request body must contain only one json object %w", err)
 		return errors.New("request body must contain only one json object")
 	}
 

@@ -45,7 +45,7 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := c.JSONDecode(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError("error parsing request body")
+			err = cerror.NewInternalServerError("request body decode error")
 			log.Error().Err(err).Send()
 			c.Error(w, r, err)
 			return
@@ -69,7 +69,7 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("error formatting response from model")
+			err = cerror.NewInternalServerError("model format response error")
 			log.Error().Err(err).Send()
 			c.Error(w, r, err)
 			return
@@ -179,7 +179,7 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError("error parsing resource id")
+			err = cerror.NewInternalServerError("resource id parse error")
 			log.Error().Err(err).Send()
 			c.Error(w, r, err)
 			return
@@ -187,7 +187,7 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := c.JSONDecode(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError("error parsing request body")
+			err = cerror.NewInternalServerError("request body decode error")
 			log.Error().Err(err).Send()
 			c.Error(w, r, err)
 			return
@@ -211,7 +211,7 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("error formatting response from model")
+			err = cerror.NewInternalServerError("model format response error")
 			log.Error().Err(err).Send()
 			c.Error(w, r, err)
 			return

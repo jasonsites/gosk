@@ -51,9 +51,9 @@ func (s *exampleService) Create(ctx context.Context, data any) (interfaces.Domai
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleRequestData)
+	d, ok := data.(*models.ExampleInputData)
 	if !ok {
-		err := fmt.Errorf("error asserting data as ExampleRequestData")
+		err := fmt.Errorf("example input data assertion error")
 		log.Error().Err(err).Send()
 		return nil, err
 	}
@@ -113,7 +113,14 @@ func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (in
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	model, err := s.repo.Update(ctx, data.(*models.ExampleRequestData), id)
+	d, ok := data.(*models.ExampleInputData)
+	if !ok {
+		err := fmt.Errorf("example input data assertion error")
+		log.Error().Err(err).Send()
+		return nil, err
+	}
+
+	model, err := s.repo.Update(ctx, d, id)
 	if err != nil {
 		log.Error().Err(err).Send()
 		return nil, err

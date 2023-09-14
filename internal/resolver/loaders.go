@@ -24,7 +24,7 @@ func (r *Resolver) Config() *config.Configuration {
 	if r.config == nil {
 		conf, err := config.LoadConfiguration()
 		if err != nil {
-			err = fmt.Errorf("error resolving config: %w", err)
+			err = fmt.Errorf("config load error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
@@ -44,7 +44,7 @@ func (r *Resolver) Domain() *domain.Domain {
 
 		app, err := domain.NewDomain(services)
 		if err != nil {
-			err = fmt.Errorf("error resolving domain: %w", err)
+			err = fmt.Errorf("domain load error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
@@ -67,7 +67,7 @@ func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 			},
 		})
 		if err != nil {
-			err = fmt.Errorf("error resolving example respository: %w", err)
+			err = fmt.Errorf("example respository load error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
@@ -90,7 +90,7 @@ func (r *Resolver) ExampleService() interfaces.Service {
 			Repo: r.ExampleRepository(),
 		})
 		if err != nil {
-			err = fmt.Errorf("error resolving example service: %w", err)
+			err = fmt.Errorf("example service load error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
@@ -143,7 +143,7 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 			RouteConfig: routeConfig,
 		})
 		if err != nil {
-			err = fmt.Errorf("error resolving http server: %w", err)
+			err = fmt.Errorf("http server load error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
@@ -176,13 +176,13 @@ func (r *Resolver) Metadata() *Metadata {
 
 		jsondata, err := os.ReadFile(r.config.Metadata.Path)
 		if err != nil {
-			err = fmt.Errorf("error reading package.json: %w", err)
+			err = fmt.Errorf("package.json read error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
 
 		if err := json.Unmarshal(jsondata, &metadata); err != nil {
-			err = fmt.Errorf("error unmarshalling package.json: %w", err)
+			err = fmt.Errorf("package.json unmarshall error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}
@@ -204,7 +204,7 @@ func (r *Resolver) PostgreSQLClient() *pgxpool.Pool {
 
 		client, err := pgxpool.New(r.appContext, postgresDSN(r.config.Postgres))
 		if err != nil {
-			err = fmt.Errorf("error resolving postgres client: %w", err)
+			err = fmt.Errorf("postgres client load error: %w", err)
 			log.Error().Err(err).Send()
 			panic(err)
 		}

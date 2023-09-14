@@ -32,7 +32,7 @@ type ExampleEntityModel struct {
 func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 	// single entity model
 	if m.Solo {
-		edo := unmarshalEntity(&m.Data[0])
+		edo := unmarshalEntity(m.Data[0])
 		model := &models.ExampleDomainModel{
 			Data: []models.ExampleObject{*edo},
 			Solo: m.Solo,
@@ -50,10 +50,10 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 		},
 	}
 
-	data := make([]models.ExampleObject, 0)
+	data := make([]models.ExampleObject, 0, len(m.Data))
 	// TODO: go routine?
 	for _, record := range m.Data {
-		edo := unmarshalEntity(&record)
+		edo := unmarshalEntity(record)
 		data = append(data, *edo)
 	}
 
@@ -65,7 +65,7 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 	return result
 }
 
-func unmarshalEntity(e *ExampleEntity) *models.ExampleObject {
+func unmarshalEntity(e ExampleEntity) *models.ExampleObject {
 	var (
 		description *string
 		modifiedBy  *uint32
@@ -88,7 +88,7 @@ func unmarshalEntity(e *ExampleEntity) *models.ExampleObject {
 		status = &s
 	}
 
-	attributes := &models.ExampleObjectAttributes{
+	attributes := models.ExampleObjectAttributes{
 		CreatedBy:   e.CreatedBy,
 		CreatedOn:   e.CreatedOn,
 		Deleted:     e.Deleted,
@@ -102,6 +102,6 @@ func unmarshalEntity(e *ExampleEntity) *models.ExampleObject {
 	}
 
 	return &models.ExampleObject{
-		Attributes: *attributes,
+		Attributes: attributes,
 	}
 }

@@ -317,7 +317,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 
 	// create new entity model
 	model := &entities.ExampleEntityModel{
-		Data: make([]entities.ExampleEntity, 0),
+		Data: make([]entities.ExampleEntity, 0, limit),
 		Solo: false,
 	}
 

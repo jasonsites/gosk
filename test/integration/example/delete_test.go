@@ -6,9 +6,9 @@ package exampletest
 
 // 	"github.com/gofiber/fiber/v2"
 // 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/jasonsites/gosk-api/internal/resolver"
-// 	"github.com/jasonsites/gosk-api/internal/types"
-// 	utils "github.com/jasonsites/gosk-api/test/testutils"
+// 	"github.com/jasonsites/gosk/internal/resolver"
+// 	"github.com/jasonsites/gosk/internal/types"
+// 	utils "github.com/jasonsites/gosk/test/testutils"
 // 	"github.com/stretchr/testify/suite"
 // )
 

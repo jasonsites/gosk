@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/internal/core/entities"
+	"github.com/jasonsites/gosk/internal/core/entities"
 )
 
 const routePrefix = "/domain/examples"

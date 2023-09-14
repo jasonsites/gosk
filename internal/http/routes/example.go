@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jasonsites/gosk-api/internal/core/models"
-	ctrl "github.com/jasonsites/gosk-api/internal/http/controllers"
+	"github.com/jasonsites/gosk/internal/core/models"
+	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
 
 // ExampleRouter implements a router group for an Example resource

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/core/trace"
 )
 
 // Correlation

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/jasonsites/gosk-api/internal/runtime"
+	"github.com/jasonsites/gosk/internal/runtime"
 )
 
 func main() {

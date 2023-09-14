@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk-api/internal/core/jsonapi"
-	"github.com/jasonsites/gosk-api/internal/core/pagination"
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
+	"github.com/jasonsites/gosk/internal/core/pagination"
 )
 
 // ExampleInputData defines the subset of Example domain model attributes that are accepted

@@ -6,8 +6,8 @@ package exampletest
 // 	"testing"
 
 // 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/jasonsites/gosk-api/internal/resolver"
-// 	utils "github.com/jasonsites/gosk-api/test/testutils"
+// 	"github.com/jasonsites/gosk/internal/resolver"
+// 	utils "github.com/jasonsites/gosk/test/testutils"
 // 	"github.com/stretchr/testify/suite"
 // )
 

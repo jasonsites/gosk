@@ -19,7 +19,7 @@ The following procedure is intended to help you quickly customize this starter k
 ### App Name
 7. Choose a name for the app. This will be referred to as `{appname}` in the rest of this guide.
 8. Update the go module file and all import paths:
-  - Find all occurrences of `github.com/jasonsites/gosk-api` and replace with `github.com/{account}/{appname}`
+  - Find all occurrences of `github.com/jasonsites/gosk` and replace with `github.com/{account}/{appname}`
   - Delete `/go.sum`
   - Run `go mod tidy && go mod vendor`
 9. Update the `/package.json` `name` field to `{appname}`.

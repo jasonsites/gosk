@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
-	cerror "github.com/jasonsites/gosk-api/internal/core/cerror"
-	"github.com/jasonsites/gosk-api/internal/core/jsonapi"
+	cerror "github.com/jasonsites/gosk/internal/core/cerror"
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
 )
 
 // HTTPStatusCodeMap maps custom error types to relevant HTTP status codes

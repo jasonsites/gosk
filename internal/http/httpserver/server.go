@@ -6,10 +6,10 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jasonsites/gosk-api/internal/core/logger"
-	"github.com/jasonsites/gosk-api/internal/core/validation"
-	"github.com/jasonsites/gosk-api/internal/domain"
-	ctrl "github.com/jasonsites/gosk-api/internal/http/controllers"
+	"github.com/jasonsites/gosk/internal/core/logger"
+	"github.com/jasonsites/gosk/internal/core/validation"
+	"github.com/jasonsites/gosk/internal/domain"
+	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
 
 // ServerConfig defines the input to NewServer

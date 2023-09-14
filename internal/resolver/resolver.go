@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk-api/config"
-	"github.com/jasonsites/gosk-api/internal/core/interfaces"
-	"github.com/jasonsites/gosk-api/internal/domain"
-	"github.com/jasonsites/gosk-api/internal/http/httpserver"
+	"github.com/jasonsites/gosk/config"
+	"github.com/jasonsites/gosk/internal/core/interfaces"
+	"github.com/jasonsites/gosk/internal/domain"
+	"github.com/jasonsites/gosk/internal/http/httpserver"
 	"github.com/rs/zerolog"
 )
 

@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/jasonsites/gosk-api/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/core/trace"
 	"github.com/rs/zerolog"
 )
 

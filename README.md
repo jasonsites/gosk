@@ -1,5 +1,5 @@
-# gosk-api
-Go Starter Kit for HTTP API Applications
+# gosk
+Go Starter Kit for Modular Backend Applications
 
 ## Documentation
 - [Architecture](./documentation/architecture.md)
@@ -8,8 +8,8 @@ Go Starter Kit for HTTP API Applications
 ## Installation
 Clone the repository
 ```sh
-$ git clone git@github.com:jasonsites/gosk-api.git
-$ cd gosk-api
+$ git clone git@github.com:jasonsites/gosk.git
+$ cd gosk
 ```
 
 ## Development

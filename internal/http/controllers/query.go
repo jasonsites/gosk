@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/hetiansu5/urlquery"
-	"github.com/jasonsites/gosk-api/internal/core/query"
+	"github.com/jasonsites/gosk/internal/core/query"
 )
 
 type QueryConfig struct {

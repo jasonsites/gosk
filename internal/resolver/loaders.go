@@ -107,11 +107,11 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 		c := r.Config()
 
 		queryConfig := func() *controllers.QueryConfig {
-			limit := int(c.HTTP.API.Paging.DefaultLimit)
-			offset := int(c.HTTP.API.Paging.DefaultOffset)
+			limit := int(c.HTTP.Router.Paging.DefaultLimit)
+			offset := int(c.HTTP.Router.Paging.DefaultOffset)
 
-			attr := c.HTTP.API.Sorting.DefaultAttr
-			order := c.HTTP.API.Sorting.DefaultOrder
+			attr := c.HTTP.Router.Sorting.DefaultAttr
+			order := c.HTTP.Router.Sorting.DefaultOrder
 
 			return &controllers.QueryConfig{
 				Defaults: &controllers.QueryDefaults{
@@ -127,20 +127,20 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 			}
 		}()
 
-		routeConfig := &httpserver.RouteConfig{Namespace: c.HTTP.Server.Namespace}
+		routerConfig := &httpserver.RouterConfig{Namespace: c.HTTP.Router.Namespace}
 
 		server, err := httpserver.NewServer(&httpserver.ServerConfig{
-			BaseURL: c.HTTP.Server.BaseURL,
-			Domain:  r.Domain(),
+			Domain: r.Domain(),
+			Host:   c.HTTP.Server.Host,
 			Logger: &logger.Logger{
 				Enabled: c.Logger.HTTP.Enabled,
 				Level:   c.Logger.HTTP.Level,
 				Log:     r.Log(),
 			},
-			Mode:        c.HTTP.Server.Mode,
-			Port:        c.HTTP.Server.Port,
-			QueryConfig: queryConfig,
-			RouteConfig: routeConfig,
+			Mode:         c.HTTP.Server.Mode,
+			Port:         c.HTTP.Server.Port,
+			QueryConfig:  queryConfig,
+			RouterConfig: routerConfig,
 		})
 		if err != nil {
 			err = fmt.Errorf("http server load error: %w", err)

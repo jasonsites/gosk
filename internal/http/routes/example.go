@@ -9,12 +9,12 @@ import (
 )
 
 // ExampleRouter implements a router group for an Example resource
-func ExampleRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
+func ExampleRouter(r *chi.Mux, ns string, c *ctrl.Controller) {
 	prefix := fmt.Sprintf("/%s/examples", ns)
 
-	// createResource provides a RequestBody with data binding for the Example model
+	// resource provides a RequestBody with data binding for the Example model
 	// for use with Create/Update Controller methods
-	createResource := func() *ctrl.RequestBody {
+	resource := func() *ctrl.RequestBody {
 		return &ctrl.RequestBody{
 			Data: &ctrl.RequestResource{
 				Attributes: &models.ExampleInputData{},
@@ -23,11 +23,10 @@ func ExampleRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
 	}
 
 	r.Route(prefix, func(r chi.Router) {
-		// r.With(httpin.NewInput(ListUserReposInput{})).Get("/", c.List())
 		r.Get("/", c.List())
 		r.Get("/{id}", c.Detail())
-		r.Post("/", c.Create(createResource))
-		r.Put("/{id}", c.Update(createResource))
+		r.Post("/", c.Create(resource))
+		r.Put("/{id}", c.Update(resource))
 		r.Delete("/{id}", c.Delete())
 	})
 }

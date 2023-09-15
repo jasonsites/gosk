@@ -16,7 +16,7 @@ import (
 	"github.com/jasonsites/gosk/internal/http/routes"
 )
 
-type RouteConfig struct {
+type RouterConfig struct {
 	Namespace string `validate:"required"`
 }
 
@@ -25,7 +25,7 @@ type controllerRegistry struct {
 }
 
 // configureMiddleware
-func configureMiddleware(r *chi.Mux, conf *RouteConfig, logger *logger.Logger) {
+func configureMiddleware(r *chi.Mux, conf *RouterConfig, logger *logger.Logger) {
 	skipHealth := func(r *http.Request) bool {
 		return r.URL.Path == fmt.Sprintf("/%s/health", conf.Namespace)
 	}
@@ -59,9 +59,9 @@ func registerControllers(services *domain.Services, logger *logger.Logger, qc *c
 }
 
 // registerRoutes
-func registerRoutes(r *chi.Mux, c *controllerRegistry, conf *RouteConfig) {
+func registerRoutes(r *chi.Mux, conf *RouterConfig, c *controllerRegistry) {
 	ns := conf.Namespace
-	routes.BaseRouter(r, nil, ns)
-	routes.HealthRouter(r, nil, ns)
-	routes.ExampleRouter(r, c.ExampleController, ns)
+	routes.BaseRouter(r, ns)
+	routes.HealthRouter(r, ns)
+	routes.ExampleRouter(r, ns, c.ExampleController)
 }

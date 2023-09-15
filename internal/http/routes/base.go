@@ -9,7 +9,7 @@ import (
 )
 
 // BaseRouter only exists to easily verify a working app and should normally be removed
-func BaseRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
+func BaseRouter(r *chi.Mux, ns string) {
 	prefix := fmt.Sprintf("/%s", ns)
 
 	get := func(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,7 @@ func BaseRouter(r *chi.Mux, c *ctrl.Controller, ns string) {
 			},
 		}
 
-		c.JSONEncode(w, r, http.StatusOK, data)
+		ctrl.EncodeResponse(w, r, http.StatusOK, data)
 	}
 
 	r.Route(prefix, func(r chi.Router) {

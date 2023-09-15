@@ -44,10 +44,10 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 		log := c.logger.CreateContextLogger(traceID)
 
 		resource := f()
-		if err := c.JSONDecode(w, r, resource); err != nil {
+		if err := DecodeRequest(w, r, resource); err != nil {
 			err = cerror.NewInternalServerError("request body decode error")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
@@ -55,7 +55,7 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 		if response := validateBody(resource, log); response != nil {
 			err := fmt.Errorf("validation error(s) %+v", response)
 			log.Error().Err(err).Send()
-			c.JSONEncode(w, r, http.StatusBadRequest, response)
+			EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -63,7 +63,7 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 		model, err := c.service.Create(ctx, data)
 		if err != nil {
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
@@ -71,11 +71,11 @@ func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("model format response error")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
-		c.JSONEncode(w, r, http.StatusCreated, response)
+		EncodeResponse(w, r, http.StatusCreated, response)
 	}
 }
 
@@ -91,13 +91,13 @@ func (c *Controller) Delete() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error parsing resource id")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
 		if err := c.service.Delete(ctx, uuid); err != nil {
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
@@ -117,14 +117,14 @@ func (c *Controller) Detail() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error parsing resource id")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
 		model, err := c.service.Detail(ctx, uuid)
 		if err != nil {
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
@@ -132,11 +132,11 @@ func (c *Controller) Detail() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error formatting response from model")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
-		c.JSONEncode(w, r, http.StatusOK, response)
+		EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
 
@@ -153,7 +153,7 @@ func (c *Controller) List() http.HandlerFunc {
 		model, err := c.service.List(ctx, *query)
 		if err != nil {
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
@@ -161,11 +161,11 @@ func (c *Controller) List() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error formatting response from model")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
-		c.JSONEncode(w, r, http.StatusOK, response)
+		EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
 
@@ -181,15 +181,15 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("resource id parse error")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
 		resource := f()
-		if err := c.JSONDecode(w, r, resource); err != nil {
+		if err := DecodeRequest(w, r, resource); err != nil {
 			err = cerror.NewInternalServerError("request body decode error")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
@@ -197,7 +197,7 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 		if response := validateBody(resource, log); response != nil {
 			err := fmt.Errorf("validation error(s) %+v", response)
 			log.Error().Err(err).Send()
-			c.JSONEncode(w, r, http.StatusBadRequest, response)
+			EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -205,7 +205,7 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
@@ -213,10 +213,10 @@ func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("model format response error")
 			log.Error().Err(err).Send()
-			c.Error(w, r, err)
+			EncodeError(w, r, err)
 			return
 		}
 
-		c.JSONEncode(w, r, http.StatusCreated, response)
+		EncodeResponse(w, r, http.StatusCreated, response)
 	}
 }

@@ -17,16 +17,13 @@ var HTTPStatusCodeMap = map[string]int{
 	cerror.ErrorType.Validation:     http.StatusBadRequest,
 }
 
-func (c *Controller) Error(w http.ResponseWriter, r *http.Request, err error) {
+func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		code     = http.StatusInternalServerError
 		detail   = "internal server error"
 		title    string
 		response jsonapi.ErrorResponse
 	)
-
-	// span := trace.SpanFromContext(r.Context())
-	// span.RecordError(err)
 
 	switch e := err.(type) {
 	case *cerror.CustomError:
@@ -40,7 +37,7 @@ func (c *Controller) Error(w http.ResponseWriter, r *http.Request, err error) {
 	}
 
 	response = composeErrorResponse(code, title, detail)
-	c.JSONEncode(w, r, code, response)
+	EncodeResponse(w, r, code, response)
 }
 
 func composeErrorResponse(code int, title, detail string) jsonapi.ErrorResponse {

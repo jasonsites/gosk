@@ -12,6 +12,22 @@ import (
 	"github.com/jasonsites/gosk/internal/resolver"
 )
 
+type Expected struct {
+	Code int
+}
+
+type Request struct {
+	Body    io.Reader
+	Headers map[string]string
+}
+
+type Setup struct {
+	Description string
+	Route       string
+	Request     Request
+	Expected    Expected
+}
+
 // Cleanup deletes all rows on all database tables
 func Cleanup(r *resolver.Resolver) error {
 	db := r.PostgreSQLClient()

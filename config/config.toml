@@ -4,20 +4,21 @@
 baseURL = "http://www.google.com"
 timeout = 25000
 
-[http.api.paging]
+[http.router]
+namespace = "domain"
+
+[http.router.paging]
 defaultLimit = 20
 defaultOffset = 0
 
-[http.api.sorting]
+[http.router.sorting]
 defaultAttr = "created_on"
 defaultOrder = "desc"
 
 [http.server]
-baseURL = "localhost"
+host = "0.0.0.0"
 mode = "debug"
-namespace = "domain"
 port = 9202
-version = 1
 
 [logger.app]
 enabled = true
@@ -31,7 +32,7 @@ level = "info"
 enabled = true
 level = "info"
 
-[logger.repo]
+[logger.repos]
 enabled = true
 level = "info"
 

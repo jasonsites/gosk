@@ -12,11 +12,7 @@ help:
 clean:
   rm -rf bin
   rm -rf out
-  rm -f profile.cov
-
-# Lint ============================================================================================
-# lint all
-# lint: TODO
+  rm -f test/coverage/profile.cov
 
 # Migrations ======================================================================================
 # migrate down
@@ -36,26 +32,35 @@ migrate-create name:
 	migrate create -ext sql -dir ./database/migrations -format unix {{name}}
 
 # Run =============================================================================================
-# run http server in dev mode
-serve-dev:
-  just migrate
-  go run ./cmd/httpserver/main.go
+# run {http}server in dev mode
+serve-dev +protocol='http':
+  go run ./cmd/{{protocol}}server/main.go
 
-# run http server in dev mode with air monitor
-serve-air:
-  just migrate
-  air
+# run {http}server in dev mode with file monitor
+serve +protocol='http':
+  air --tmp_dir="out/tmp" --build.cmd="go build -mod readonly -o out/tmp/domain ./cmd/{{protocol}}server" --build.bin="out/tmp/domain"
 
 # Test ============================================================================================
-# run tests
-test:
-  just migrate-up testdb
-  go test -v ./...
+# run integration tests
+test-int:
+  go test -v ./test/inegration/...
 
-# run tests with coverage report
+# run unit tests
+test-unit:
+  go test -v ./internal/...
+
+# run unit and inegration tests with coverage report
 coverage:
   just migrate-up testdb
-  POSTGRES_DB=testdb gotestsum --jsonfile ./test/coverage/coverage.log -- -race -covermode=atomic -coverprofile=./test/coverage/coverage.out ./test/integration/resource
+  go build -cover -o ./test/bin/domain ./cmd/httpserver
+  ./test/bin/domain
+  go test -cover ./... -args -test.gocoverdir="$PWD/test/coverage/unit"
+
+covprint:
+  go tool covdata percent -i=./test/coverage/integration,./test/coverage/unit
+
+covprofile:
+  go tool covdata textfmt -i=./test/coverage/integration,./test/coverage/unit -o test/coverage/profile
 
 # html coverage report
 covreport:

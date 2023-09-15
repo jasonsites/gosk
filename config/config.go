@@ -15,32 +15,30 @@ type Configuration struct {
 	Postgres Postgres `validate:"required"`
 }
 
+type External struct {
+	Example struct {
+		Host    string
+		Timeout uint
+	}
+}
+
 type HTTP struct {
-	API    HTTPAPI    `validate:"required"`
-	Server HTTPServer `validate:"required"`
-}
-
-type HTTPAPI struct {
-	Paging  HTTPAPIPaging  `validate:"required"`
-	Sorting HTTPAPISorting `validate:"required"`
-}
-
-type HTTPAPIPaging struct {
-	DefaultLimit  uint `validate:"required"`
-	DefaultOffset uint `validate:"required"`
-}
-
-type HTTPAPISorting struct {
-	DefaultAttr  string `validate:"required"`
-	DefaultOrder string `validate:"required"`
-}
-
-type HTTPServer struct {
-	BaseURL   string
-	Mode      string `validate:"required,oneof=debug release test"`
-	Namespace string `validate:"required"`
-	Port      uint   `validate:"required,max=65535"`
-	Version   uint
+	Router struct {
+		Namespace string `validate:"required"`
+		Paging    struct {
+			DefaultLimit  uint `validate:"required"`
+			DefaultOffset uint `validate:"required"`
+		} `validate:"required"`
+		Sorting struct {
+			DefaultAttr  string `validate:"required"`
+			DefaultOrder string `validate:"required"`
+		} `validate:"required"`
+	} `validate:"required"`
+	Server struct {
+		Host string
+		Mode string `validate:"required,oneof=debug release test"`
+		Port uint   `validate:"required,max=65535"`
+	} `validate:"required"`
 }
 
 type Logger struct {
@@ -67,15 +65,6 @@ type Postgres struct {
 	User     string `validate:"required"`
 }
 
-type External struct {
-	Example ExternalServiceConfig
-}
-
-type ExternalServiceConfig struct {
-	BaseURL string
-	Timeout uint
-}
-
 // LoadConfiguration loads config parameters on startup
 func LoadConfiguration() (*Configuration, error) {
 	var config Configuration
@@ -89,11 +78,11 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.AllowEmptyEnv(true)
 
 	// http server
+	if err := viper.BindEnv("http.server.host", "HTTP_SERVER_HOST"); err != nil {
+		log.Fatalf("error binding env var `HTTP_SERVER_HOST`: %v", err)
+	}
 	if err := viper.BindEnv("http.server.mode", "HTTP_SERVER_MODE"); err != nil {
 		log.Fatalf("error binding env var `HTTP_SERVER_MODE`: %v", err)
-	}
-	if err := viper.BindEnv("http.server.baseURL", "HTTP_SERVER_BASEURL"); err != nil {
-		log.Fatalf("error binding env var `HTTP_SERVER_BASEURL`: %v", err)
 	}
 	if err := viper.BindEnv("http.server.port", "HTTP_SERVER_PORT"); err != nil {
 		log.Fatalf("error binding env var `HTTP_SERVER_PORT`: %v", err)
@@ -107,14 +96,6 @@ func LoadConfiguration() (*Configuration, error) {
 		log.Fatalf("error binding env var `LOGGER_APP_LEVEL`: %v", err)
 	}
 
-	// logger - http
-	if err := viper.BindEnv("logger.http.enabled", "LOGGER_HTTP_ENABLED"); err != nil {
-		log.Fatalf("error binding env var `LOGGER_HTTP_ENABLED`: %v", err)
-	}
-	if err := viper.BindEnv("logger.http.level", "LOGGER_HTTP_LEVEL"); err != nil {
-		log.Fatalf("error binding env var `LOGGER_HTTP_LEVEL`: %v", err)
-	}
-
 	// logger - domain
 	if err := viper.BindEnv("logger.domain.enabled", "LOGGER_DOMAIN_ENABLED"); err != nil {
 		log.Fatalf("error binding env var `LOGGER_DOMAIN_ENABLED`: %v", err)
@@ -123,12 +104,20 @@ func LoadConfiguration() (*Configuration, error) {
 		log.Fatalf("error binding env var `LOGGER_DOMAIN_LEVEL`: %v", err)
 	}
 
-	// logger - repo
-	if err := viper.BindEnv("logger.repo.enabled", "LOGGER_REPO_ENABLED"); err != nil {
-		log.Fatalf("error binding env var `LOGGER_REPO_ENABLED`: %v", err)
+	// logger - http
+	if err := viper.BindEnv("logger.http.enabled", "LOGGER_HTTP_ENABLED"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_HTTP_ENABLED`: %v", err)
 	}
-	if err := viper.BindEnv("logger.repo.level", "LOGGER_REPO_LEVEL"); err != nil {
-		log.Fatalf("error binding env var `LOGGER_REPO_LEVEL`: %v", err)
+	if err := viper.BindEnv("logger.http.level", "LOGGER_HTTP_LEVEL"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_HTTP_LEVEL`: %v", err)
+	}
+
+	// logger - repos
+	if err := viper.BindEnv("logger.repos.enabled", "LOGGER_REPOS_ENABLED"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_REPOS_ENABLED`: %v", err)
+	}
+	if err := viper.BindEnv("logger.repos.level", "LOGGER_REPOS_LEVEL"); err != nil {
+		log.Fatalf("error binding env var `LOGGER_REPOS_LEVEL`: %v", err)
 	}
 
 	// metadata

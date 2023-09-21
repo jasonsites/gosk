@@ -15,7 +15,7 @@ $ cd gosk
 ## Development
 **Prerequisites**
 - *[Docker Desktop](https://www.docker.com/products/docker-desktop)*
-- *[Go 1.20+](https://golang.org/doc/install)*
+- *[Go 1.21+](https://golang.org/doc/install)*
 
 **Show all commands**
 ```sh

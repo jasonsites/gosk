@@ -14,7 +14,7 @@ import (
 )
 
 // validateBody validates tagged fields in json request body
-func validateBody(body *RequestBody, log zerolog.Logger) *jsonapi.ErrorResponse {
+func validateBody(body *jsonapi.RequestBody, log zerolog.Logger) *jsonapi.ErrorResponse {
 	var errors []jsonapi.ErrorData
 
 	if err := validation.Validate.Struct(body); err != nil {

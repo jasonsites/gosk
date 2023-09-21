@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
 )
@@ -37,7 +38,7 @@ func NewController(c *Config) *Controller {
 }
 
 // Create
-func (c *Controller) Create(f func() *RequestBody) http.HandlerFunc {
+func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
@@ -170,7 +171,7 @@ func (c *Controller) List() http.HandlerFunc {
 }
 
 // Update
-func (c *Controller) Update(f func() *RequestBody) http.HandlerFunc {
+func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)

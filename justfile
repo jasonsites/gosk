@@ -41,27 +41,28 @@ serve +protocol='http':
   air --tmp_dir="out/tmp" --build.cmd="go build -mod readonly -o out/tmp/domain ./cmd/{{protocol}}server" --build.bin="out/tmp/domain"
 
 # Test ============================================================================================
-# run integration tests
-test-int:
-  go test -v ./test/inegration/...
+# run tests with {{pattern}} arguments
+test +pattern='./...':
+  gotestsum {{pattern}}
 
-# run unit tests
-test-unit:
-  go test -v ./internal/...
+# run integration tests (overridable with {{pattern}} arguments)
+test-int +pattern='./test/integration/...':
+  just migrate-up testdb
+  POSTGRES_DB=testdb just test -- {{pattern}}
 
-# run unit and inegration tests with coverage report
+# run unit tests (overridable with {{pattern}} arguments)
+test-unit +pattern='./internal/...':
+  just test -- {{pattern}}
+
+# run unit/inegration tests and generate coverage report
 coverage:
   just migrate-up testdb
-  go build -cover -o ./test/bin/domain ./cmd/httpserver
-  ./test/bin/domain
-  go test -cover ./... -args -test.gocoverdir="$PWD/test/coverage/unit"
-
-covprint:
-  go tool covdata percent -i=./test/coverage/integration,./test/coverage/unit
-
-covprofile:
-  go tool covdata textfmt -i=./test/coverage/integration,./test/coverage/unit -o test/coverage/profile
+  POSTGRES_DB=testdb just test \
+    --jsonfile /app/test/coverage/json.log \
+    --junitfile /app/test/coverage/junit.xml \
+    -- -coverprofile=profile.cov -outputdir=test/coverage ./...
+  just covreport
 
 # html coverage report
 covreport:
-  go tool cover -html=./coverage/profile.cov
+  go tool cover -html=test/coverage/profile.cov -o test/coverage/report.html

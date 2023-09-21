@@ -3,6 +3,7 @@ module github.com/jasonsites/gosk
 go 1.21
 
 require (
+  github.com/brianvoe/gofakeit/v6 v6.23.2
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator/v10 v10.11.2

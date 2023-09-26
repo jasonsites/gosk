@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/goddtriffin/helmet"
+	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/domain"
 	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
@@ -21,11 +22,11 @@ type RouterConfig struct {
 }
 
 type controllerRegistry struct {
-	ExampleController *ctrl.Controller
+	ExampleController interfaces.ResourceController
 }
 
 // configureMiddleware
-func configureMiddleware(r *chi.Mux, conf *RouterConfig, logger *logger.Logger) {
+func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.Logger) {
 	skipHealth := func(r *http.Request) bool {
 		return r.URL.Path == fmt.Sprintf("/%s/health", conf.Namespace)
 	}
@@ -59,7 +60,7 @@ func registerControllers(services *domain.Services, logger *logger.Logger, qc *c
 }
 
 // registerRoutes
-func registerRoutes(r *chi.Mux, conf *RouterConfig, c *controllerRegistry) {
+func registerRoutes(conf *RouterConfig, r *chi.Mux, c *controllerRegistry) {
 	ns := conf.Namespace
 	routes.BaseRouter(r, ns)
 	routes.HealthRouter(r, ns)

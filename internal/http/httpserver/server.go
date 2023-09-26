@@ -43,17 +43,16 @@ func NewServer(c *ServerConfig) (*Server, error) {
 		Log:     &log,
 	}
 
+	mux := chi.NewRouter()
+	configureMiddleware(c.RouterConfig, mux, logger)
 	controllers := registerControllers(c.Domain.Services, logger, c.QueryConfig)
-	router := chi.NewRouter()
-	configureMiddleware(router, c.RouterConfig, logger)
-	registerRoutes(router, c.RouterConfig, controllers)
+	registerRoutes(c.RouterConfig, mux, controllers)
 
 	addr := fmt.Sprintf(":%s", strconv.FormatUint(uint64(c.Port), 10))
-
 	s := &Server{
 		Logger: logger,
 		Port:   c.Port,
-		Server: &http.Server{Addr: addr, Handler: router},
+		Server: &http.Server{Addr: addr, Handler: mux},
 	}
 
 	return s, nil

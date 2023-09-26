@@ -3,15 +3,51 @@ package exampletest
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/internal/core/entities"
+	"github.com/jasonsites/gosk/internal/resolver"
+	utils "github.com/jasonsites/gosk/test/testutils"
 )
 
-const routePrefix = "/domain/examples"
+type Suite struct {
+	DB          *pgxpool.Pool
+	Handler     http.Handler
+	Method      string
+	Resolver    *resolver.Resolver
+	RoutePrefix string
+}
+
+func (s *Suite) SetupSuite(tb testing.TB) func(tb testing.TB) {
+	conf := &resolver.Config{}
+	resolver, err := utils.InitializeResolver(conf, "")
+	if err != nil {
+		tb.Fatalf("app initialization error: %+v\n", err)
+	}
+
+	s.DB = resolver.PostgreSQLClient()
+	s.Handler = resolver.HTTPServer().Server.Handler
+	s.Method = http.MethodPost
+	s.Resolver = resolver
+	s.RoutePrefix = "/domain/examples"
+
+	return func(tb testing.TB) {
+		// teardown for test table
+	}
+}
+
+func (s *Suite) SetupTest(tb testing.TB) func(tb testing.TB) {
+	// setup for each test
+
+	return func(tb testing.TB) {
+		utils.Cleanup(s.Resolver)
+	}
+}
 
 // insertExampleRecord inserts a db record for use in test setup
-func insertExampleRecord(db *pgxpool.Pool) (*entities.ExampleEntity, error) {
+func insertExampleRecord(e *entities.ExampleEntity, db *pgxpool.Pool) (*entities.ExampleEntity, error) {
 	var (
 		statement    = "INSERT INTO %s %s VALUES %s RETURNING id"
 		name         = "example_entity"
@@ -21,12 +57,12 @@ func insertExampleRecord(db *pgxpool.Pool) (*entities.ExampleEntity, error) {
 	)
 
 	var (
-		createdBy   = 9999
-		deleted     = false
-		description = "test description"
-		enabled     = true
-		status      = 1
-		title       = "test title"
+		createdBy   = e.CreatedBy
+		deleted     = e.Deleted
+		description = e.Description.String
+		enabled     = e.Enabled
+		status      = e.Status.Int32
+		title       = e.Title
 	)
 
 	// create new entity for db row scan and execute query

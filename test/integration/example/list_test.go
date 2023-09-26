@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jasonsites/gosk/internal/resolver"
 	utils "github.com/jasonsites/gosk/test/testutils"
 )
 
@@ -13,43 +12,18 @@ type ListSetup struct {
 	Name        string
 	Description string
 	Expected    utils.Expected
-	Resolver    *resolver.Resolver
-}
-
-func setupListSuite(tb testing.TB) func(tb testing.TB) {
-	// setup for test table
-
-	return func(tb testing.TB) {
-		// teardown for test table
-	}
-}
-
-func setupListTest(tb testing.TB, r *resolver.Resolver) func(tb testing.TB) {
-	// setup for each test
-
-	return func(tb testing.TB) {
-		utils.Cleanup(r)
-	}
 }
 
 func Test_Example_List(t *testing.T) {
-	teardownListSuite := setupListSuite(t)
-	defer teardownListSuite(t)
-
-	conf := &resolver.Config{}
-	resolver, err := utils.InitializeResolver(conf, "")
-	if err != nil {
-		t.Fatalf("app initialization error: %+v\n", err)
-	}
-
-	handler := resolver.HTTPServer().Server.Handler
+	s := Suite{}
+	teardownSuite := s.SetupSuite(t)
+	defer teardownSuite(t)
 
 	tests := []ListSetup{
 		{
 			Name:        "success",
 			Description: "succeeds (200)",
 			Expected:    utils.Expected{Code: http.StatusOK},
-			Resolver:    resolver,
 		},
 	}
 
@@ -58,8 +32,8 @@ func Test_Example_List(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			t.Parallel()
 
-			teardownListTest := setupListTest(t, resolver)
-			defer teardownListTest(t)
+			teardownTest := s.SetupTest(t)
+			defer teardownTest(t)
 
 			// db := resolver.PostgreSQLClient()
 			// record, err := insertRecord(db)
@@ -69,7 +43,7 @@ func Test_Example_List(t *testing.T) {
 
 			rd := &utils.RequestData{
 				Method: http.MethodGet,
-				Route:  routePrefix,
+				Route:  s.RoutePrefix,
 			}
 
 			req, err := rd.SetRequestData(nil)
@@ -78,7 +52,7 @@ func Test_Example_List(t *testing.T) {
 			}
 
 			rec := httptest.NewRecorder()
-			handler.ServeHTTP(rec, req)
+			s.Handler.ServeHTTP(rec, req)
 
 			res := rec.Result()
 			if res.StatusCode != tc.Expected.Code {

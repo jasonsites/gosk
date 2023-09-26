@@ -1,100 +1,69 @@
 package exampletest
 
-// import (
-// 	"bytes"
-// 	"fmt"
-// 	"testing"
+import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/jasonsites/gosk/internal/resolver"
-// 	"github.com/jasonsites/gosk/internal/types"
-// 	utils "github.com/jasonsites/gosk/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/jasonsites/gosk/internal/core/models"
+	fx "github.com/jasonsites/gosk/test/fixtures"
+	utils "github.com/jasonsites/gosk/test/testutils"
+)
 
-// type UpdateSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *fiber.App
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// 	record   *types.ExampleEntity
-// }
+type UpdateSetup struct {
+	Name        string
+	Description string
+	Expected    utils.Expected
+	Model       *models.ExampleInputData
+}
 
-// func TestUpdateSuite(t *testing.T) {
-// 	suite.Run(t, &UpdateSuite{})
-// }
+func Test_Example_Update(t *testing.T) {
+	s := Suite{}
+	teardownSuite := s.SetupSuite(t)
+	defer teardownSuite(t)
 
-// // SetupSuite runs setup before all suite tests
-// func (s *UpdateSuite) SetupSuite() {
-// 	s.T().Log("SetupSuite")
+	tests := []UpdateSetup{
+		{
+			Name:        "success",
+			Description: "succeeds (200) with valid payload",
+			Expected:    utils.Expected{Code: http.StatusOK},
+			Model:       fx.ExampleModel(nil),
+		},
+	}
 
-// 	app, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
 
-// 	s.method = "PUT"
-// 	s.app = app
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+			teardownTest := s.SetupTest(t)
+			defer teardownTest(t)
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *UpdateSuite) TearDownSuite() {
-// 	s.T().Log("TearDownSuite")
-// }
+			entity := fx.ExampleEntityRecord(nil, nil)
+			record, err := insertExampleRecord(entity, s.DB)
+			if err != nil {
+				t.Fatalf("db insert error: %+v\n", err)
+			}
 
-// // SetupTest runs setup before each test
-// func (s *UpdateSuite) SetupTest() {
-// 	record, err := insertRecord(s.db)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
-// 	s.record = record
-// }
+			rd := &utils.RequestData{
+				Body:   fx.ComposeJSONBody(fx.ExampleRequest(tc.Model)),
+				Method: http.MethodPut,
+				Route:  fmt.Sprintf("%s/%s", s.RoutePrefix, record.ID.String()),
+			}
 
-// // TearDownTest runs teardown after each test
-// func (s *UpdateSuite) TearDownTest() {
-// 	utils.Cleanup(s.resolver)
-// }
+			req, err := rd.SetRequestData(nil)
+			if err != nil {
+				t.Fatalf("http request error: %+v\n", err)
+			}
 
-// func (s *UpdateSuite) TestResourceUpdate() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource update succeeds (200) with valid payload",
-// 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-// 			Request: utils.Request{
-// 				Body: bytes.NewBuffer([]byte(fmt.Sprintf(`{
-// 					"data": {
-// 						"type": "resource",
-// 						"id": "%s",
-// 						"attributes": {
-// 							"title": "Resource Title",
-// 							"description": "Updated resource description",
-// 							"enabled": true,
-// 							"status": 1
-// 						}
-// 					}
-// 				}`, s.record.ID.String()))),
-// 				Headers: map[string]string{
-// 					"Content-Type": "application/json",
-// 				},
-// 			},
-// 			Expected: utils.Expected{Code: 200},
-// 		},
-// 	}
+			rec := httptest.NewRecorder()
+			s.Handler.ServeHTTP(rec, req)
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, test.Request.Body, test.Request.Headers)
-// 		msTimeout := 1000
-
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
-
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+			res := rec.Result()
+			if res.StatusCode != tc.Expected.Code {
+				t.Errorf("expected '%d', actual '%d'", tc.Expected.Code, res.StatusCode)
+			}
+		})
+	}
+}

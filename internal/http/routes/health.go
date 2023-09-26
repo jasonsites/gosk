@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
 
@@ -13,7 +14,7 @@ func HealthRouter(r *chi.Mux, ns string) {
 	prefix := fmt.Sprintf("/%s/health", ns)
 
 	status := func(w http.ResponseWriter, r *http.Request) {
-		data := ctrl.Envelope{"meta": ctrl.Envelope{"status": "healthy"}}
+		data := jsonapi.Envelope{"meta": jsonapi.Envelope{"status": "healthy"}}
 		ctrl.EncodeResponse(w, r, http.StatusOK, data)
 	}
 

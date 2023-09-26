@@ -1,92 +1,63 @@
 package exampletest
 
-// import (
-// 	"bytes"
-// 	"net/http"
-// 	"testing"
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/jasonsites/gosk/internal/resolver"
-// 	utils "github.com/jasonsites/gosk/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/jasonsites/gosk/internal/core/models"
+	fx "github.com/jasonsites/gosk/test/fixtures"
+	utils "github.com/jasonsites/gosk/test/testutils"
+)
 
-// type CreateSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *http.Server
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// }
+type CreateSetup struct {
+	Name        string
+	Description string
+	Expected    utils.Expected
+	Model       *models.ExampleInputData
+}
 
-// func TestCreateSuite(t *testing.T) {
-// 	suite.Run(t, &CreateSuite{})
-// }
+func Test_Example_Create(t *testing.T) {
+	s := Suite{}
+	teardownSuite := s.SetupSuite(t)
+	defer teardownSuite(t)
 
-// // SetupSuite runs setup before all suite tests
-// func (s *CreateSuite) SetupSuite() {
-// 	s.T().Log("SetupSuite")
+	tests := []CreateSetup{
+		{
+			Name:        "success",
+			Description: "succeeds (201) with valid payload",
+			Expected:    utils.Expected{Code: http.StatusCreated},
+			Model:       fx.ExampleModel(nil),
+		},
+	}
 
-// 	server, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
 
-// 	s.method = "POST"
-// 	s.app = server.App.Server
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+			teardownTest := s.SetupTest(t)
+			defer teardownTest(t)
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *CreateSuite) TearDownSuite() {
-// 	s.T().Log("TearDownSuite")
-// }
+			rd := &utils.RequestData{
+				Body:   fx.ComposeJSONBody(fx.ExampleRequest(tc.Model)),
+				Method: http.MethodPost,
+				Route:  s.RoutePrefix,
+			}
 
-// // SetupTest runs setup before each test
-// func (s *CreateSuite) SetupTest() {
-// 	s.T().Log("SetupTest")
-// }
+			req, err := rd.SetRequestData(nil)
+			if err != nil {
+				t.Fatalf("http request error: %+v\n", err)
+			}
 
-// // TearDownTest runs teardown after each test
-// func (s *CreateSuite) TearDownTest() {
-// 	s.T().Log("TearDownTest")
-// }
+			rec := httptest.NewRecorder()
+			s.Handler.ServeHTTP(rec, req)
 
-// func (s *CreateSuite) TestResourceCreate() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource create succeeds (201) with valid payload",
-// 			Route:       routePrefix,
-// 			Request: utils.Request{
-// 				Body: bytes.NewBuffer([]byte(`{
-// 					"data": {
-// 						"type": "resource",
-// 						"attributes": {
-// 							"title": "Resource Title",
-// 							"description": "Resource Description",
-// 							"enabled": true,
-// 							"status": 1
-// 						}
-// 					}
-// 				}`)),
-// 				Headers: map[string]string{
-// 					"Content-Type": "application/json",
-// 				},
-// 			},
-// 			Expected: utils.Expected{Code: 201},
-// 		},
-// 	}
+			res := rec.Result()
+			if res.StatusCode != tc.Expected.Code {
+				t.Errorf("expected '%d', actual '%d'", tc.Expected.Code, res.StatusCode)
+			}
+		})
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, test.Request.Body, test.Request.Headers)
-// 		msTimeout := 1000
-
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
-
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+	}
+}

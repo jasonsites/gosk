@@ -2,27 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	// "go.opentelemetry.io/otel"
 	// "go.opentelemetry.io/otel/trace"
 )
-
-// Envelope
-type Envelope map[string]any
-
-// RequestBody
-type RequestBody struct {
-	Data *RequestResource `json:"data" validate:"required"`
-}
-
-// RequestResource
-type RequestResource struct {
-	Type       string `json:"type" validate:"required"`
-	ID         string `json:"id" validate:"omitempty,uuid4"`
-	Attributes any    `json:"attributes" validate:"required"`
-}
 
 // DecodeRequest
 func DecodeRequest(w http.ResponseWriter, r *http.Request, dest any) error {
@@ -37,7 +22,7 @@ func DecodeRequest(w http.ResponseWriter, r *http.Request, dest any) error {
 
 	err := dec.Decode(&struct{}{})
 	if err != io.EOF {
-		return errors.New("request body must contain only one json object")
+		return fmt.Errorf("request body must contain only one json object")
 	}
 
 	return nil

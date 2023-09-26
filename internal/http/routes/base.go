@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
 
@@ -18,9 +19,9 @@ func BaseRouter(r *chi.Mux, ns string) {
 		path := r.URL.Path
 		remoteAddress := r.RemoteAddr
 
-		data := ctrl.Envelope{
+		data := jsonapi.Envelope{
 			"data": "base router is working...",
-			"request": ctrl.Envelope{
+			"request": jsonapi.Envelope{
 				"headers":       headers,
 				"host":          host,
 				"path":          path,

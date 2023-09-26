@@ -1,81 +1,65 @@
 package exampletest
 
-// import (
-// 	"fmt"
-// 	"testing"
+import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/jasonsites/gosk/internal/resolver"
-// 	"github.com/jasonsites/gosk/internal/types"
-// 	utils "github.com/jasonsites/gosk/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	fx "github.com/jasonsites/gosk/test/fixtures"
+	utils "github.com/jasonsites/gosk/test/testutils"
+)
 
-// type DetailSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *fiber.App
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// 	record   *types.ExampleEntity
-// }
+type DetailSetup struct {
+	Name        string
+	Description string
+	Expected    utils.Expected
+}
 
-// func TestDetailSuite(t *testing.T) {
-// 	suite.Run(t, &DetailSuite{})
-// }
+func Test_Example_Detail(t *testing.T) {
+	s := Suite{}
+	teardownSuite := s.SetupSuite(t)
+	defer teardownSuite(t)
 
-// // SetupSuite runs setup before all suite tests
-// func (s *DetailSuite) SetupSuite() {
-// 	app, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+	tests := []DetailSetup{
+		{
+			Name:        "success",
+			Description: "succeeds (200) with valid id",
+			Expected:    utils.Expected{Code: http.StatusOK},
+		},
+	}
 
-// 	s.method = "GET"
-// 	s.app = app
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *DetailSuite) TearDownSuite() {
-// 	//
-// }
+			teardownTest := s.SetupTest(t)
+			defer teardownTest(t)
 
-// // SetupTest runs setup before each test
-// func (s *DetailSuite) SetupTest() {
-// 	record, err := insertRecord(s.db)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
-// 	s.record = record
-// }
+			entity := fx.ExampleEntityRecord(nil, nil)
+			record, err := insertExampleRecord(entity, s.DB)
+			if err != nil {
+				t.Fatalf("db insert error: %+v\n", err)
+			}
 
-// // TearDownTest runs teardown after each test
-// func (s *DetailSuite) TearDownTest() {
-// 	utils.Cleanup(s.resolver)
-// }
+			rd := &utils.RequestData{
+				Method: http.MethodGet,
+				Route:  fmt.Sprintf("%s/%s", s.RoutePrefix, record.ID.String()),
+			}
 
-// func (s *DetailSuite) TestResourceDetail() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource detail succeeds (200)",
-// 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-// 			Request:     utils.Request{},
-// 			Expected:    utils.Expected{Code: 200},
-// 		},
-// 	}
+			req, err := rd.SetRequestData(nil)
+			if err != nil {
+				t.Fatalf("http request error: %+v\n", err)
+			}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, nil, nil)
-// 		msTimeout := 1000
+			rec := httptest.NewRecorder()
+			s.Handler.ServeHTTP(rec, req)
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
-
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+			res := rec.Result()
+			if res.StatusCode != tc.Expected.Code {
+				t.Errorf("expected '%d', actual '%d'", tc.Expected.Code, res.StatusCode)
+			}
+		})
+	}
+}

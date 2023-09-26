@@ -4,19 +4,20 @@ import (
 	"fmt"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jasonsites/gosk/internal/core/interfaces"
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/models"
-	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
 
 // ExampleRouter implements a router group for an Example resource
-func ExampleRouter(r *chi.Mux, ns string, c *ctrl.Controller) {
+func ExampleRouter(r *chi.Mux, ns string, c interfaces.ResourceController) {
 	prefix := fmt.Sprintf("/%s/examples", ns)
 
 	// resource provides a RequestBody with data binding for the Example model
 	// for use with Create/Update Controller methods
-	resource := func() *ctrl.RequestBody {
-		return &ctrl.RequestBody{
-			Data: &ctrl.RequestResource{
+	resource := func() *jsonapi.RequestBody {
+		return &jsonapi.RequestBody{
+			Data: &jsonapi.RequestResource{
 				Attributes: &models.ExampleInputData{},
 			},
 		}

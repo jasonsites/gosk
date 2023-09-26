@@ -42,22 +42,23 @@ serve +protocol='http':
 
 # Test ============================================================================================
 # run tests with {{pattern}} arguments
-test +pattern='./...':
+test +pattern='--format testname -- ./...':
   gotestsum {{pattern}}
 
 # run integration tests (overridable with {{pattern}} arguments)
-test-int +pattern='./test/integration/...':
+test-int +pattern='--format testname -- -race ./test/integration/...':
   just migrate-up testdb
-  POSTGRES_DB=testdb just test -- {{pattern}}
+  POSTGRES_DB=testdb just test {{pattern}}
 
 # run unit tests (overridable with {{pattern}} arguments)
-test-unit +pattern='./internal/...':
-  just test -- {{pattern}}
+test-unit +pattern='--format testname -- ./internal/...':
+  just test {{pattern}}
 
 # run unit/inegration tests and generate coverage report
 coverage:
   just migrate-up testdb
   POSTGRES_DB=testdb just test \
+    --format testname \
     --jsonfile /app/test/coverage/json.log \
     --junitfile /app/test/coverage/junit.xml \
     -- -coverprofile=profile.cov -outputdir=test/coverage ./...

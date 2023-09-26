@@ -11,7 +11,7 @@ import (
 func Cleanup(r *resolver.Resolver) error {
 	db := r.PostgreSQLClient()
 
-	tables := []string{"resource_entity"}
+	tables := []string{"example_entity"}
 
 	for _, t := range tables {
 		sql := fmt.Sprintf("DELETE from %s", t)

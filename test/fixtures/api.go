@@ -13,7 +13,7 @@ func ComposeJSONBody(body jsonapi.RequestBody) *bytes.Buffer {
 	return bytes.NewBuffer([]byte(b))
 }
 
-func ExampleRequest(model *models.ExampleObjectAttributes) jsonapi.RequestBody {
+func ExampleRequest(model *models.ExampleInputData) jsonapi.RequestBody {
 	return jsonapi.RequestBody{
 		Data: &jsonapi.RequestResource{
 			Type:       "example",

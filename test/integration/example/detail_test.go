@@ -1,81 +1,90 @@
 package exampletest
 
-// import (
-// 	"fmt"
-// 	"testing"
+import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/gofiber/fiber/v2"
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/jasonsites/gosk/internal/resolver"
-// 	"github.com/jasonsites/gosk/internal/types"
-// 	utils "github.com/jasonsites/gosk/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/jasonsites/gosk/internal/resolver"
+	utils "github.com/jasonsites/gosk/test/testutils"
+)
 
-// type DetailSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *fiber.App
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// 	record   *types.ExampleEntity
-// }
+type DetailSetup struct {
+	Name        string
+	Description string
+	Expected    utils.Expected
+	Resolver    *resolver.Resolver
+}
 
-// func TestDetailSuite(t *testing.T) {
-// 	suite.Run(t, &DetailSuite{})
-// }
+func setupDetailSuite(tb testing.TB) func(tb testing.TB) {
+	// setup for test table
 
-// // SetupSuite runs setup before all suite tests
-// func (s *DetailSuite) SetupSuite() {
-// 	app, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+	return func(tb testing.TB) {
+		// teardown for test table
+	}
+}
 
-// 	s.method = "GET"
-// 	s.app = app
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+func setupDetailTest(tb testing.TB, r *resolver.Resolver) func(tb testing.TB) {
+	// setup for each test
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *DetailSuite) TearDownSuite() {
-// 	//
-// }
+	return func(tb testing.TB) {
+		utils.Cleanup(r)
+	}
+}
 
-// // SetupTest runs setup before each test
-// func (s *DetailSuite) SetupTest() {
-// 	record, err := insertRecord(s.db)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
-// 	s.record = record
-// }
+func Test_Example_Detail(t *testing.T) {
+	teardownDetailSuite := setupDetailSuite(t)
+	defer teardownDetailSuite(t)
 
-// // TearDownTest runs teardown after each test
-// func (s *DetailSuite) TearDownTest() {
-// 	utils.Cleanup(s.resolver)
-// }
+	conf := &resolver.Config{}
+	resolver, err := utils.InitializeResolver(conf, "")
+	if err != nil {
+		t.Fatalf("app initialization error: %+v\n", err)
+	}
 
-// func (s *DetailSuite) TestResourceDetail() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource detail succeeds (200)",
-// 			Route:       fmt.Sprintf("%s/%s", routePrefix, s.record.ID.String()),
-// 			Request:     utils.Request{},
-// 			Expected:    utils.Expected{Code: 200},
-// 		},
-// 	}
+	handler := resolver.HTTPServer().Server.Handler
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, nil, nil)
-// 		msTimeout := 1000
+	tests := []DetailSetup{
+		{
+			Name:        "success",
+			Description: "succeeds (200) with valid id",
+			Expected:    utils.Expected{Code: http.StatusOK},
+			Resolver:    resolver,
+		},
+	}
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
 
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+			teardownDetailTest := setupDetailTest(t, resolver)
+			defer teardownDetailTest(t)
+
+			db := resolver.PostgreSQLClient()
+			record, err := insertExampleRecord(db)
+			if err != nil {
+				t.Fatalf("db insert error: %+v\n", err)
+			}
+
+			rd := &utils.RequestData{
+				Method: http.MethodGet,
+				Route:  fmt.Sprintf("%s/%s", routePrefix, record.ID.String()),
+			}
+
+			req, err := rd.SetRequestData(nil)
+			if err != nil {
+				t.Fatalf("http request error: %+v\n", err)
+			}
+
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+
+			res := rec.Result()
+			if res.StatusCode != tc.Expected.Code {
+				t.Errorf("expected '%d', actual '%d'", tc.Expected.Code, res.StatusCode)
+			}
+		})
+	}
+}

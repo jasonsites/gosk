@@ -5,17 +5,13 @@ import (
 	"github.com/jasonsites/gosk/internal/core/models"
 )
 
-type Recipients struct {
-	Recipients []string
-	Count      int
-}
-
-func ExampleModel() *models.ExampleObjectAttributes {
+func ExampleModel(input *models.ExampleInputData) *models.ExampleInputData {
 
 	description := fake.Sentence(4)
-	status := fake.Uint32()
+	status := uint32(fake.IntRange(0, 9))
 
-	return &models.ExampleObjectAttributes{
+	return &models.ExampleInputData{
+		Deleted:     false,
 		Description: &description,
 		Enabled:     fake.Bool(),
 		Status:      &status,

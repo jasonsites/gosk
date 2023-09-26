@@ -218,6 +218,6 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 			return
 		}
 
-		EncodeResponse(w, r, http.StatusCreated, response)
+		EncodeResponse(w, r, http.StatusOK, response)
 	}
 }

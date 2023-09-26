@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	// "go.opentelemetry.io/otel"
@@ -22,7 +22,7 @@ func DecodeRequest(w http.ResponseWriter, r *http.Request, dest any) error {
 
 	err := dec.Decode(&struct{}{})
 	if err != io.EOF {
-		return errors.New("request body must contain only one json object")
+		return fmt.Errorf("request body must contain only one json object")
 	}
 
 	return nil

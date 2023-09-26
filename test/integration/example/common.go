@@ -10,8 +10,8 @@ import (
 
 const routePrefix = "/domain/examples"
 
-// insertRecord inserts a db record for use in test setup
-func insertRecord(db *pgxpool.Pool) (*entities.ExampleEntity, error) {
+// insertExampleRecord inserts a db record for use in test setup
+func insertExampleRecord(db *pgxpool.Pool) (*entities.ExampleEntity, error) {
 	var (
 		statement    = "INSERT INTO %s %s VALUES %s RETURNING id"
 		name         = "example_entity"

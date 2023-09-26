@@ -1,92 +1,89 @@
 package exampletest
 
-// import (
-// 	"bytes"
-// 	"net/http"
-// 	"testing"
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
 
-// 	"github.com/jackc/pgx/v5/pgxpool"
-// 	"github.com/jasonsites/gosk/internal/resolver"
-// 	utils "github.com/jasonsites/gosk/test/testutils"
-// 	"github.com/stretchr/testify/suite"
-// )
+	"github.com/jasonsites/gosk/internal/core/models"
+	"github.com/jasonsites/gosk/internal/resolver"
+	fx "github.com/jasonsites/gosk/test/fixtures"
+	utils "github.com/jasonsites/gosk/test/testutils"
+)
 
-// type CreateSuite struct {
-// 	suite.Suite
-// 	method   string
-// 	app      *http.Server
-// 	db       *pgxpool.Pool
-// 	resolver *resolver.Resolver
-// }
+type CreateSetup struct {
+	Name        string
+	Description string
+	Expected    utils.Expected
+	Model       *models.ExampleInputData
+	Resolver    *resolver.Resolver
+}
 
-// func TestCreateSuite(t *testing.T) {
-// 	suite.Run(t, &CreateSuite{})
-// }
+func setupCreateSuite(tb testing.TB) func(tb testing.TB) {
+	// setup for test table
 
-// // SetupSuite runs setup before all suite tests
-// func (s *CreateSuite) SetupSuite() {
-// 	s.T().Log("SetupSuite")
+	return func(tb testing.TB) {
+		// teardown for test table
+	}
+}
 
-// 	server, db, resolver, err := utils.InitializeApp(nil)
-// 	if err != nil {
-// 		s.T().Log(err)
-// 	}
+func setupCreateTest(tb testing.TB, r *resolver.Resolver) func(tb testing.TB) {
+	// setup for each test
 
-// 	s.method = "POST"
-// 	s.app = server.App.Server
-// 	s.db = db
-// 	s.resolver = resolver
-// }
+	return func(tb testing.TB) {
+		utils.Cleanup(r)
+	}
+}
 
-// // TearDownSuite runs teardown after all suite tests
-// func (s *CreateSuite) TearDownSuite() {
-// 	s.T().Log("TearDownSuite")
-// }
+func Test_Example_Create(t *testing.T) {
+	teardownCreateSuite := setupCreateSuite(t)
+	defer teardownCreateSuite(t)
 
-// // SetupTest runs setup before each test
-// func (s *CreateSuite) SetupTest() {
-// 	s.T().Log("SetupTest")
-// }
+	conf := &resolver.Config{}
+	resolver, err := utils.InitializeResolver(conf, "")
+	if err != nil {
+		t.Fatalf("app initialization error: %+v\n", err)
+	}
 
-// // TearDownTest runs teardown after each test
-// func (s *CreateSuite) TearDownTest() {
-// 	s.T().Log("TearDownTest")
-// }
+	handler := resolver.HTTPServer().Server.Handler
 
-// func (s *CreateSuite) TestResourceCreate() {
-// 	tests := []utils.Setup{
-// 		{
-// 			Description: "resource create succeeds (201) with valid payload",
-// 			Route:       routePrefix,
-// 			Request: utils.Request{
-// 				Body: bytes.NewBuffer([]byte(`{
-// 					"data": {
-// 						"type": "resource",
-// 						"attributes": {
-// 							"title": "Resource Title",
-// 							"description": "Resource Description",
-// 							"enabled": true,
-// 							"status": 1
-// 						}
-// 					}
-// 				}`)),
-// 				Headers: map[string]string{
-// 					"Content-Type": "application/json",
-// 				},
-// 			},
-// 			Expected: utils.Expected{Code: 201},
-// 		},
-// 	}
+	tests := []CreateSetup{
+		{
+			Name:        "success",
+			Description: "succeeds (201) with valid payload",
+			Expected:    utils.Expected{Code: http.StatusCreated},
+			Model:       fx.ExampleModel(nil),
+			Resolver:    resolver,
+		},
+	}
 
-// 	for _, test := range tests {
-// 		req := utils.SetRequestData(s.method, test.Route, test.Request.Body, test.Request.Headers)
-// 		msTimeout := 1000
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.Name, func(t *testing.T) {
+			t.Parallel()
 
-// 		res, err := s.app.Test(req, msTimeout)
-// 		if err != nil {
-// 			s.T().Log(err)
-// 		}
+			teardownCreateTest := setupCreateTest(t, resolver)
+			defer teardownCreateTest(t)
 
-// 		s.Equalf(test.Expected.Code, res.StatusCode, test.Description)
-// 	}
-// }
+			rd := &utils.RequestData{
+				Body:   fx.ComposeJSONBody(fx.ExampleRequest(tc.Model)),
+				Method: http.MethodPost,
+				Route:  routePrefix,
+			}
+
+			req, err := rd.SetRequestData(nil)
+			if err != nil {
+				t.Fatalf("http request error: %+v\n", err)
+			}
+
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+
+			res := rec.Result()
+			if res.StatusCode != tc.Expected.Code {
+				t.Errorf("expected '%d', actual '%d'", tc.Expected.Code, res.StatusCode)
+			}
+		})
+
+	}
+}

@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/rs/zerolog"
 )
 
 // ExtendedResponseWriter extends gin.ResponseWriter with a bytes.Buffer to capture the response body
@@ -58,7 +58,7 @@ func ResponseLogger(config *ResponseLoggerConfig) func(http.Handler) http.Handle
 			erw.Header().Set("X-Response-Time", rt)
 
 			if err := logResponse(erw, r, logger, rt); err != nil {
-				logger.Log.Error().Err(err)
+				logger.Log.Error(err.Error())
 				return
 			}
 		})
@@ -80,15 +80,17 @@ func logResponse(erw *ExtendedResponseWriter, r *http.Request, logger *logger.Lo
 		traceID := trace.GetTraceIDFromContext(r.Context())
 		log := logger.CreateContextLogger(traceID)
 
-		body := erw.BodyLogBuffer.Bytes()
-		headers, err := json.Marshal(erw.Header())
-		if err != nil {
-			log.Error().Err(err)
+		bodyBytes := erw.BodyLogBuffer.Bytes()
+		headers := erw.Header()
+
+		var body map[string]any
+		if err := json.Unmarshal(bodyBytes, &body); err != nil {
+			return err
 		}
 
 		data := newResponseLogData(erw, r, body, headers, rt)
-		event := newResponseLogEvent(data, logger.Level, log)
-		event.Send()
+		attrs := newResponseLogEvent(data, logger.Level)
+		log.With(attrs...).Info("response")
 	}
 
 	return nil
@@ -96,9 +98,9 @@ func logResponse(erw *ExtendedResponseWriter, r *http.Request, logger *logger.Lo
 
 // ResponseLogData defines the data captured for response logging
 type ResponseLogData struct {
-	Body         []byte
+	Body         map[string]any
 	BodySize     int
-	Headers      []byte
+	Headers      http.Header
 	ResponseTime string
 	Status       int
 }
@@ -109,7 +111,7 @@ func calcResponseTime(start time.Time) string {
 }
 
 // newResponseLogData captures relevant data from the response
-func newResponseLogData(w *ExtendedResponseWriter, r *http.Request, body, headers []byte, rt string) *ResponseLogData {
+func newResponseLogData(erw *ExtendedResponseWriter, r *http.Request, body map[string]any, headers http.Header, rt string) *ResponseLogData {
 
 	return &ResponseLogData{
 		Body:         body,
@@ -121,18 +123,21 @@ func newResponseLogData(w *ExtendedResponseWriter, r *http.Request, body, header
 }
 
 // newResponseLogEvent composes a new sendable response log event
-func newResponseLogEvent(data *ResponseLogData, level string, log zerolog.Logger) *zerolog.Event {
-	event := log.Info().
-		Int("status", data.Status).
-		Str("response_time", data.ResponseTime).
-		RawJSON("headers", data.Headers).
-		Int("body_size", data.BodySize)
+func newResponseLogEvent(data *ResponseLogData, level string) []any {
+	attrs := []any{
+		slog.Int("status", data.Status),
+		slog.String("response_time", data.ResponseTime),
+		slog.Int("body_size", data.BodySize),
+	}
 
 	if level == "debug" || level == "trace" {
+		if data.Headers != nil {
+			attrs = append(attrs, "headers", data.Headers)
+		}
 		if data.Body != nil {
-			event.RawJSON("body", data.Body)
+			attrs = append(attrs, "body", data.Body)
 		}
 	}
 
-	return event
+	return attrs
 }

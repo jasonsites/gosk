@@ -3,6 +3,7 @@ package resolver
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,8 +16,6 @@ import (
 	"github.com/jasonsites/gosk/internal/http/controllers"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
 	"github.com/jasonsites/gosk/internal/repos"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 // Config provides a singleton config.Configuration instance
@@ -25,7 +24,7 @@ func (r *Resolver) Config() *config.Configuration {
 		conf, err := config.LoadConfiguration()
 		if err != nil {
 			err = fmt.Errorf("config load error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
@@ -45,7 +44,7 @@ func (r *Resolver) Domain() *domain.Domain {
 		app, err := domain.NewDomain(services)
 		if err != nil {
 			err = fmt.Errorf("domain load error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
@@ -68,7 +67,7 @@ func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 		})
 		if err != nil {
 			err = fmt.Errorf("example respository load error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
@@ -91,7 +90,7 @@ func (r *Resolver) ExampleService() interfaces.Service {
 		})
 		if err != nil {
 			err = fmt.Errorf("example service load error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
@@ -144,7 +143,7 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 		})
 		if err != nil {
 			err = fmt.Errorf("http server load error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
@@ -154,16 +153,21 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 	return r.httpServer
 }
 
-// Log provides a singleton zerolog.Logger instance
-func (r *Resolver) Log() *zerolog.Logger {
+// Log provides a singleton slog.Logger instance
+func (r *Resolver) Log() *slog.Logger {
 	if r.log == nil {
-		logger := zerolog.New(os.Stdout).Level(zerolog.InfoLevel).With().
-			Int("pid", os.Getpid()).
-			Str("name", r.Metadata().Name).
-			Str("version", r.Metadata().Version).
-			Timestamp().Logger()
+		logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: true,
+			Level:     slog.LevelInfo,
+		}).WithAttrs([]slog.Attr{
+			slog.Int("pid", os.Getpid()),
+			slog.String("name", r.Metadata().Name),
+			slog.String("version", r.Metadata().Version),
+		})
+		logger := slog.New(logHandler)
+		slog.SetDefault(logger)
 
-		r.log = &logger
+		r.log = logger
 	}
 
 	return r.log
@@ -177,13 +181,13 @@ func (r *Resolver) Metadata() *Metadata {
 		jsondata, err := os.ReadFile(r.config.Metadata.Path)
 		if err != nil {
 			err = fmt.Errorf("package.json read error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
 		if err := json.Unmarshal(jsondata, &metadata); err != nil {
 			err = fmt.Errorf("package.json unmarshall error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
@@ -198,14 +202,14 @@ func (r *Resolver) PostgreSQLClient() *pgxpool.Pool {
 	if r.postgreSQLClient == nil {
 		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
 			err = fmt.Errorf("invalid postgres config: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 
 		client, err := pgxpool.New(r.appContext, postgresDSN(r.config.Postgres))
 		if err != nil {
 			err = fmt.Errorf("postgres client load error: %w", err)
-			log.Error().Err(err).Send()
+			slog.Error(err.Error())
 			panic(err)
 		}
 

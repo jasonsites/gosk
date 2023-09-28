@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -36,11 +37,11 @@ func NewServer(c *ServerConfig) (*Server, error) {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With().Str("tags", "http").Logger()
+	log := c.Logger.Log.With(slog.String("tags", "http"))
 	logger := &logger.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
-		Log:     &log,
+		Log:     log,
 	}
 
 	mux := chi.NewRouter()
@@ -60,6 +61,6 @@ func NewServer(c *ServerConfig) (*Server, error) {
 
 // Serve starts the HTTP server on the configured address
 func (s *Server) Serve() error {
-	s.Logger.Log.Info().Msg(fmt.Sprintf("server listening on port :%d", s.Port))
+	s.Logger.Log.Info(fmt.Sprintf("server listening on port :%d", s.Port))
 	return s.Server.ListenAndServe()
 }

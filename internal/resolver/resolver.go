@@ -3,13 +3,13 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/config"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/domain"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
-	"github.com/rs/zerolog"
 )
 
 // Application metadata
@@ -25,7 +25,7 @@ type Config struct {
 	ExampleRepo      interfaces.ExampleRepository
 	ExampleService   interfaces.Service
 	HTTPServer       *httpserver.Server
-	Log              *zerolog.Logger
+	Log              *slog.Logger
 	Metadata         *Metadata
 	PostgreSQLClient *pgxpool.Pool
 }
@@ -38,7 +38,7 @@ type Resolver struct {
 	exampleRepo      interfaces.ExampleRepository
 	exampleService   interfaces.Service
 	httpServer       *httpserver.Server
-	log              *zerolog.Logger
+	log              *slog.Logger
 	metadata         *Metadata
 	postgreSQLClient *pgxpool.Pool
 }

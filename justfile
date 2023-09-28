@@ -10,7 +10,6 @@ help:
 
 # remove build related files
 clean:
-  rm -rf bin
   rm -rf out
   rm -f test/coverage/profile.cov
 
@@ -51,7 +50,7 @@ test-int +pattern='--format testname -- -race ./test/integration/...':
   POSTGRES_DB=testdb just test {{pattern}}
 
 # run unit tests (overridable with {{pattern}} arguments)
-test-unit +pattern='--format testname -- ./internal/...':
+test-unit +pattern='--format testname -- -race ./internal/...':
   just test {{pattern}}
 
 # run unit/inegration tests and generate coverage report

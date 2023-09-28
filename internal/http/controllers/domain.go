@@ -47,7 +47,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		resource := f()
 		if err := DecodeRequest(w, r, resource); err != nil {
 			err = cerror.NewInternalServerError("request body decode error")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -55,7 +55,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		// TODO: validation errors bypass default error handler (rethink this)
 		if response := validateBody(resource, log); response != nil {
 			err := fmt.Errorf("validation error(s) %+v", response)
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
@@ -63,7 +63,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		data := resource.Data.Attributes
 		model, err := c.service.Create(ctx, data)
 		if err != nil {
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -71,7 +71,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		response, err := model.FormatResponse()
 		if err != nil {
 			err = cerror.NewInternalServerError("model format response error")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -91,13 +91,13 @@ func (c *Controller) Delete() http.HandlerFunc {
 		uuid, err := uuid.Parse(id)
 		if err != nil {
 			err = cerror.NewInternalServerError("error parsing resource id")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
 
 		if err := c.service.Delete(ctx, uuid); err != nil {
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -117,14 +117,14 @@ func (c *Controller) Detail() http.HandlerFunc {
 		uuid, err := uuid.Parse(id)
 		if err != nil {
 			err = cerror.NewInternalServerError("error parsing resource id")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
 
 		model, err := c.service.Detail(ctx, uuid)
 		if err != nil {
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -132,7 +132,7 @@ func (c *Controller) Detail() http.HandlerFunc {
 		response, err := model.FormatResponse()
 		if err != nil {
 			err = cerror.NewInternalServerError("error formatting response from model")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -153,7 +153,7 @@ func (c *Controller) List() http.HandlerFunc {
 
 		model, err := c.service.List(ctx, *query)
 		if err != nil {
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -161,7 +161,7 @@ func (c *Controller) List() http.HandlerFunc {
 		response, err := model.FormatResponse()
 		if err != nil {
 			err = cerror.NewInternalServerError("error formatting response from model")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -181,7 +181,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		uuid, err := uuid.Parse(id)
 		if err != nil {
 			err = cerror.NewInternalServerError("resource id parse error")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -189,7 +189,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		resource := f()
 		if err := DecodeRequest(w, r, resource); err != nil {
 			err = cerror.NewInternalServerError("request body decode error")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -197,7 +197,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		// TODO: validation errors bypass default error handler
 		if response := validateBody(resource, log); response != nil {
 			err := fmt.Errorf("validation error(s) %+v", response)
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
@@ -205,7 +205,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		data := resource.Data.Attributes // TODO: problem here with ID
 		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}
@@ -213,7 +213,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		response, err := model.FormatResponse()
 		if err != nil {
 			err = cerror.NewInternalServerError("model format response error")
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			EncodeError(w, r, err)
 			return
 		}

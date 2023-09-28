@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
@@ -31,11 +32,11 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With().Str("tags", "service,example").Logger()
+	log := c.Logger.Log.With(slog.String("tags", "service,example"))
 	logger := &logger.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
-		Log:     &log,
+		Log:     log,
 	}
 
 	service := &exampleService{
@@ -54,13 +55,13 @@ func (s *exampleService) Create(ctx context.Context, data any) (interfaces.Domai
 	d, ok := data.(*models.ExampleInputData)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
 	model, err := s.repo.Create(ctx, d)
 	if err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -73,7 +74,7 @@ func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 	log := s.logger.CreateContextLogger(traceID)
 
 	if err := s.repo.Delete(ctx, id); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return err
 	}
 
@@ -87,7 +88,7 @@ func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (interfaces.D
 
 	model, err := s.repo.Detail(ctx, id)
 	if err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -101,7 +102,7 @@ func (s *exampleService) List(ctx context.Context, q query.QueryData) (interface
 
 	model, err := s.repo.List(ctx, q)
 	if err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -116,13 +117,13 @@ func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (in
 	d, ok := data.(*models.ExampleInputData)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
 	model, err := s.repo.Update(ctx, d, id)
 	if err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 

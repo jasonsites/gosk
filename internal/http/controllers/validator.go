@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -10,15 +11,14 @@ import (
 	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/validation"
-	"github.com/rs/zerolog"
 )
 
 // validateBody validates tagged fields in json request body
-func validateBody(body *jsonapi.RequestBody, log zerolog.Logger) *jsonapi.ErrorResponse {
+func validateBody(body *jsonapi.RequestBody, log *slog.Logger) *jsonapi.ErrorResponse {
 	var errors []jsonapi.ErrorData
 
 	if err := validation.Validate.Struct(body); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 
 		for _, err := range err.(validator.ValidationErrors) {
 

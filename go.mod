@@ -3,7 +3,7 @@ module github.com/jasonsites/gosk
 go 1.21
 
 require (
-  github.com/brianvoe/gofakeit/v6 v6.23.2
+	github.com/brianvoe/gofakeit/v6 v6.23.2
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator/v10 v10.11.2
@@ -11,7 +11,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hetiansu5/urlquery v1.2.7
 	github.com/jackc/pgx/v5 v5.3.0
-	github.com/rs/zerolog v1.29.0
 	github.com/spf13/viper v1.15.0
 	golang.org/x/sync v0.1.0
 )
@@ -26,8 +25,6 @@ require (
 	github.com/jackc/puddle/v2 v2.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/spf13/afero v1.9.3 // indirect

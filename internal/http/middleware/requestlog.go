@@ -5,11 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/rs/zerolog"
 )
 
 // RequestLogContextKey
@@ -36,7 +36,7 @@ func RequestLogger(config *RequestLoggerConfig) func(http.Handler) http.Handler 
 
 			data, err := logRequest(w, r, logger)
 			if err != nil {
-				logger.Log.Error().Err(err)
+				logger.Log.Error(err.Error())
 			}
 
 			ctx := context.WithValue(r.Context(), RequestLogContextKey, data)
@@ -71,30 +71,31 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *logger.Logger) (
 		maxBytes := 1_048_576
 		r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
 
-		var body []byte
-		n, err := r.Body.Read(body)
+		var bodyBytes []byte
+		n, err := r.Body.Read(bodyBytes)
 		if err != nil {
+			log.Error(err.Error())
 			return nil, err
 		}
 
+		var body *map[string]any
 		if n > 0 {
 			b := new(bytes.Buffer)
-			if err := json.Compact(b, body); err != nil {
-				log.Error().Err(err).Send()
+			if err := json.Compact(b, bodyBytes); err != nil {
+				log.Error(err.Error())
 				return nil, err
 			}
-			body = b.Bytes()
+
+			if err := json.Unmarshal(b.Bytes(), body); err != nil {
+				log.Error(err.Error())
+				return nil, err
+			}
+
 		}
 
-		headers, err := json.Marshal(r.Header)
-		if err != nil {
-			log.Error().Err(err).Send()
-			return nil, err
-		}
-
-		data := newRequestLogData(r, body, headers)
-		event := newRequestLogEvent(data, logger.Level, log)
-		event.Send()
+		data := newRequestLogData(r, body)
+		attrs := newRequestLogEvent(data, logger.Level, log)
+		log.With(attrs...).Info("request")
 
 		return data, nil
 	}
@@ -104,37 +105,40 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *logger.Logger) (
 
 // RequestLogData defines the data captured for request logging
 type RequestLogData struct {
-	Body     []byte
+	Body     *map[string]any
 	ClientIP string
-	Headers  []byte
+	Headers  http.Header
 	Method   string
 	Path     string
 }
 
 // newRequestLogData captures relevant data from the request
-func newRequestLogData(r *http.Request, body, headers []byte) *RequestLogData {
+func newRequestLogData(r *http.Request, body *map[string]any) *RequestLogData {
 	return &RequestLogData{
 		Body:     body,
 		ClientIP: r.RemoteAddr,
-		Headers:  headers,
+		Headers:  r.Header,
 		Method:   r.Method,
 		Path:     r.URL.Path,
 	}
 }
 
 // newRequestLogEvent composes a new sendable request log event
-func newRequestLogEvent(data *RequestLogData, level string, log zerolog.Logger) *zerolog.Event {
-	event := log.Info().
-		Str("ip", data.ClientIP).
-		Str("method", data.Method).
-		Str("path", data.Path).
-		RawJSON("headers", data.Headers)
+func newRequestLogEvent(data *RequestLogData, level string, log *slog.Logger) []any {
+	attrs := []any{
+		slog.String("ip", data.ClientIP),
+		slog.String("method", data.Method),
+		slog.String("path", data.Path),
+	}
 
 	if level == "debug" || level == "trace" {
+		if data.Headers != nil {
+			attrs = append(attrs, "headers", data.Headers)
+		}
 		if data.Body != nil {
-			event.RawJSON("body", data.Body)
+			attrs = append(attrs, "body", data.Body)
 		}
 	}
 
-	return event
+	return attrs
 }

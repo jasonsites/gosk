@@ -3,12 +3,12 @@ package runtime
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/jasonsites/gosk/internal/resolver"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -37,16 +37,16 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 
 	g, ctx := errgroup.WithContext(c)
 
-	log.Info().Msg("initializing resolver")
+	slog.Info("initializing resolver")
 	r := resolver.NewResolver(ctx, rt.config)
 
 	// load resolver app components and start the configured application
 	g.Go(func() error {
 		if conf.HTTPServer {
-			log.Info().Msg("loading resolver app components")
+			slog.Info("loading resolver app components")
 			r.Load(resolver.LoadEntries.HTTPServer)
 
-			log.Info().Msg("starting http server")
+			slog.Info("starting http server")
 			server := r.HTTPServer()
 			if err := server.Serve(); err != nil {
 				return err
@@ -60,28 +60,28 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 	g.Go(func() error {
 		<-ctx.Done()
 
-		log.Info().Msg("shutdown initiated")
+		slog.Info("shutdown initiated")
 
 		if conf.HTTPServer {
 			server := r.HTTPServer()
 			if err := server.Server.Shutdown(context.Background()); err != nil {
 				return err
 			}
-			log.Info().Msg("http server shut down")
+			slog.Info("http server shut down")
 		}
 
 		pool := r.PostgreSQLClient()
 		pool.Close()
-		log.Info().Msg("db connection pool closed")
+		slog.Info("db connection pool closed")
 
-		log.Info().Msg("shutdown complete")
+		slog.Info("shutdown complete")
 
 		return nil
 	})
 
 	if err := g.Wait(); err != nil {
 		err = fmt.Errorf("application run error: %w", err)
-		log.Error().Err(err).Send()
+		slog.Error(err.Error())
 	}
 
 	return r

@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -74,11 +75,11 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With().Str("tags", "repo,example").Logger()
+	log := c.Logger.Log.With(slog.String("tags", "repo,example"))
 	logger := &logger.Logger{
 		Enabled: c.Logger.Enabled,
 		Level:   c.Logger.Level,
-		Log:     &log,
+		Log:     log,
 	}
 
 	repo := &exampleRepository{
@@ -167,7 +168,7 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleInpu
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -202,7 +203,7 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	// create new entity for db row scan and execute query
 	entity := entities.ExampleEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return err
 	}
 
@@ -252,7 +253,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 		&entity.Status,
 		&entity.Title,
 	); scanErr != nil {
-		log.Error().Err(scanErr).Send()
+		log.Error(scanErr.Error())
 		err := cerror.NewNotFoundError(
 			fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id),
 		)
@@ -310,7 +311,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 	// execute query, returning rows
 	rows, err := r.db.Query(ctx, query)
 	if err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -337,7 +338,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 			&entity.Status,
 			&entity.Title,
 		); err != nil {
-			log.Error().Err(err).Send()
+			log.Error(err.Error())
 			return nil, err
 		}
 
@@ -345,7 +346,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -354,7 +355,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 	var total int
 	totalQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", r.Entity.Name)
 	if err := r.db.QueryRow(ctx, totalQuery).Scan(&total); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 
@@ -452,7 +453,7 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleInpu
 		&entity.Status,
 		&entity.Title,
 	); err != nil {
-		log.Error().Err(err).Send()
+		log.Error(err.Error())
 		return nil, err
 	}
 

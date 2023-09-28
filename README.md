@@ -44,13 +44,23 @@ $ docker compose run --rm api just migrate-create {name}
 ```
 
 ### Server
-**Run the server in development mode**
+**Run http server in development mode**
 ```sh
 $ docker compose run --rm --service-ports api
 ```
 
 ### Testing
-**Run the integration test suite with code coverage**
+**Run unit tests**
+```sh
+$ docker compose run --rm api just test-unit
+```
+
+**Run integration tests**
+```sh
+$ docker compose run --rm api just test-int
+```
+
+**Run full test suite with code coverage**
 ```sh
 $ docker compose run --rm api just coverage
 ```

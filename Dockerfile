@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.21-alpine3.16 AS build
+FROM golang:1.21-alpine3.18 AS build
 WORKDIR /src
 COPY go.* package.json ./
 RUN go mod download && go mod verify
@@ -8,7 +8,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o bin/server cmd/httpserver/main.go
 
 
-FROM alpine:3.16
+FROM alpine:3.18
 WORKDIR /app
 COPY --from=build /src/package.json /src/config/config.toml /src/bin/server /app/
 COPY --from=build /src/database/migrations /app/database/migrations

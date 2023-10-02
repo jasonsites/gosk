@@ -156,15 +156,21 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 // Log provides a singleton slog.Logger instance
 func (r *Resolver) Log() *slog.Logger {
 	if r.log == nil {
-		logHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			AddSource: true,
-			Level:     slog.LevelInfo,
-		}).WithAttrs([]slog.Attr{
+		var handler slog.Handler
+		opts := &slog.HandlerOptions{Level: slog.LevelInfo}
+		attrs := []slog.Attr{
 			slog.Int("pid", os.Getpid()),
 			slog.String("name", r.Metadata().Name),
 			slog.String("version", r.Metadata().Version),
-		})
-		logger := slog.New(logHandler)
+		}
+
+		if r.Config().Application.Environment == "development" {
+			handler = logger.NewHandler(opts).WithAttrs(attrs)
+		} else {
+			handler = slog.NewJSONHandler(os.Stdout, opts).WithAttrs(attrs)
+		}
+
+		logger := slog.New(handler)
 		slog.SetDefault(logger)
 
 		r.log = logger

@@ -8,11 +8,16 @@ import (
 
 // Configuration defines app configuration on startup
 type Configuration struct {
-	External External `validate:"required"`
-	HTTP     HTTP     `validate:"required"`
-	Logger   Logger   `validate:"required"`
-	Metadata Metadata `validate:"required"`
-	Postgres Postgres `validate:"required"`
+	Application Application `validate:"required"`
+	External    External    `validate:"required"`
+	HTTP        HTTP        `validate:"required"`
+	Logger      Logger      `validate:"required"`
+	Metadata    Metadata    `validate:"required"`
+	Postgres    Postgres    `validate:"required"`
+}
+
+type Application struct {
+	Environment string `validate:"required"`
 }
 
 type External struct {
@@ -76,6 +81,11 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.AddConfigPath(".")
 
 	viper.AllowEmptyEnv(true)
+
+	// application
+	if err := viper.BindEnv("application.environment", "APP_ENV"); err != nil {
+		log.Fatalf("error binding env var `APP_ENV`: %v", err)
+	}
 
 	// http server
 	if err := viper.BindEnv("http.server.host", "HTTP_SERVER_HOST"); err != nil {
@@ -158,7 +168,7 @@ func LoadConfiguration() (*Configuration, error) {
 		log.Fatalf("error unmarshalling configuration: %v", err)
 	}
 
-	// fmt.Printf("\n%+v\n", config)
+	// fmt.Printf("\n%#v\n", config)
 
 	return &config, nil
 }

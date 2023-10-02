@@ -15,8 +15,7 @@ services:
       postgres_db:
         condition: service_healthy
     environment:
-      APP_ENV: dev
-      GOCOVERDIR: coverage/integration
+      APP_ENV: development
       HTTP_SERVER_MODE: debug
       LOGGER_APP_ENABLED: true
       LOGGER_HTTP_ENABLED: true

@@ -1,5 +1,8 @@
 # default configuration
 
+[application]
+environment = "development"
+
 [external.services.example]
 baseURL = "http://www.google.com"
 timeout = 25000

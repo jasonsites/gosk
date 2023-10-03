@@ -60,13 +60,15 @@ func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 	if r.exampleRepo == nil {
 		c := r.Config()
 
+		log := r.Log().With(slog.String("tags", "repo,example"))
+		cLogger := &logger.CustomLogger{
+			Enabled: c.Logger.Enabled,
+			Level:   c.Logger.Level,
+			Log:     log,
+		}
 		repoConfig := &repos.ExampleRepoConfig{
 			DBClient: r.PostgreSQLClient(),
-			Logger: &logger.Logger{
-				Enabled: c.Logger.Enabled,
-				Level:   c.Logger.Level,
-				Log:     r.Log(),
-			},
+			Logger:   cLogger,
 		}
 
 		repo, err := repos.NewExampleRepository(repoConfig)
@@ -87,13 +89,15 @@ func (r *Resolver) ExampleService() interfaces.Service {
 	if r.exampleService == nil {
 		c := r.Config()
 
+		log := r.Log().With(slog.String("tags", "service,example"))
+		cLogger := &logger.CustomLogger{
+			Enabled: c.Logger.Enabled,
+			Level:   c.Logger.Level,
+			Log:     log,
+		}
 		svcConfig := &domain.ExampleServiceConfig{
-			Logger: &logger.Logger{
-				Enabled: c.Logger.Enabled,
-				Level:   c.Logger.Level,
-				Log:     r.Log(),
-			},
-			Repo: r.ExampleRepository(),
+			Logger: cLogger,
+			Repo:   r.ExampleRepository(),
 		}
 
 		svc, err := domain.NewExampleService(svcConfig)
@@ -135,15 +139,18 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 			}
 		}()
 
+		log := r.Log().With(slog.String("tags", "http"))
+		cLogger := &logger.CustomLogger{
+			Enabled: c.Logger.Enabled,
+			Level:   c.Logger.Level,
+			Log:     log,
+		}
+
 		routerConfig := &httpserver.RouterConfig{Namespace: c.HTTP.Router.Namespace}
 		serverConfig := &httpserver.ServerConfig{
-			Domain: r.Domain(),
-			Host:   c.HTTP.Server.Host,
-			Logger: &logger.Logger{
-				Enabled: c.Logger.Enabled,
-				Level:   c.Logger.Level,
-				Log:     r.Log(),
-			},
+			Domain:       r.Domain(),
+			Host:         c.HTTP.Server.Host,
+			Logger:       cLogger,
 			Mode:         c.HTTP.Server.Mode,
 			Port:         c.HTTP.Server.Port,
 			QueryConfig:  queryConfig,
@@ -165,27 +172,12 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 
 // Log provides a singleton slog.Logger instance
 func (r *Resolver) Log() *slog.Logger {
-	level := func(l string) slog.Leveler {
-		switch l {
-		case "debug":
-			return slog.LevelDebug
-		case "info":
-			return slog.LevelInfo
-		case "warn":
-			return slog.LevelWarn
-		case "error":
-			return slog.LevelError
-		default:
-			return slog.LevelInfo
-		}
-	}
-
 	if r.log == nil {
 		c := r.Config()
 
 		var handler slog.Handler
 		opts := &slog.HandlerOptions{
-			Level: level(c.Logger.Level),
+			Level: logLevel(c.Logger.Level),
 		}
 		if r.Config().Logger.Verbose {
 			opts.AddSource = true

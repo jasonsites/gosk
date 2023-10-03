@@ -15,14 +15,10 @@ services:
       postgres_db:
         condition: service_healthy
     environment:
-      APP_ENV: dev
-      GOCOVERDIR: coverage/integration
-      HTTP_SERVER_MODE: debug
-      LOGGER_APP_ENABLED: true
-      LOGGER_HTTP_ENABLED: true
-      LOGGER_HTTP_LEVEL: debug
-      LOGGER_DOMAIN_ENABLED: true
-      LOGGER_REPO_ENABLED: true
+      APP_ENV: development
+      LOG_ENABLED: true
+      LOG_LEVEL: debug
+      LOG_VERBOSE: true
       POSTGRES_DB: svcdb
       POSTGRES_HOST: postgres_db
       POSTGRES_PASSWORD: postgres
@@ -33,8 +29,6 @@ services:
       REDIS_HOST: host.docker.internal
       REDIS_PASSWORD: redis
       REDIS_PORT: 6379
-      SERVER_HOST: ""
-      SVC_EXAMPLE_HOST: http://host.docker.internal:8000
     networks:
       - local-dev
     ports:

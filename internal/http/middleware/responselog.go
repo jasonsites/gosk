@@ -85,6 +85,7 @@ func logResponse(erw *ExtendedResponseWriter, r *http.Request, logger *logger.Lo
 
 		var body map[string]any
 		if err := json.Unmarshal(bodyBytes, &body); err != nil {
+			logger.Log.Error(err.Error())
 			return err
 		}
 
@@ -115,10 +116,10 @@ func newResponseLogData(erw *ExtendedResponseWriter, r *http.Request, body map[s
 
 	return &ResponseLogData{
 		Body:         body,
-		BodySize:     len(body),
+		BodySize:     len(body), // TODO: test this
 		Headers:      headers,
 		ResponseTime: rt,
-		Status:       200, // TODO
+		Status:       200, // TODO: get from response
 	}
 }
 
@@ -130,7 +131,7 @@ func newResponseLogEvent(data *ResponseLogData, level string) []any {
 		slog.Int("body_size", data.BodySize),
 	}
 
-	if level == "debug" || level == "trace" {
+	if level == "debug" {
 		if data.Headers != nil {
 			attrs = append(attrs, "headers", data.Headers)
 		}

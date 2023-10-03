@@ -1,5 +1,8 @@
 # default configuration
 
+[application]
+environment = "development"
+
 [external.services.example]
 baseURL = "http://www.google.com"
 timeout = 25000
@@ -20,21 +23,10 @@ host = "0.0.0.0"
 mode = "debug"
 port = 9202
 
-[logger.app]
+[logger]
 enabled = true
 level = "info"
-
-[logger.domain]
-enabled = false
-level = "info"
-
-[logger.http]
-enabled = true
-level = "info"
-
-[logger.repos]
-enabled = true
-level = "info"
+verbose = true
 
 [metadata]
 path = "/app/package.json"

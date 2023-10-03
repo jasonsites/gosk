@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
@@ -68,29 +69,24 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *logger.Logger) (
 		traceID := trace.GetTraceIDFromContext(r.Context())
 		log := logger.CreateContextLogger(traceID)
 
-		maxBytes := 1_048_576
-		r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+		var body map[string]any
+		if logger.Level == "debug" {
+			r.Body = http.MaxBytesReader(w, r.Body, int64(1048576))
 
-		var bodyBytes []byte
-		n, err := r.Body.Read(bodyBytes)
-		if err != nil {
-			log.Error(err.Error())
-			return nil, err
-		}
-
-		var body *map[string]any
-		if n > 0 {
-			b := new(bytes.Buffer)
-			if err := json.Compact(b, bodyBytes); err != nil {
+			copy, err := io.ReadAll(r.Body)
+			if err != nil {
 				log.Error(err.Error())
 				return nil, err
 			}
 
-			if err := json.Unmarshal(b.Bytes(), body); err != nil {
-				log.Error(err.Error())
-				return nil, err
+			if len(copy) > 0 {
+				if err := json.Unmarshal(copy, &body); err != nil {
+					log.Error(err.Error())
+					return nil, err
+				}
 			}
 
+			r.Body = io.NopCloser(bytes.NewBuffer(copy))
 		}
 
 		data := newRequestLogData(r, body)
@@ -105,7 +101,7 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *logger.Logger) (
 
 // RequestLogData defines the data captured for request logging
 type RequestLogData struct {
-	Body     *map[string]any
+	Body     map[string]any
 	ClientIP string
 	Headers  http.Header
 	Method   string
@@ -113,7 +109,7 @@ type RequestLogData struct {
 }
 
 // newRequestLogData captures relevant data from the request
-func newRequestLogData(r *http.Request, body *map[string]any) *RequestLogData {
+func newRequestLogData(r *http.Request, body map[string]any) *RequestLogData {
 	return &RequestLogData{
 		Body:     body,
 		ClientIP: r.RemoteAddr,
@@ -123,7 +119,7 @@ func newRequestLogData(r *http.Request, body *map[string]any) *RequestLogData {
 	}
 }
 
-// newRequestLogEvent composes a new sendable request log event
+// newRequestLogEvent returns additional attributes for logging
 func newRequestLogEvent(data *RequestLogData, level string, log *slog.Logger) []any {
 	attrs := []any{
 		slog.String("ip", data.ClientIP),
@@ -131,7 +127,7 @@ func newRequestLogEvent(data *RequestLogData, level string, log *slog.Logger) []
 		slog.String("path", data.Path),
 	}
 
-	if level == "debug" || level == "trace" {
+	if level == "debug" {
 		if data.Headers != nil {
 			attrs = append(attrs, "headers", data.Headers)
 		}

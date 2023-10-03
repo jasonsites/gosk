@@ -1,4 +1,6 @@
 package environment
 
-const Development = "development"
-const Production = "production"
+const (
+	Development = "development"
+	Production  = "production"
+)

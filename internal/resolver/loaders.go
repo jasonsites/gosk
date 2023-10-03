@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/config"
+	"github.com/jasonsites/gosk/internal/core/environment"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/query"
@@ -155,17 +156,38 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 
 // Log provides a singleton slog.Logger instance
 func (r *Resolver) Log() *slog.Logger {
+	level := func(l string) slog.Leveler {
+		switch l {
+		case "debug":
+			return slog.LevelDebug
+		case "info":
+			return slog.LevelInfo
+		case "warn":
+			return slog.LevelWarn
+		case "error":
+			return slog.LevelError
+		default:
+			return slog.LevelInfo
+		}
+	}
+
 	if r.log == nil {
 		var handler slog.Handler
-		opts := &slog.HandlerOptions{Level: slog.LevelInfo}
+		opts := &slog.HandlerOptions{
+			Level: level(r.Config().Logger.App.Level),
+		}
+		if r.Config().Logger.App.Verbose {
+			opts.AddSource = true
+		}
+
 		attrs := []slog.Attr{
 			slog.Int("pid", os.Getpid()),
 			slog.String("name", r.Metadata().Name),
 			slog.String("version", r.Metadata().Version),
 		}
 
-		if r.Config().Application.Environment == "development" {
-			handler = logger.NewHandler(opts).WithAttrs(attrs)
+		if r.Config().Application.Environment == environment.Development {
+			handler = logger.NewDevHandler(opts).WithAttrs(attrs)
 		} else {
 			handler = slog.NewJSONHandler(os.Stdout, opts).WithAttrs(attrs)
 		}

@@ -130,7 +130,7 @@ func newResponseLogEvent(data *ResponseLogData, level string) []any {
 		slog.Int("body_size", data.BodySize),
 	}
 
-	if level == "debug" || level == "trace" {
+	if level == "debug" {
 		if data.Headers != nil {
 			attrs = append(attrs, "headers", data.Headers)
 		}

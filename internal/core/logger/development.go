@@ -34,14 +34,14 @@ const (
 	white        = 97
 )
 
-type Handler struct {
+type DevHandler struct {
 	h slog.Handler
 	r func([]string, slog.Attr) slog.Attr
 	b *bytes.Buffer
 	m *sync.Mutex
 }
 
-func NewHandler(opts *slog.HandlerOptions) *Handler {
+func NewDevHandler(opts *slog.HandlerOptions) *DevHandler {
 	if opts == nil {
 		opts = &slog.HandlerOptions{
 			AddSource: false,
@@ -55,7 +55,7 @@ func NewHandler(opts *slog.HandlerOptions) *Handler {
 	}
 
 	b := &bytes.Buffer{}
-	return &Handler{
+	return &DevHandler{
 		b: b,
 		h: slog.NewJSONHandler(b, &slog.HandlerOptions{
 			Level:       opts.Level,
@@ -67,11 +67,11 @@ func NewHandler(opts *slog.HandlerOptions) *Handler {
 	}
 }
 
-func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
+func (h *DevHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.h.Enabled(ctx, level)
 }
 
-func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
+func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
 	var level string
 	levelAttr := slog.Attr{
 		Key:   slog.LevelKey,
@@ -194,15 +194,15 @@ func (h *Handler) Handle(ctx context.Context, r slog.Record) error {
 	return nil
 }
 
-func (h *Handler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &Handler{h: h.h.WithAttrs(attrs), b: h.b, r: h.r, m: h.m}
+func (h *DevHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	return &DevHandler{h: h.h.WithAttrs(attrs), b: h.b, r: h.r, m: h.m}
 }
 
-func (h *Handler) WithGroup(name string) slog.Handler {
-	return &Handler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m}
+func (h *DevHandler) WithGroup(name string) slog.Handler {
+	return &DevHandler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m}
 }
 
-func (h *Handler) computeAttrs(ctx context.Context, r slog.Record) (map[string]any, error) {
+func (h *DevHandler) computeAttrs(ctx context.Context, r slog.Record) (map[string]any, error) {
 	h.m.Lock()
 	defer func() {
 		h.b.Reset()

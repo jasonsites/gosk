@@ -23,19 +23,20 @@ host = "0.0.0.0"
 mode = "debug"
 port = 9202
 
-[logger.app]
+[logger]
 enabled = true
 level = "info"
+verbose = true
 
-[logger.domain]
+[logger.sublogger.domain]
 enabled = false
 level = "info"
 
-[logger.http]
+[logger.sublogger.http]
 enabled = true
 level = "info"
 
-[logger.repos]
+[logger.sublogger.repos]
 enabled = true
 level = "info"
 

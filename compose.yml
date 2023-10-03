@@ -16,12 +16,13 @@ services:
         condition: service_healthy
     environment:
       APP_ENV: development
-      HTTP_SERVER_MODE: debug
-      LOGGER_APP_ENABLED: true
-      LOGGER_HTTP_ENABLED: true
-      LOGGER_HTTP_LEVEL: debug
-      LOGGER_DOMAIN_ENABLED: true
-      LOGGER_REPO_ENABLED: true
+      LOG_ENABLED: true
+      LOG_LEVEL: info
+      LOG_VERBOSE: true
+      SUBLOG_DOMAIN_ENABLED: true
+      SUBLOG_HTTP_ENABLED: false
+      SUBLOG_HTTP_LEVEL: debug
+      SUBLOG_REPOS_ENABLED: true
       POSTGRES_DB: svcdb
       POSTGRES_HOST: postgres_db
       POSTGRES_PASSWORD: postgres
@@ -32,8 +33,6 @@ services:
       REDIS_HOST: host.docker.internal
       REDIS_PASSWORD: redis
       REDIS_PORT: 6379
-      SERVER_HOST: ""
-      SVC_EXAMPLE_HOST: http://host.docker.internal:8000
     networks:
       - local-dev
     ports:

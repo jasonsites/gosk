@@ -58,14 +58,23 @@ func (r *Resolver) Domain() *domain.Domain {
 // ExampleRepository provides a singleton repo.exampleRepository instance
 func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 	if r.exampleRepo == nil {
-		repo, err := repos.NewExampleRepository(&repos.ExampleRepoConfig{
+		c := r.Config()
+
+		repoConfig := &repos.ExampleRepoConfig{
 			DBClient: r.PostgreSQLClient(),
 			Logger: &logger.Logger{
-				Enabled: r.Config().Logger.Repo.Enabled,
-				Level:   r.Config().Logger.Repo.Level,
+				Enabled: c.Logger.Enabled,
+				Level:   c.Logger.Level,
 				Log:     r.Log(),
 			},
-		})
+		}
+
+		if c.Application.Environment == environment.Development {
+			repoConfig.Logger.Enabled = c.Logger.SubLogger.Repos.Enabled
+			repoConfig.Logger.Level = c.Logger.SubLogger.Repos.Level
+		}
+
+		repo, err := repos.NewExampleRepository(repoConfig)
 		if err != nil {
 			err = fmt.Errorf("example respository load error: %w", err)
 			slog.Error(err.Error())
@@ -81,14 +90,22 @@ func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 // ExampleService provides a singleton domain.exampleService instance
 func (r *Resolver) ExampleService() interfaces.Service {
 	if r.exampleService == nil {
-		svc, err := domain.NewExampleService(&domain.ExampleServiceConfig{
+		c := r.Config()
+
+		svcConfig := &domain.ExampleServiceConfig{
 			Logger: &logger.Logger{
-				Enabled: r.Config().Logger.Domain.Enabled,
-				Level:   r.Config().Logger.Domain.Level,
+				Enabled: c.Logger.Enabled,
+				Level:   c.Logger.Level,
 				Log:     r.Log(),
 			},
 			Repo: r.ExampleRepository(),
-		})
+		}
+		if c.Application.Environment == environment.Development {
+			svcConfig.Logger.Enabled = c.Logger.SubLogger.Domain.Enabled
+			svcConfig.Logger.Level = c.Logger.SubLogger.Domain.Level
+		}
+
+		svc, err := domain.NewExampleService(svcConfig)
 		if err != nil {
 			err = fmt.Errorf("example service load error: %w", err)
 			slog.Error(err.Error())
@@ -128,20 +145,25 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 		}()
 
 		routerConfig := &httpserver.RouterConfig{Namespace: c.HTTP.Router.Namespace}
-
-		server, err := httpserver.NewServer(&httpserver.ServerConfig{
+		serverConfig := &httpserver.ServerConfig{
 			Domain: r.Domain(),
 			Host:   c.HTTP.Server.Host,
 			Logger: &logger.Logger{
-				Enabled: c.Logger.HTTP.Enabled,
-				Level:   c.Logger.HTTP.Level,
+				Enabled: c.Logger.Enabled,
+				Level:   c.Logger.Level,
 				Log:     r.Log(),
 			},
 			Mode:         c.HTTP.Server.Mode,
 			Port:         c.HTTP.Server.Port,
 			QueryConfig:  queryConfig,
 			RouterConfig: routerConfig,
-		})
+		}
+		if c.Application.Environment == environment.Development {
+			serverConfig.Logger.Enabled = c.Logger.SubLogger.HTTP.Enabled
+			serverConfig.Logger.Level = c.Logger.SubLogger.HTTP.Level
+		}
+
+		server, err := httpserver.NewServer(serverConfig)
 		if err != nil {
 			err = fmt.Errorf("http server load error: %w", err)
 			slog.Error(err.Error())
@@ -172,11 +194,13 @@ func (r *Resolver) Log() *slog.Logger {
 	}
 
 	if r.log == nil {
+		c := r.Config()
+
 		var handler slog.Handler
 		opts := &slog.HandlerOptions{
-			Level: level(r.Config().Logger.App.Level),
+			Level: level(c.Logger.Level),
 		}
-		if r.Config().Logger.App.Verbose {
+		if r.Config().Logger.Verbose {
 			opts.AddSource = true
 		}
 

@@ -28,18 +28,6 @@ enabled = true
 level = "info"
 verbose = true
 
-[logger.sublogger.domain]
-enabled = false
-level = "info"
-
-[logger.sublogger.http]
-enabled = true
-level = "info"
-
-[logger.sublogger.repos]
-enabled = true
-level = "info"
-
 [metadata]
 path = "/app/package.json"
 

@@ -17,12 +17,8 @@ services:
     environment:
       APP_ENV: development
       LOG_ENABLED: true
-      LOG_LEVEL: info
+      LOG_LEVEL: debug
       LOG_VERBOSE: true
-      SUBLOG_DOMAIN_ENABLED: true
-      SUBLOG_HTTP_ENABLED: false
-      SUBLOG_HTTP_LEVEL: debug
-      SUBLOG_REPOS_ENABLED: true
       POSTGRES_DB: svcdb
       POSTGRES_HOST: postgres_db
       POSTGRES_PASSWORD: postgres

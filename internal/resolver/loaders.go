@@ -69,11 +69,6 @@ func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 			},
 		}
 
-		if c.Application.Environment == environment.Development {
-			repoConfig.Logger.Enabled = c.Logger.SubLogger.Repos.Enabled
-			repoConfig.Logger.Level = c.Logger.SubLogger.Repos.Level
-		}
-
 		repo, err := repos.NewExampleRepository(repoConfig)
 		if err != nil {
 			err = fmt.Errorf("example respository load error: %w", err)
@@ -99,10 +94,6 @@ func (r *Resolver) ExampleService() interfaces.Service {
 				Log:     r.Log(),
 			},
 			Repo: r.ExampleRepository(),
-		}
-		if c.Application.Environment == environment.Development {
-			svcConfig.Logger.Enabled = c.Logger.SubLogger.Domain.Enabled
-			svcConfig.Logger.Level = c.Logger.SubLogger.Domain.Level
 		}
 
 		svc, err := domain.NewExampleService(svcConfig)
@@ -157,10 +148,6 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 			Port:         c.HTTP.Server.Port,
 			QueryConfig:  queryConfig,
 			RouterConfig: routerConfig,
-		}
-		if c.Application.Environment == environment.Development {
-			serverConfig.Logger.Enabled = c.Logger.SubLogger.HTTP.Enabled
-			serverConfig.Logger.Level = c.Logger.SubLogger.HTTP.Level
 		}
 
 		server, err := httpserver.NewServer(serverConfig)

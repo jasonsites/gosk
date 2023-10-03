@@ -47,21 +47,9 @@ type HTTP struct {
 }
 
 type Logger struct {
-	Enabled   bool       `validate:"required,oneof=false true"`
-	Level     string     `validate:"required,oneof=debug info warn error"`
-	SubLogger SubLoggers `validate:"required"`
-	Verbose   bool       `validate:"required,oneof=false true"`
-}
-
-type SubLoggers struct {
-	Domain SubLoggerConfig `validate:"required"`
-	HTTP   SubLoggerConfig `validate:"required"`
-	Repos  SubLoggerConfig `validate:"required"`
-}
-
-type SubLoggerConfig struct {
-	Enabled bool   `validate:"oneof=false true"`
-	Level   string `validate:"oneof=debug info warn error"`
+	Enabled bool   `validate:"required,oneof=false true"`
+	Level   string `validate:"required,oneof=debug info warn error"`
+	Verbose bool   `validate:"required,oneof=false true"`
 }
 
 type Metadata struct {
@@ -113,30 +101,6 @@ func LoadConfiguration() (*Configuration, error) {
 	}
 	if err := viper.BindEnv("logger.verbose", "LOG_VERBOSE"); err != nil {
 		log.Fatalf("error binding env var `LOG_VERBOSE`: %v", err)
-	}
-
-	// sublogger - domain
-	if err := viper.BindEnv("logger.sublogger.domain.enabled", "SUBLOG_DOMAIN_ENABLED"); err != nil {
-		log.Fatalf("error binding env var `SUBLOG_DOMAIN_ENABLED`: %v", err)
-	}
-	if err := viper.BindEnv("logger.sublogger.domain.level", "SUBLOG_DOMAIN_LEVEL"); err != nil {
-		log.Fatalf("error binding env var `SUBLOG_DOMAIN_LEVEL`: %v", err)
-	}
-
-	// sublogger - http
-	if err := viper.BindEnv("logger.sublogger.http.enabled", "SUBLOG_HTTP_ENABLED"); err != nil {
-		log.Fatalf("error binding env var `SUBLOG_HTTP_ENABLED`: %v", err)
-	}
-	if err := viper.BindEnv("logger.sublogger.http.level", "SUBLOG_HTTP_LEVEL"); err != nil {
-		log.Fatalf("error binding env var `SUBLOG_HTTP_LEVEL`: %v", err)
-	}
-
-	// sublogger - repos
-	if err := viper.BindEnv("logger.sublogger.repos.enabled", "SUBLOG_REPOS_ENABLED"); err != nil {
-		log.Fatalf("error binding env var `SUBLOG_REPOS_ENABLED`: %v", err)
-	}
-	if err := viper.BindEnv("logger.sublogger.repos.level", "SUBLOG_REPOS_LEVEL"); err != nil {
-		log.Fatalf("error binding env var `SUBLOG_REPOS_LEVEL`: %v", err)
 	}
 
 	// metadata

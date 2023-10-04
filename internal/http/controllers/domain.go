@@ -15,14 +15,14 @@ import (
 
 // Config defines the input to NewController
 type Config struct {
-	Logger      *logger.Logger
+	Logger      *logger.CustomLogger
 	QueryConfig *QueryConfig
 	Service     interfaces.Service
 }
 
 // Controller
 type Controller struct {
-	logger  *logger.Logger
+	logger  *logger.CustomLogger
 	query   *queryHandler
 	service interfaces.Service
 }

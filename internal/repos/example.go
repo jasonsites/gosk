@@ -3,7 +3,6 @@ package repos
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -58,15 +57,15 @@ var exampleEntity = exampleEntityDefinition{
 
 // ExampleRepoConfig defines the input to NewExampleRepository
 type ExampleRepoConfig struct {
-	DBClient *pgxpool.Pool  `validate:"required"`
-	Logger   *logger.Logger `validate:"required"`
+	DBClient *pgxpool.Pool        `validate:"required"`
+	Logger   *logger.CustomLogger `validate:"required"`
 }
 
 // exampleRepository
 type exampleRepository struct {
 	Entity exampleEntityDefinition
 	db     *pgxpool.Pool
-	logger *logger.Logger
+	logger *logger.CustomLogger
 }
 
 // NewExampleRepository returns a new exampleRepository instance
@@ -75,17 +74,10 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With(slog.String("tags", "repo,example"))
-	logger := &logger.Logger{
-		Enabled: c.Logger.Enabled,
-		Level:   c.Logger.Level,
-		Log:     log,
-	}
-
 	repo := &exampleRepository{
 		Entity: exampleEntity,
 		db:     c.DBClient,
-		logger: logger,
+		logger: c.Logger,
 	}
 
 	return repo, nil

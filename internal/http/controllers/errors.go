@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	cerror "github.com/jasonsites/gosk/internal/core/cerror"
+	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
 )
 

@@ -3,7 +3,6 @@ package domain
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
@@ -16,13 +15,13 @@ import (
 
 // ExampleServiceConfig defines the input to NewExampleService
 type ExampleServiceConfig struct {
-	Logger *logger.Logger               `validate:"required"`
+	Logger *logger.CustomLogger         `validate:"required"`
 	Repo   interfaces.ExampleRepository `validate:"required"`
 }
 
 // exampleService
 type exampleService struct {
-	logger *logger.Logger
+	logger *logger.CustomLogger
 	repo   interfaces.ExampleRepository
 }
 
@@ -32,15 +31,8 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With(slog.String("tags", "service,example"))
-	logger := &logger.Logger{
-		Enabled: c.Logger.Enabled,
-		Level:   c.Logger.Level,
-		Log:     log,
-	}
-
 	service := &exampleService{
-		logger: logger,
+		logger: c.Logger,
 		repo:   c.Repo,
 	}
 

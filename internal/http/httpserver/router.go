@@ -26,7 +26,7 @@ type controllerRegistry struct {
 }
 
 // configureMiddleware
-func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.Logger) {
+func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.CustomLogger) {
 	skipHealth := func(r *http.Request) bool {
 		return r.URL.Path == fmt.Sprintf("/%s/health", conf.Namespace)
 	}
@@ -49,7 +49,7 @@ func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.Logger) 
 }
 
 // registerControllers
-func registerControllers(services *domain.Services, logger *logger.Logger, qc *ctrl.QueryConfig) *controllerRegistry {
+func registerControllers(services *domain.Services, logger *logger.CustomLogger, qc *ctrl.QueryConfig) *controllerRegistry {
 	return &controllerRegistry{
 		ExampleController: ctrl.NewController(&ctrl.Config{
 			QueryConfig: qc,

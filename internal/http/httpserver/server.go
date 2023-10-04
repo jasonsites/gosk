@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -15,18 +14,18 @@ import (
 
 // ServerConfig defines the input to NewServer
 type ServerConfig struct {
-	Domain       *domain.Domain    `validate:"required"`
-	Host         string            `validate:"required"`
-	Logger       *logger.Logger    `validate:"required"`
-	Mode         string            `validate:"required"`
-	Port         uint              `validate:"required"`
-	QueryConfig  *ctrl.QueryConfig `validate:"required"`
-	RouterConfig *RouterConfig     `validate:"required"`
+	Domain       *domain.Domain       `validate:"required"`
+	Host         string               `validate:"required"`
+	Logger       *logger.CustomLogger `validate:"required"`
+	Mode         string               `validate:"required"`
+	Port         uint                 `validate:"required"`
+	QueryConfig  *ctrl.QueryConfig    `validate:"required"`
+	RouterConfig *RouterConfig        `validate:"required"`
 }
 
 // Server defines a server for handling HTTP API requests
 type Server struct {
-	Logger *logger.Logger
+	Logger *logger.CustomLogger
 	Port   uint
 	Server *http.Server
 }
@@ -37,21 +36,14 @@ func NewServer(c *ServerConfig) (*Server, error) {
 		return nil, err
 	}
 
-	log := c.Logger.Log.With(slog.String("tags", "http"))
-	logger := &logger.Logger{
-		Enabled: c.Logger.Enabled,
-		Level:   c.Logger.Level,
-		Log:     log,
-	}
-
 	mux := chi.NewRouter()
-	configureMiddleware(c.RouterConfig, mux, logger)
-	controllers := registerControllers(c.Domain.Services, logger, c.QueryConfig)
+	configureMiddleware(c.RouterConfig, mux, c.Logger)
+	controllers := registerControllers(c.Domain.Services, c.Logger, c.QueryConfig)
 	registerRoutes(c.RouterConfig, mux, controllers)
 
 	addr := fmt.Sprintf(":%s", strconv.FormatUint(uint64(c.Port), 10))
 	s := &Server{
-		Logger: logger,
+		Logger: c.Logger,
 		Port:   c.Port,
 		Server: &http.Server{Addr: addr, Handler: mux},
 	}

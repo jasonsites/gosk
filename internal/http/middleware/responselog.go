@@ -111,17 +111,17 @@ func responseLogAttrs(data *ResponseLogData, level string) []any {
 	k := cl.AttrKey
 
 	attrs := []any{
-		slog.Int(k.Status, data.Status),
+		slog.Int(k.HTTP.Status, data.Status),
 		slog.String(k.ResponseTime, data.ResponseTime),
-		slog.Int(k.BodySize, data.BodySize),
+		slog.Int(k.HTTP.BodySize, data.BodySize),
 	}
 
 	if level == cl.LevelDebug {
 		if data.Headers != nil {
-			attrs = append(attrs, k.Headers, data.Headers)
+			attrs = append(attrs, k.HTTP.Headers, data.Headers)
 		}
 		if data.Body != nil {
-			attrs = append(attrs, k.Body, data.Body)
+			attrs = append(attrs, k.HTTP.Body, data.Body)
 		}
 	}
 

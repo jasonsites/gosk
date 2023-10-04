@@ -7,16 +7,11 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/config"
+	"github.com/jasonsites/gosk/internal/core/application"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/domain"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
 )
-
-// Application metadata
-type Metadata struct {
-	Name    string
-	Version string
-}
 
 // Config defines the input to NewResolver
 type Config struct {
@@ -26,7 +21,7 @@ type Config struct {
 	ExampleService   interfaces.Service
 	HTTPServer       *httpserver.Server
 	Log              *slog.Logger
-	Metadata         *Metadata
+	Metadata         *application.Metadata
 	PostgreSQLClient *pgxpool.Pool
 }
 
@@ -39,7 +34,7 @@ type Resolver struct {
 	exampleService   interfaces.Service
 	httpServer       *httpserver.Server
 	log              *slog.Logger
-	metadata         *Metadata
+	metadata         *application.Metadata
 	postgreSQLClient *pgxpool.Pool
 }
 

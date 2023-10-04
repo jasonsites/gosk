@@ -6,32 +6,6 @@ import (
 	"github.com/jasonsites/gosk/internal/core/trace"
 )
 
-type AttrKeys struct {
-	Body         string
-	BodySize     string
-	Headers      string
-	IP           string
-	Method       string
-	PID          string
-	Path         string
-	ResponseTime string
-	Status       string
-	Tags         string
-}
-
-var AttrKey = AttrKeys{
-	Body:         "body",
-	BodySize:     "body_size",
-	Headers:      "headers",
-	IP:           "ip",
-	Method:       "method",
-	PID:          "pid",
-	Path:         "path",
-	ResponseTime: "response_time",
-	Status:       "status",
-	Tags:         "tags",
-}
-
 const (
 	LevelDebug = "debug"
 	LevelInfo  = "info"

@@ -8,7 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/config"
-	"github.com/jasonsites/gosk/internal/core/environment"
+	"github.com/jasonsites/gosk/internal/core/application"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/query"
@@ -24,7 +24,7 @@ func (r *Resolver) Config() *config.Configuration {
 	if r.config == nil {
 		conf, err := config.LoadConfiguration()
 		if err != nil {
-			err = fmt.Errorf("config load error: %w", err)
+			err = fmt.Errorf("configuration load error: %w", err)
 			slog.Error(err.Error())
 			panic(err)
 		}
@@ -179,18 +179,18 @@ func (r *Resolver) Log() *slog.Logger {
 		opts := &slog.HandlerOptions{
 			Level: logLevel(c.Logger.Level),
 		}
-		if r.Config().Logger.Verbose {
+		if c.Logger.Verbose {
 			opts.AddSource = true
 		}
 
 		attrs := []slog.Attr{
-			slog.Int("pid", os.Getpid()),
-			slog.String("name", r.Metadata().Name),
-			slog.String("version", r.Metadata().Version),
+			slog.Int(logger.AttrKey.PID, os.Getpid()),
+			slog.String(logger.AttrKey.App.Name, r.Metadata().Name),
+			slog.String(logger.AttrKey.App.Version, r.Metadata().Version),
 		}
 
-		if r.Config().Application.Environment == environment.Development {
-			handler = logger.NewDevHandler(opts).WithAttrs(attrs)
+		if c.Metadata.Environment == application.Env.Development {
+			handler = logger.NewDevHandler(*r.Metadata(), opts).WithAttrs(attrs)
 		} else {
 			handler = slog.NewJSONHandler(os.Stdout, opts).WithAttrs(attrs)
 		}
@@ -205,11 +205,11 @@ func (r *Resolver) Log() *slog.Logger {
 }
 
 // Metadata provides a singleton application Metadata instance
-func (r *Resolver) Metadata() *Metadata {
+func (r *Resolver) Metadata() *application.Metadata {
 	if r.metadata == nil {
-		var metadata *Metadata
+		var metadata application.Metadata
 
-		jsondata, err := os.ReadFile(r.config.Metadata.Path)
+		jsondata, err := os.ReadFile("/app/package.json")
 		if err != nil {
 			err = fmt.Errorf("package.json read error: %w", err)
 			slog.Error(err.Error())
@@ -222,7 +222,11 @@ func (r *Resolver) Metadata() *Metadata {
 			panic(err)
 		}
 
-		r.metadata = metadata
+		if r.Config().Metadata.Version != "" {
+			metadata.Version = r.Config().Metadata.Version
+		}
+
+		r.metadata = &metadata
 	}
 
 	return r.metadata

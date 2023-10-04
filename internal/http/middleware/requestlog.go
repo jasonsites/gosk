@@ -106,16 +106,16 @@ func requestLogAttrs(data *RequestLogData, level string) []any {
 
 	attrs := []any{
 		slog.String(k.IP, data.ClientIP),
-		slog.String(k.Method, data.Method),
-		slog.String(k.Path, data.Path),
+		slog.String(k.HTTP.Method, data.Method),
+		slog.String(k.HTTP.Path, data.Path),
 	}
 
 	if level == cl.LevelDebug {
 		if data.Headers != nil {
-			attrs = append(attrs, k.Headers, data.Headers)
+			attrs = append(attrs, k.HTTP.Headers, data.Headers)
 		}
 		if data.Body != nil {
-			attrs = append(attrs, k.Body, data.Body)
+			attrs = append(attrs, k.HTTP.Body, data.Body)
 		}
 	}
 

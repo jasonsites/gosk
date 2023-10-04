@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/jasonsites/gosk/internal/core/application"
 )
 
 const (
@@ -35,13 +38,14 @@ const (
 )
 
 type DevHandler struct {
-	h slog.Handler
-	r func([]string, slog.Attr) slog.Attr
-	b *bytes.Buffer
-	m *sync.Mutex
+	buffer   *bytes.Buffer
+	handler  slog.Handler
+	metadata application.Metadata
+	mutex    *sync.Mutex
+	replace  func([]string, slog.Attr) slog.Attr
 }
 
-func NewDevHandler(opts *slog.HandlerOptions) *DevHandler {
+func NewDevHandler(meta application.Metadata, opts *slog.HandlerOptions) *DevHandler {
 	if opts == nil {
 		opts = &slog.HandlerOptions{
 			AddSource: false,
@@ -50,34 +54,48 @@ func NewDevHandler(opts *slog.HandlerOptions) *DevHandler {
 	}
 	if opts.ReplaceAttr == nil {
 		opts.ReplaceAttr = func(groups []string, a slog.Attr) slog.Attr {
+			if a.Key == AttrKey.App.Name {
+				return slog.Attr{
+					Key:   AttrKey.App.Name,
+					Value: slog.StringValue(meta.Name),
+				}
+			}
+			if a.Key == AttrKey.App.Version {
+				return slog.Attr{
+					Key:   AttrKey.App.Version,
+					Value: slog.StringValue(meta.Version),
+				}
+			}
 			return a
 		}
 	}
 
 	b := &bytes.Buffer{}
 	return &DevHandler{
-		b: b,
-		h: slog.NewJSONHandler(b, &slog.HandlerOptions{
-			Level:       opts.Level,
+		buffer: b,
+		handler: slog.NewJSONHandler(b, &slog.HandlerOptions{
 			AddSource:   opts.AddSource,
+			Level:       opts.Level,
 			ReplaceAttr: suppressDefaults(opts.ReplaceAttr),
 		}),
-		r: opts.ReplaceAttr,
-		m: &sync.Mutex{},
+		metadata: meta,
+		mutex:    &sync.Mutex{},
+		replace:  opts.ReplaceAttr,
 	}
 }
 
 func (h *DevHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	return h.h.Enabled(ctx, level)
+	return h.handler.Enabled(ctx, level)
 }
 
 func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
+	// level
 	var level string
 	levelAttr := slog.Attr{
 		Key:   slog.LevelKey,
 		Value: slog.AnyValue(r.Level),
 	}
-	levelAttr = h.r([]string{}, levelAttr)
+	levelAttr = h.replace([]string{}, levelAttr)
 
 	if !levelAttr.Equal(slog.Attr{}) {
 		level = fmt.Sprintf("%s:", levelAttr.Value.String())
@@ -103,7 +121,7 @@ func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
 		Key:   slog.TimeKey,
 		Value: slog.StringValue(r.Time.Format(timeFormat)),
 	}
-	timeAttr = h.r([]string{}, timeAttr)
+	timeAttr = h.replace([]string{}, timeAttr)
 	if !timeAttr.Equal(slog.Attr{}) {
 		timestamp = colorize(lightGray, timeAttr.Value.String())
 	}
@@ -111,10 +129,10 @@ func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
 	// name
 	var name string
 	nameAttr := slog.Attr{
-		Key:   "name",
-		Value: slog.StringValue("gosk"),
+		Key:   AttrKey.App.Name,
+		Value: slog.StringValue(h.metadata.Name),
 	}
-	nameAttr = h.r([]string{}, nameAttr)
+	nameAttr = h.replace([]string{}, nameAttr)
 	if !nameAttr.Equal(slog.Attr{}) {
 		name = colorize(blue, nameAttr.Value.String())
 	}
@@ -122,24 +140,24 @@ func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
 	// version
 	var version string
 	versionAttr := slog.Attr{
-		Key:   "version",
-		Value: slog.StringValue("0.0.1"),
+		Key:   AttrKey.App.Version,
+		Value: slog.StringValue(h.metadata.Version),
 	}
-	versionAttr = h.r([]string{}, versionAttr)
+	versionAttr = h.replace([]string{}, versionAttr)
 	if !versionAttr.Equal(slog.Attr{}) {
 		version = colorize(yellow, versionAttr.Value.String())
 	}
 
-	// tags
-	var tags string
-	tagsAttr := slog.Attr{
-		Key:   "tags",
-		Value: slog.StringValue("http"),
-	}
-	tagsAttr = h.r([]string{}, tagsAttr)
-	if !tagsAttr.Equal(slog.Attr{}) {
-		tags = colorize(lightGray, tagsAttr.Value.String())
-	}
+	// // tags
+	// var tags string
+	// tagsAttr := slog.Attr{
+	// 	Key:   "tags",
+	// 	Value: slog.StringValue("http"),
+	// }
+	// tagsAttr = h.replace([]string{}, tagsAttr)
+	// if !tagsAttr.Equal(slog.Attr{}) {
+	// 	tags = colorize(lightGray, tagsAttr.Value.String())
+	// }
 
 	// msg
 	var msg string
@@ -147,7 +165,7 @@ func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
 		Key:   slog.MessageKey,
 		Value: slog.StringValue(r.Message),
 	}
-	msgAttr = h.r([]string{}, msgAttr)
+	msgAttr = h.replace([]string{}, msgAttr)
 	if !msgAttr.Equal(slog.Attr{}) {
 		msg = colorize(white, msgAttr.Value.String())
 	}
@@ -174,10 +192,10 @@ func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
 		out.WriteString(version)
 		out.WriteString(" ")
 	}
-	if len(tags) > 0 {
-		out.WriteString(tags)
-		out.WriteString(" ")
-	}
+	// if len(tags) > 0 {
+	// 	out.WriteString(tags)
+	// 	out.WriteString(" ")
+	// }
 	if len(level) > 0 {
 		out.WriteString(level)
 		out.WriteString(" ")
@@ -195,25 +213,35 @@ func (h *DevHandler) Handle(ctx context.Context, r slog.Record) error {
 }
 
 func (h *DevHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &DevHandler{h: h.h.WithAttrs(attrs), b: h.b, r: h.r, m: h.m}
+	return &DevHandler{
+		buffer:  h.buffer,
+		handler: h.handler.WithAttrs(attrs),
+		mutex:   h.mutex,
+		replace: h.replace,
+	}
 }
 
 func (h *DevHandler) WithGroup(name string) slog.Handler {
-	return &DevHandler{h: h.h.WithGroup(name), b: h.b, r: h.r, m: h.m}
+	return &DevHandler{
+		buffer:  h.buffer,
+		handler: h.handler.WithGroup(name),
+		mutex:   h.mutex,
+		replace: h.replace,
+	}
 }
 
 func (h *DevHandler) computeAttrs(ctx context.Context, r slog.Record) (map[string]any, error) {
-	h.m.Lock()
+	h.mutex.Lock()
 	defer func() {
-		h.b.Reset()
-		h.m.Unlock()
+		h.buffer.Reset()
+		h.mutex.Unlock()
 	}()
-	if err := h.h.Handle(ctx, r); err != nil {
+	if err := h.handler.Handle(ctx, r); err != nil {
 		return nil, fmt.Errorf("inner handler error: %w", err)
 	}
 
 	var attrs map[string]any
-	err := json.Unmarshal(h.b.Bytes(), &attrs)
+	err := json.Unmarshal(h.buffer.Bytes(), &attrs)
 	if err != nil {
 		return nil, fmt.Errorf("inner handler unmarshal error: %w", err)
 	}
@@ -227,13 +255,16 @@ func colorize(colorCode int, v string) string {
 
 func suppressDefaults(next func([]string, slog.Attr) slog.Attr) func([]string, slog.Attr) slog.Attr {
 	return func(groups []string, a slog.Attr) slog.Attr {
-		if a.Key == slog.TimeKey ||
-			a.Key == slog.LevelKey ||
-			a.Key == slog.MessageKey ||
-			a.Key == "name" ||
-			a.Key == "version" ||
-			a.Key == "tags" ||
-			a.Key == "pid" {
+		defaults := []string{
+			AttrKey.App.Name,
+			AttrKey.PID,
+			// AttrKey.Tags,
+			AttrKey.App.Version,
+			slog.LevelKey,
+			slog.MessageKey,
+			slog.TimeKey,
+		}
+		if slices.Contains(defaults, a.Key) {
 			return slog.Attr{}
 		}
 		if next == nil {

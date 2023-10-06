@@ -11,6 +11,7 @@ import (
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
 // Config defines the input to NewController
@@ -28,13 +29,18 @@ type Controller struct {
 }
 
 // NewController returns a new Controller instance
-func NewController(c *Config) *Controller {
-	queryHandler := NewQueryHandler(c.QueryConfig)
-	return &Controller{
+func NewController(c *Config) (*Controller, error) {
+	queryHandler, err := NewQueryHandler(c.QueryConfig)
+	if err != nil {
+		return nil, err
+	}
+	ctrl := &Controller{
 		logger:  c.Logger,
 		query:   queryHandler,
 		service: c.Service,
 	}
+
+	return ctrl, nil
 }
 
 // Create
@@ -45,10 +51,10 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		log := c.logger.CreateContextLogger(traceID)
 
 		resource := f()
-		if err := DecodeRequest(w, r, resource); err != nil {
+		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
 			err = cerror.NewInternalServerError("request body decode error")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
@@ -56,7 +62,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		if response := validateBody(resource, log); response != nil {
 			err := fmt.Errorf("validation error(s) %+v", response)
 			log.Error(err.Error())
-			EncodeResponse(w, r, http.StatusBadRequest, response)
+			jsonio.EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -64,7 +70,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		model, err := c.service.Create(ctx, data)
 		if err != nil {
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
@@ -72,11 +78,11 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("model format response error")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		EncodeResponse(w, r, http.StatusCreated, response)
+		jsonio.EncodeResponse(w, r, http.StatusCreated, response)
 	}
 }
 
@@ -92,13 +98,13 @@ func (c *Controller) Delete() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error parsing resource id")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
 		if err := c.service.Delete(ctx, uuid); err != nil {
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
@@ -118,14 +124,14 @@ func (c *Controller) Detail() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error parsing resource id")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
 		model, err := c.service.Detail(ctx, uuid)
 		if err != nil {
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
@@ -133,11 +139,11 @@ func (c *Controller) Detail() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error formatting response from model")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		EncodeResponse(w, r, http.StatusOK, response)
+		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
 
@@ -154,7 +160,7 @@ func (c *Controller) List() http.HandlerFunc {
 		model, err := c.service.List(ctx, *query)
 		if err != nil {
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
@@ -162,11 +168,11 @@ func (c *Controller) List() http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("error formatting response from model")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		EncodeResponse(w, r, http.StatusOK, response)
+		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
 
@@ -182,15 +188,15 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("resource id parse error")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
 		resource := f()
-		if err := DecodeRequest(w, r, resource); err != nil {
+		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
 			err = cerror.NewInternalServerError("request body decode error")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
@@ -198,7 +204,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		if response := validateBody(resource, log); response != nil {
 			err := fmt.Errorf("validation error(s) %+v", response)
 			log.Error(err.Error())
-			EncodeResponse(w, r, http.StatusBadRequest, response)
+			jsonio.EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -206,7 +212,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
@@ -214,10 +220,10 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		if err != nil {
 			err = cerror.NewInternalServerError("model format response error")
 			log.Error(err.Error())
-			EncodeError(w, r, err)
+			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		EncodeResponse(w, r, http.StatusOK, response)
+		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }

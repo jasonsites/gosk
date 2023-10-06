@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
-	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
+	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
 // BaseRouter only exists to easily verify a working app and should normally be removed
@@ -29,7 +29,7 @@ func BaseRouter(r *chi.Mux, ns string) {
 			},
 		}
 
-		ctrl.EncodeResponse(w, r, http.StatusOK, data)
+		jsonio.EncodeResponse(w, r, http.StatusOK, data)
 	}
 
 	r.Route(prefix, func(r chi.Router) {

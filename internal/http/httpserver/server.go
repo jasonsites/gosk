@@ -17,7 +17,6 @@ type ServerConfig struct {
 	Domain       *domain.Domain       `validate:"required"`
 	Host         string               `validate:"required"`
 	Logger       *logger.CustomLogger `validate:"required"`
-	Mode         string               `validate:"required"`
 	Port         uint                 `validate:"required"`
 	QueryConfig  *ctrl.QueryConfig    `validate:"required"`
 	RouterConfig *RouterConfig        `validate:"required"`

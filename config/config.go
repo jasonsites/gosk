@@ -94,7 +94,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("logger.verbose", false)
 	viper.SetDefault("metadata.environment", "production")
 	viper.SetDefault("postgres.database", "svcdb")
-	viper.SetDefault("postgres.host", "localhost")
+	viper.SetDefault("postgres.host", "postgres")
 	viper.SetDefault("postgres.password", "postgres")
 	viper.SetDefault("postgres.port", 5432)
 	viper.SetDefault("postgres.user", "postgres")

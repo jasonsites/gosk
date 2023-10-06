@@ -12,7 +12,7 @@ services:
       dockerfile: ./test/Dockerfile
     command: just serve
     depends_on:
-      postgres_db:
+      postgres:
         condition: service_healthy
     networks:
       - local-dev
@@ -27,7 +27,7 @@ services:
       - ./justfile:/app/justfile
       - ./package.json:/app/package.json
 
-  postgres_db:
+  postgres:
     image: postgres:14
     deploy:
       restart_policy:

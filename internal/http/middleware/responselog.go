@@ -11,7 +11,6 @@ import (
 	cl "github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
 	"github.com/jasonsites/gosk/internal/core/validation"
-	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
 
 // ExtendedResponseWriter extends gin.ResponseWriter with a bytes.Buffer to capture the response body
@@ -70,7 +69,6 @@ func ResponseLogger(c *ResponseLoggerConfig) func(http.Handler) http.Handler {
 
 			if err := logResponse(erw, r, rt, c.Logger); err != nil {
 				c.Logger.Log.Error(err.Error())
-				ctrl.EncodeError(w, r, err) // TODO: likely move http encode/decode from ctrl
 			}
 		})
 	}

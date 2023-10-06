@@ -120,7 +120,6 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 
 		queryConfig := func() *controllers.QueryConfig {
 			limit := int(c.HTTP.Router.Paging.DefaultLimit)
-			offset := int(c.HTTP.Router.Paging.DefaultOffset)
 
 			attr := c.HTTP.Router.Sorting.DefaultAttr
 			order := c.HTTP.Router.Sorting.DefaultOrder
@@ -128,8 +127,7 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 			return &controllers.QueryConfig{
 				Defaults: &controllers.QueryDefaults{
 					Paging: &query.QueryPaging{
-						Limit:  &limit,
-						Offset: &offset,
+						Limit: &limit,
 					},
 					Sorting: &query.QuerySorting{
 						Attr:  &attr,
@@ -151,7 +149,6 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 			Domain:       r.Domain(),
 			Host:         c.HTTP.Server.Host,
 			Logger:       cLogger,
-			Mode:         c.HTTP.Server.Mode,
 			Port:         c.HTTP.Server.Port,
 			QueryConfig:  queryConfig,
 			RouterConfig: routerConfig,

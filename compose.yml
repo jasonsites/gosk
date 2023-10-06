@@ -12,24 +12,8 @@ services:
       dockerfile: ./test/Dockerfile
     command: just serve
     depends_on:
-      postgres_db:
+      postgres:
         condition: service_healthy
-    environment:
-      APP_ENV: development
-      APP_VERSION: override
-      LOG_ENABLED: true
-      LOG_LEVEL: info
-      LOG_VERBOSE: true
-      POSTGRES_DB: svcdb
-      POSTGRES_HOST: postgres_db
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_VERSION: 14
-      REDIS_DB: 0
-      REDIS_HOST: host.docker.internal
-      REDIS_PASSWORD: redis
-      REDIS_PORT: 6379
     networks:
       - local-dev
     ports:
@@ -43,7 +27,7 @@ services:
       - ./justfile:/app/justfile
       - ./package.json:/app/package.json
 
-  postgres_db:
+  postgres:
     image: postgres:14
     deploy:
       restart_policy:

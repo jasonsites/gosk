@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
-	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
+	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
 // HealthRouter implements a router for healthcheck
@@ -15,7 +15,7 @@ func HealthRouter(r *chi.Mux, ns string) {
 
 	status := func(w http.ResponseWriter, r *http.Request) {
 		data := jsonapi.Envelope{"meta": jsonapi.Envelope{"status": "healthy"}}
-		ctrl.EncodeResponse(w, r, http.StatusOK, data)
+		jsonio.EncodeResponse(w, r, http.StatusOK, data)
 	}
 
 	r.Get(prefix, status)

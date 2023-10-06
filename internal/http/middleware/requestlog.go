@@ -11,7 +11,7 @@ import (
 	cl "github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
 	"github.com/jasonsites/gosk/internal/core/validation"
-	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
+	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
 // RequestLogContextKey
@@ -49,7 +49,7 @@ func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
 			data, err := logRequest(w, r, c.Logger)
 			if err != nil {
 				c.Logger.Log.Error(err.Error())
-				ctrl.EncodeError(w, r, err) // TODO: likely move http encode/decode from ctrl
+				jsonio.EncodeError(w, r, err)
 			}
 
 			ctx := context.WithValue(r.Context(), RequestLogContextKey, data)

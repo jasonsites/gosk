@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/hetiansu5/urlquery"
 	"github.com/jasonsites/gosk/internal/core/query"
+	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 type QueryConfig struct {
@@ -18,10 +19,21 @@ type queryHandler struct {
 	defaults *QueryDefaults
 }
 
-func NewQueryHandler(c *QueryConfig) *queryHandler {
-	return &queryHandler{
+func NewQueryHandler(c *QueryConfig) (*queryHandler, error) {
+	if err := validation.Validate.Struct(c); err != nil {
+		return nil, err
+	}
+
+	if c.Defaults.Paging.Offset == nil {
+		offset := 0
+		c.Defaults.Paging.Offset = &offset
+	}
+
+	handler := &queryHandler{
 		defaults: c.Defaults,
 	}
+
+	return handler, nil
 }
 
 func (q *queryHandler) parseQuery(qs []byte) *query.QueryData {

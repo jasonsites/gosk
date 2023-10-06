@@ -37,6 +37,7 @@ func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.CustomLo
 	r.Use(helmet.Default().Secure)
 	// r.Use(middleware.RealIP)
 	r.Use(mw.RequestLogger(&mw.RequestLoggerConfig{Logger: logger, Next: skipHealth}))
+	r.Use(mw.NotFound)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://*", "https://*"},
@@ -49,14 +50,21 @@ func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.CustomLo
 }
 
 // registerControllers
-func registerControllers(services *domain.Services, logger *logger.CustomLogger, qc *ctrl.QueryConfig) *controllerRegistry {
-	return &controllerRegistry{
-		ExampleController: ctrl.NewController(&ctrl.Config{
-			QueryConfig: qc,
-			Logger:      logger,
-			Service:     services.Example,
-		}),
+func registerControllers(services *domain.Services, logger *logger.CustomLogger, qc *ctrl.QueryConfig) (*controllerRegistry, error) {
+	controller, err := ctrl.NewController(&ctrl.Config{
+		QueryConfig: qc,
+		Logger:      logger,
+		Service:     services.Example,
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	registry := &controllerRegistry{
+		ExampleController: controller,
+	}
+
+	return registry, nil
 }
 
 // registerRoutes

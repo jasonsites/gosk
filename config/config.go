@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/fsnotify/fsnotify"
+	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/spf13/viper"
 )
 
-// Configuration defines app configuration on startup
+// Configuration defines application configuration
 type Configuration struct {
 	External External `validate:"required"`
 	HTTP     HTTP     `validate:"required"`
@@ -29,9 +31,8 @@ type HTTP struct {
 	Router struct {
 		Namespace string `validate:"required"`
 		Paging    struct {
-			DefaultLimit  uint `validate:"required"`
-			DefaultOffset uint `validate:"required"`
-		} `validate:"required"`
+			DefaultLimit uint `validate:"required"`
+		}
 		Sorting struct {
 			DefaultAttr  string `validate:"required"`
 			DefaultOrder string `validate:"required"`
@@ -39,23 +40,22 @@ type HTTP struct {
 	} `validate:"required"`
 	Server struct {
 		Host string
-		Mode string `validate:"required,oneof=debug release test"`
-		Port uint   `validate:"required,max=65535"`
+		Port uint `validate:"required,max=65535"`
 	} `validate:"required"`
 }
 
 // Logger defines the primary logger configuration
 type Logger struct {
-	Enabled bool   `validate:"required,oneof=false true"`
-	Level   string `validate:"required,oneof=debug info warn error"`
-	Verbose bool   `validate:"required,oneof=false true"`
+	Enabled bool
+	Level   string `validate:"oneof=debug info warn error"`
+	Verbose bool
 }
 
 // Metadata defines application metadata
 type Metadata struct {
-	Environment string `validate:"required,oneof=development production"`
-	Name        string `validate:"required"`
-	Version     string `validate:"required"`
+	Environment string `validate:"oneof=development production"`
+	Name        string
+	Version     string
 }
 
 // Postgres defines the postgres connection parameters
@@ -69,102 +69,70 @@ type Postgres struct {
 
 // LoadConfiguration loads config parameters on startup
 func LoadConfiguration() (*Configuration, error) {
-	var config Configuration
+	var conf Configuration
 
 	viper.SetConfigName("config")
-
 	viper.AddConfigPath("/app/config")
-	viper.AddConfigPath("./config")
-	viper.AddConfigPath(".")
-
 	viper.AllowEmptyEnv(true)
 
-	// http server
-	if err := viper.BindEnv("http.server.host", "HTTP_SERVER_HOST"); err != nil {
-		err := fmt.Errorf("error binding env var `HTTP_SERVER_HOST`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("http.server.mode", "HTTP_SERVER_MODE"); err != nil {
-		err := fmt.Errorf("error binding env var `HTTP_SERVER_MODE`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("http.server.port", "HTTP_SERVER_PORT"); err != nil {
-		err := fmt.Errorf("error binding env var `HTTP_SERVER_PORT`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		fmt.Println("config file changed:", e.Name)
+	})
+	viper.WatchConfig()
 
-	// logger
-	if err := viper.BindEnv("logger.enabled", "LOG_ENABLED"); err != nil {
-		err := fmt.Errorf("error binding env var `LOG_ENABLED`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("logger.level", "LOG_LEVEL"); err != nil {
-		err := fmt.Errorf("error binding env var `LOG_LEVEL`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("logger.verbose", "LOG_VERBOSE"); err != nil {
-		err := fmt.Errorf("error binding env var `LOG_VERBOSE`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
+	// default values
+	viper.SetDefault("external.example.baseURL", "http://www.example.com")
+	viper.SetDefault("external.example.timeout", 25000)
+	viper.SetDefault("http.router.namespace", "domain")
+	viper.SetDefault("http.router.paging.defaultLimit", 20)
+	viper.SetDefault("http.router.sorting.defaultAttr", "created_on")
+	viper.SetDefault("http.router.sorting.defaultOrder", "desc")
+	viper.SetDefault("http.server.host", "localhost")
+	viper.SetDefault("http.server.port", 9202)
+	viper.SetDefault("logger.enabled", true)
+	viper.SetDefault("logger.level", "info")
+	viper.SetDefault("logger.verbose", false)
+	viper.SetDefault("metadata.environment", "production")
+	viper.SetDefault("postgres.database", "svcdb")
+	viper.SetDefault("postgres.host", "postgres")
+	viper.SetDefault("postgres.password", "postgres")
+	viper.SetDefault("postgres.port", 5432)
+	viper.SetDefault("postgres.user", "postgres")
 
-	// metadata
-	if err := viper.BindEnv("metadata.environment", "APP_ENV"); err != nil {
-		err := fmt.Errorf("error binding env var `APP_ENV`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("metadata.version", "APP_VERSION"); err != nil {
-		err := fmt.Errorf("error binding env var `APP_VERSION`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
+	// environment variables
+	viper.BindEnv("http.server.host", "HTTP_SERVER_HOST")
+	viper.BindEnv("http.server.port", "HTTP_SERVER_PORT")
+	viper.BindEnv("logger.enabled", "LOG_ENABLED")
+	viper.BindEnv("logger.level", "LOG_LEVEL")
+	viper.BindEnv("logger.verbose", "LOG_VERBOSE")
+	viper.BindEnv("metadata.environment", "APP_ENV")
+	viper.BindEnv("metadata.version", "APP_VERSION")
+	viper.BindEnv("postgres.database", "POSTGRES_DB")
+	viper.BindEnv("postgres.host", "POSTGRES_HOST")
+	viper.BindEnv("postgres.password", "POSTGRES_PASSWORD")
+	viper.BindEnv("postgres.port", "POSTGRES_PORT")
+	viper.BindEnv("postgres.user", "POSTGRES_USER")
 
-	// postgres
-	if err := viper.BindEnv("postgres.database", "POSTGRES_DB"); err != nil {
-		err := fmt.Errorf("error binding env var `POSTGRES_DB`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("postgres.host", "POSTGRES_HOST"); err != nil {
-		err := fmt.Errorf("error binding env var `POSTGRES_HOST`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("postgres.password", "POSTGRES_PASSWORD"); err != nil {
-		err := fmt.Errorf("error binding env var `POSTGRES_PASSWORD`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("postgres.port", "POSTGRES_PORT"); err != nil {
-		err := fmt.Errorf("error binding env var `POSTGRES_PORT`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-	if err := viper.BindEnv("postgres.user", "POSTGRES_USER"); err != nil {
-		err := fmt.Errorf("error binding env var `POSTGRES_USER`: %w", err)
-		slog.Error(err.Error())
-		panic(err)
-	}
-
-	// read and unmarshal config
+	// read, unmarshal, and validate configuration
 	if err := viper.ReadInConfig(); err != nil {
-		err := fmt.Errorf("error reading config file: %w", err)
-		slog.Error(err.Error())
-		panic(err)
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		} else {
+			err := fmt.Errorf("configuration read error: %w", err)
+			slog.Error(err.Error())
+			return &conf, err
+		}
+
 	}
-	if err := viper.Unmarshal(&config); err != nil {
-		err := fmt.Errorf("error unmarshalling configuration: %w", err)
+	if err := viper.Unmarshal(&conf); err != nil {
+		err := fmt.Errorf("configuration unmarshal error: %w", err)
 		slog.Error(err.Error())
-		panic(err)
+		return &conf, err
+	}
+	if err := validation.Validate.Struct(&conf); err != nil {
+		return &conf, fmt.Errorf("invalid configuration: %v", err)
 	}
 
-	// fmt.Printf("\n%#v\n\n", config)
+	// fmt.Printf("%+v\n", conf)
 
-	return &config, nil
+	return &conf, nil
 }

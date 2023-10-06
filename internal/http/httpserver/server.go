@@ -17,7 +17,6 @@ type ServerConfig struct {
 	Domain       *domain.Domain       `validate:"required"`
 	Host         string               `validate:"required"`
 	Logger       *logger.CustomLogger `validate:"required"`
-	Mode         string               `validate:"required"`
 	Port         uint                 `validate:"required"`
 	QueryConfig  *ctrl.QueryConfig    `validate:"required"`
 	RouterConfig *RouterConfig        `validate:"required"`
@@ -37,8 +36,12 @@ func NewServer(c *ServerConfig) (*Server, error) {
 	}
 
 	mux := chi.NewRouter()
+	controllers, err := registerControllers(c.Domain.Services, c.Logger, c.QueryConfig)
+	if err != nil {
+		return nil, err
+	}
+
 	configureMiddleware(c.RouterConfig, mux, c.Logger)
-	controllers := registerControllers(c.Domain.Services, c.Logger, c.QueryConfig)
 	registerRoutes(c.RouterConfig, mux, controllers)
 
 	addr := fmt.Sprintf(":%s", strconv.FormatUint(uint64(c.Port), 10))

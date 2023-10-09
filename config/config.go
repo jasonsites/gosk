@@ -116,6 +116,7 @@ func LoadConfiguration() (*Configuration, error) {
 	// read, unmarshal, and validate configuration
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			slog.Info("config file bypassed")
 		} else {
 			err := fmt.Errorf("configuration read error: %w", err)
 			slog.Error(err.Error())

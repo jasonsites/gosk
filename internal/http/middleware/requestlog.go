@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -13,9 +12,6 @@ import (
 	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
-
-// RequestLogContextKey
-const RequestLogContextKey trace.ContextKey = "request_data"
 
 // RequestLogData defines the data captured for request logging
 type RequestLogData struct {
@@ -46,20 +42,18 @@ func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			data, err := logRequest(w, r, c.Logger)
-			if err != nil {
+			if err := logRequest(w, r, c.Logger); err != nil {
 				c.Logger.Log.Error(err.Error())
 				jsonio.EncodeError(w, r, err)
 			}
 
-			ctx := context.WithValue(r.Context(), RequestLogContextKey, data)
-			next.ServeHTTP(w, r.WithContext(ctx))
+			next.ServeHTTP(w, r)
 		})
 	}
 }
 
 // logRequest logs the captured request data
-func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger) (*RequestLogData, error) {
+func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger) error {
 	if logger.Enabled {
 		traceID := trace.GetTraceIDFromContext(r.Context())
 		logger.Log = logger.CreateContextLogger(traceID)
@@ -70,14 +64,12 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger)
 
 			copy, err := io.ReadAll(r.Body)
 			if err != nil {
-				logger.Log.Error(err.Error())
-				return nil, err
+				return err
 			}
 
 			if len(copy) > 0 {
 				if err := json.Unmarshal(copy, &body); err != nil {
-					logger.Log.Error(err.Error())
-					return nil, err
+					return err
 				}
 			}
 
@@ -93,11 +85,9 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger)
 		}
 		attrs := requestLogAttrs(data, logger.Level)
 		logger.Log.With(attrs...).Info("request")
-
-		return data, nil
 	}
 
-	return nil, nil
+	return nil
 }
 
 // requestLogAttrs returns additional request attributes for logging

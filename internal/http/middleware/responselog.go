@@ -9,22 +9,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5/middleware"
 	cl "github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
 	"github.com/jasonsites/gosk/internal/core/validation"
 )
-
-// ExtendedResponseWriter extends http.ResponseWriter with a bytes.Buffer to capture the response body
-type ExtendedResponseWriter struct {
-	http.ResponseWriter
-	BodyLogBuffer *bytes.Buffer
-}
-
-// Write extends ResponseWriter.Write by first capturing response body to the ExtendedResponseWriter.BodyLogBuffer
-func (erw *ExtendedResponseWriter) Write(b []byte) (int, error) {
-	erw.BodyLogBuffer.Write(b)
-	return erw.ResponseWriter.Write(b)
-}
 
 // ResponseLogData defines the data captured for response logging
 type ResponseLogData struct {
@@ -37,7 +26,7 @@ type ResponseLogData struct {
 
 // ResponseLoggerConfig defines necessary components for the response logger middleware
 type ResponseLoggerConfig struct {
-	Logger *cl.CustomLogger
+	Logger *cl.CustomLogger `validate:"required"`
 	Next   func(r *http.Request) bool
 }
 
@@ -57,41 +46,56 @@ func ResponseLogger(c *ResponseLoggerConfig) func(http.Handler) http.Handler {
 			// mark response time start
 			start := time.Now()
 
-			// extend default response writer
-			erw := &ExtendedResponseWriter{
-				BodyLogBuffer:  bytes.NewBufferString(""),
-				ResponseWriter: w,
-			}
-			w = erw
+			// extended response writer
+			extendedRW := middleware.NewWrapResponseWriter(w, 1)
+			bodyBuffer := new(bytes.Buffer)
+			extendedRW.Tee(bodyBuffer)
 
 			// call next middleware
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(extendedRW, r)
 
 			// calc response time and set header
 			elapsed := time.Since(start).Milliseconds()
-			rt := fmt.Sprintf("%sms", strconv.FormatInt(int64(elapsed), 10))
-			erw.Header().Set("X-Response-Time", rt)
+			responseTime := fmt.Sprintf("%sms", strconv.FormatInt(int64(elapsed), 10))
+			extendedRW.Header().Set("X-Response-Time", responseTime)
 
-			if err := logResponse(erw, r, rt, c.Logger); err != nil {
+			lrc := logResponseConfig{
+				bodyBuffer:   bodyBuffer,
+				logger:       c.Logger,
+				request:      r,
+				response:     extendedRW,
+				responseTime: responseTime,
+			}
+
+			if err := logResponse(lrc); err != nil {
 				c.Logger.Log.Error(err.Error())
 			}
 		})
 	}
 }
 
-// logResponse logs the captured response data
-func logResponse(erw *ExtendedResponseWriter, r *http.Request, rt string, logger *cl.CustomLogger) error {
-	if logger.Enabled {
-		traceID := trace.GetTraceIDFromContext(r.Context())
-		logger.Log = logger.CreateContextLogger(traceID)
+// logResponseConfig defines the input to logResponse
+type logResponseConfig struct {
+	bodyBuffer   *bytes.Buffer
+	logger       *cl.CustomLogger
+	request      *http.Request
+	response     middleware.WrapResponseWriter
+	responseTime string
+}
 
-		bodyBytes := erw.BodyLogBuffer.Bytes()
-		bodySize := len(bodyBytes)
+// logResponse logs the captured response data
+func logResponse(c logResponseConfig) error {
+	if c.logger.Enabled {
+		traceID := trace.GetTraceIDFromContext(c.request.Context())
+		c.logger.Log = c.logger.CreateContextLogger(traceID)
+
+		bodyBytes := c.bodyBuffer.Bytes()
+		bodySize := c.response.BytesWritten()
 
 		data := &ResponseLogData{
-			Headers:      erw.Header(),
-			ResponseTime: rt,
-			Status:       200, // TODO: get from response
+			Headers:      c.response.Header(),
+			ResponseTime: c.responseTime,
+			Status:       c.response.Status(),
 		}
 
 		var body map[string]any
@@ -104,8 +108,8 @@ func logResponse(erw *ExtendedResponseWriter, r *http.Request, rt string, logger
 			data.BodySize = &bodySize
 		}
 
-		attrs := responseLogAttrs(data, logger.Level)
-		logger.Log.With(attrs...).Info("response")
+		attrs := responseLogAttrs(data, c.logger.Level)
+		c.logger.Log.With(attrs...).Info("response")
 	}
 
 	return nil

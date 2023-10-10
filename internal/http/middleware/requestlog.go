@@ -24,9 +24,8 @@ type RequestLogData struct {
 
 // RequestLoggerConfig defines necessary components for the request logger middleware
 type RequestLoggerConfig struct {
-	ContextKey trace.ContextKey
-	Logger     *cl.CustomLogger `validate:"required"`
-	Next       func(r *http.Request) bool
+	Logger *cl.CustomLogger `validate:"required"`
+	Next   func(r *http.Request) bool
 }
 
 // RequestLogger returns the request logger middleware

@@ -8,8 +8,8 @@ import (
 )
 
 // Correlation
-func Correlation(config *CorrelationConfig) func(http.Handler) http.Handler {
-	conf := setCorrelationConfig(config)
+func Correlation(c *CorrelationConfig) func(http.Handler) http.Handler {
+	conf := setCorrelationConfig(c)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -11,14 +11,15 @@ import (
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
 // Config defines the input to NewController
 type Config struct {
-	Logger      *logger.CustomLogger
-	QueryConfig *QueryConfig
-	Service     interfaces.Service
+	Logger      *logger.CustomLogger `validate:"required"`
+	QueryConfig *QueryConfig         `validate:"required"`
+	Service     interfaces.Service   `validate:"required"`
 }
 
 // Controller
@@ -30,6 +31,10 @@ type Controller struct {
 
 // NewController returns a new Controller instance
 func NewController(c *Config) (*Controller, error) {
+	if err := validation.Validate.Struct(c); err != nil {
+		return nil, err
+	}
+
 	queryHandler, err := NewQueryHandler(c.QueryConfig)
 	if err != nil {
 		return nil, err

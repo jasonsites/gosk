@@ -7,7 +7,7 @@ import (
 )
 
 type QueryConfig struct {
-	Defaults *QueryDefaults
+	Defaults *QueryDefaults `validate:"required"`
 }
 
 type QueryDefaults struct {

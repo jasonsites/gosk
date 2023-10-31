@@ -8,11 +8,10 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/config"
-	"github.com/jasonsites/gosk/internal/core/application"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/query"
-	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/domain"
 	"github.com/jasonsites/gosk/internal/http/controllers"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
@@ -186,7 +185,7 @@ func (r *Resolver) Log() *slog.Logger {
 			slog.String(logger.AttrKey.App.Version, r.Metadata().Version),
 		}
 
-		if c.Metadata.Environment == application.Env.Development {
+		if c.Metadata.Environment == app.Env.Development {
 			handler = logger.NewDevHandler(*r.Metadata(), opts).WithAttrs(attrs)
 		} else {
 			handler = slog.NewJSONHandler(os.Stdout, opts).WithAttrs(attrs)
@@ -202,9 +201,9 @@ func (r *Resolver) Log() *slog.Logger {
 }
 
 // Metadata provides a singleton application Metadata instance
-func (r *Resolver) Metadata() *application.Metadata {
+func (r *Resolver) Metadata() *app.Metadata {
 	if r.metadata == nil {
-		var metadata application.Metadata
+		var metadata app.Metadata
 
 		jsondata, err := os.ReadFile("/app/package.json")
 		if err != nil {
@@ -232,7 +231,7 @@ func (r *Resolver) Metadata() *application.Metadata {
 // PostgreSQLClient provides a singleton postgres pgxpool.Pool instance
 func (r *Resolver) PostgreSQLClient() *pgxpool.Pool {
 	if r.postgreSQLClient == nil {
-		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
+		if err := app.Validator.Validate.StructPartial(r.config, "Postgres"); err != nil {
 			err = fmt.Errorf("invalid postgres config: %w", err)
 			slog.Error(err.Error())
 			panic(err)

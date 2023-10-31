@@ -1,8 +1,8 @@
 package domain
 
 import (
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
-	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 // Domain is the top-level container for the application domain layer
@@ -17,7 +17,7 @@ type Services struct {
 
 // NewDomain creates a new Domain instance
 func NewDomain(s *Services) (*Domain, error) {
-	if err := validation.Validate.Struct(s); err != nil {
+	if err := app.Validator.Validate.Struct(s); err != nil {
 		return nil, err
 	}
 

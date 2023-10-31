@@ -1,17 +1,16 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
@@ -31,7 +30,7 @@ type Controller struct {
 
 // NewController returns a new Controller instance
 func NewController(c *Config) (*Controller, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
@@ -57,17 +56,9 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError("request body decode error")
+			err = cerror.NewInternalServerError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
-			return
-		}
-
-		// TODO: validation errors bypass default error handler (rethink this)
-		if response := validateBody(resource, log); response != nil {
-			err := fmt.Errorf("validation error(s) %+v", response)
-			log.Error(err.Error())
-			jsonio.EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -81,7 +72,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("model format response error")
+			err = cerror.NewInternalServerError(err, "model format response error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -101,7 +92,7 @@ func (c *Controller) Delete() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError("error parsing resource id")
+			err = cerror.NewInternalServerError(err, "error parsing resource id")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -127,7 +118,7 @@ func (c *Controller) Detail() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError("error parsing resource id")
+			err = cerror.NewInternalServerError(err, "error parsing resource id")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -142,7 +133,7 @@ func (c *Controller) Detail() http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("error formatting response from model")
+			err = cerror.NewInternalServerError(err, "error formatting response from model")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -171,7 +162,7 @@ func (c *Controller) List() http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("error formatting response from model")
+			err = cerror.NewInternalServerError(err, "error formatting response from model")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -191,7 +182,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError("resource id parse error")
+			err = cerror.NewInternalServerError(err, "resource id parse error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -199,17 +190,9 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError("request body decode error")
+			err = cerror.NewInternalServerError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
-			return
-		}
-
-		// TODO: validation errors bypass default error handler
-		if response := validateBody(resource, log); response != nil {
-			err := fmt.Errorf("validation error(s) %+v", response)
-			log.Error(err.Error())
-			jsonio.EncodeResponse(w, r, http.StatusBadRequest, response)
 			return
 		}
 
@@ -223,7 +206,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("model format response error")
+			err = cerror.NewInternalServerError(err, "model format response error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return

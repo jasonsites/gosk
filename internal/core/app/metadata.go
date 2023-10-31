@@ -1,4 +1,4 @@
-package application
+package app
 
 type Environment struct {
 	Development string

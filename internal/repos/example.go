@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/entities"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
@@ -15,7 +16,6 @@ import (
 	"github.com/jasonsites/gosk/internal/core/pagination"
 	"github.com/jasonsites/gosk/internal/core/query"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 // exampleEntityDefinition
@@ -70,7 +70,7 @@ type exampleRepository struct {
 
 // NewExampleRepository returns a new exampleRepository instance
 func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
@@ -233,7 +233,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 
 	// create new entity for db row scan and execute query
 	entity := entities.ExampleEntity{}
-	if scanErr := r.db.QueryRow(ctx, query).Scan(
+	if err := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
 		&entity.CreatedOn,
 		&entity.Deleted,
@@ -244,11 +244,9 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 		&entity.ModifiedOn,
 		&entity.Status,
 		&entity.Title,
-	); scanErr != nil {
-		log.Error(scanErr.Error())
-		err := cerror.NewNotFoundError(
-			fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id),
-		)
+	); err != nil {
+		log.Error(err.Error())
+		err = cerror.NewNotFoundError(err, fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id))
 		return nil, err
 	}
 

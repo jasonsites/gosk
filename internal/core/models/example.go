@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	v "github.com/invopop/validation"
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/pagination"
 )
@@ -16,6 +17,17 @@ type ExampleInputData struct {
 	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
 	Status      *uint32 `json:"status" validate:"omitempty,numeric"`
 	Title       string  `json:"title" validate:"required,omitempty,min=2,max=255"`
+}
+
+// Validate validates a Notification instance
+func (e ExampleInputData) Validate() error {
+	if err := v.ValidateStruct(&e,
+		v.Field(&e.Title, v.Required),
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ExampleDomainModel an Example domain model that contains one or more ExampleObject(s)

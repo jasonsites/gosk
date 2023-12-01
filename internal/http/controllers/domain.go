@@ -57,7 +57,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError("request body decode error")
+			err = cerror.NewInternalServerError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -81,7 +81,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("model format response error")
+			err = cerror.NewInternalServerError(err, "model format response error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -101,7 +101,7 @@ func (c *Controller) Delete() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError("error parsing resource id")
+			err = cerror.NewInternalServerError(err, "error parsing resource id")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -127,7 +127,7 @@ func (c *Controller) Detail() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError("error parsing resource id")
+			err = cerror.NewInternalServerError(err, "error parsing resource id")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -142,7 +142,7 @@ func (c *Controller) Detail() http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("error formatting response from model")
+			err = cerror.NewInternalServerError(err, "error formatting response from model")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -171,7 +171,7 @@ func (c *Controller) List() http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("error formatting response from model")
+			err = cerror.NewInternalServerError(err, "error formatting response from model")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -191,7 +191,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError("resource id parse error")
+			err = cerror.NewInternalServerError(err, "resource id parse error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -199,7 +199,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError("request body decode error")
+			err = cerror.NewInternalServerError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -223,7 +223,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		response, err := model.FormatResponse()
 		if err != nil {
-			err = cerror.NewInternalServerError("model format response error")
+			err = cerror.NewInternalServerError(err, "model format response error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jasonsites/gosk/internal/core/application"
+	"github.com/jasonsites/gosk/internal/core/app"
 )
 
 const (
@@ -40,12 +40,12 @@ const (
 type DevHandler struct {
 	buffer   *bytes.Buffer
 	handler  slog.Handler
-	metadata application.Metadata
+	metadata app.Metadata
 	mutex    *sync.Mutex
 	replace  func([]string, slog.Attr) slog.Attr
 }
 
-func NewDevHandler(meta application.Metadata, opts *slog.HandlerOptions) *DevHandler {
+func NewDevHandler(meta app.Metadata, opts *slog.HandlerOptions) *DevHandler {
 	if opts == nil {
 		opts = &slog.HandlerOptions{
 			AddSource: false,

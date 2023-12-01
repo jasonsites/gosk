@@ -246,9 +246,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 		&entity.Title,
 	); scanErr != nil {
 		log.Error(scanErr.Error())
-		err := cerror.NewNotFoundError(
-			fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id),
-		)
+		err := cerror.NewNotFoundError(scanErr, fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id))
 		return nil, err
 	}
 

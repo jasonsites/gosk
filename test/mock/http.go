@@ -5,12 +5,11 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jasonsites/gosk/internal/core/jsonapi"
 )
 
 type Controller struct{}
 
-func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
+func (c *Controller) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {}
 }
 func (c *Controller) Delete() http.HandlerFunc {
@@ -22,7 +21,7 @@ func (c *Controller) Detail() http.HandlerFunc {
 func (c *Controller) List() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {}
 }
-func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
+func (c *Controller) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {}
 }
 

@@ -22,7 +22,7 @@ type RouterConfig struct {
 }
 
 type controllerRegistry struct {
-	ExampleController interfaces.ResourceController
+	ExampleController interfaces.Controller
 }
 
 // configureMiddleware
@@ -51,7 +51,7 @@ func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.CustomLo
 
 // registerControllers
 func registerControllers(services *domain.Services, logger *logger.CustomLogger, qc *ctrl.QueryConfig) (*controllerRegistry, error) {
-	controller, err := ctrl.NewController(&ctrl.Config{
+	controller, err := ctrl.NewExampleController(&ctrl.Config{
 		QueryConfig: qc,
 		Logger:      logger,
 		Service:     services.Example,

@@ -7,7 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/config"
-	"github.com/jasonsites/gosk/internal/core/application"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/domain"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
@@ -18,10 +18,10 @@ type Config struct {
 	Config           *config.Configuration
 	Domain           *domain.Domain
 	ExampleRepo      interfaces.ExampleRepository
-	ExampleService   interfaces.Service
+	ExampleService   interfaces.ExampleService
 	HTTPServer       *httpserver.Server
 	Log              *slog.Logger
-	Metadata         *application.Metadata
+	Metadata         *app.Metadata
 	PostgreSQLClient *pgxpool.Pool
 }
 
@@ -31,10 +31,10 @@ type Resolver struct {
 	config           *config.Configuration
 	domain           *domain.Domain
 	exampleRepo      interfaces.ExampleRepository
-	exampleService   interfaces.Service
+	exampleService   interfaces.ExampleService
 	httpServer       *httpserver.Server
 	log              *slog.Logger
-	metadata         *application.Metadata
+	metadata         *app.Metadata
 	postgreSQLClient *pgxpool.Pool
 }
 

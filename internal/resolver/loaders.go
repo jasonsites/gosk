@@ -8,7 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jasonsites/gosk/config"
-	"github.com/jasonsites/gosk/internal/core/application"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/query"
@@ -85,7 +85,7 @@ func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 }
 
 // ExampleService provides a singleton domain.exampleService instance
-func (r *Resolver) ExampleService() interfaces.Service {
+func (r *Resolver) ExampleService() interfaces.ExampleService {
 	if r.exampleService == nil {
 		c := r.Config()
 
@@ -186,7 +186,7 @@ func (r *Resolver) Log() *slog.Logger {
 			slog.String(logger.AttrKey.App.Version, r.Metadata().Version),
 		}
 
-		if c.Metadata.Environment == application.Env.Development {
+		if c.Metadata.Environment == app.Env.Development {
 			handler = logger.NewDevHandler(*r.Metadata(), opts).WithAttrs(attrs)
 		} else {
 			handler = slog.NewJSONHandler(os.Stdout, opts).WithAttrs(attrs)
@@ -202,9 +202,9 @@ func (r *Resolver) Log() *slog.Logger {
 }
 
 // Metadata provides a singleton application Metadata instance
-func (r *Resolver) Metadata() *application.Metadata {
+func (r *Resolver) Metadata() *app.Metadata {
 	if r.metadata == nil {
-		var metadata application.Metadata
+		var metadata app.Metadata
 
 		jsondata, err := os.ReadFile("/app/package.json")
 		if err != nil {

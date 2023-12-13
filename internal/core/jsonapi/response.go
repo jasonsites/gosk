@@ -6,22 +6,22 @@ import (
 )
 
 // Response
-type Response struct {
+type Response[T any] struct {
 	Meta *ResponseMetadata `json:"meta"`
-	Data any               `json:"data"`
+	Data T                 `json:"data"`
 }
 
-// ListMeta
+// ResponseMetadata
 type ResponseMetadata struct {
 	Paging pagination.PageMetadata `json:"paging,omitempty"`
 }
 
 // Resource
-type ResponseResource struct {
+type ResponseResource[T any] struct {
 	Type       string            `json:"type"`
 	ID         uuid.UUID         `json:"id"`
 	Meta       *ResourceMetadata `json:"meta,omitempty"`
-	Attributes any               `json:"attributes"`
+	Attributes T                 `json:"attributes"`
 }
 
 // ResourceMetadata

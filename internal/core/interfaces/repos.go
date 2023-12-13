@@ -8,11 +8,11 @@ import (
 	"github.com/jasonsites/gosk/internal/core/query"
 )
 
-// ExampleService
-type ExampleService interface {
-	Create(context.Context, any) (*models.ExampleDomainModel, error)
+// ExampleRepository defines the interface for repository managing the Example domain/entity model
+type ExampleRepository interface {
+	Create(context.Context, *models.ExampleRequestData) (*models.ExampleDomainModel, error)
 	Delete(context.Context, uuid.UUID) error
 	Detail(context.Context, uuid.UUID) (*models.ExampleDomainModel, error)
 	List(context.Context, query.QueryData) (*models.ExampleDomainModel, error)
-	Update(context.Context, any, uuid.UUID) (*models.ExampleDomainModel, error)
+	Update(context.Context, *models.ExampleRequestData, uuid.UUID) (*models.ExampleDomainModel, error)
 }

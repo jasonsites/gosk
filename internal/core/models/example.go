@@ -8,9 +8,9 @@ import (
 	"github.com/jasonsites/gosk/internal/core/pagination"
 )
 
-// ExampleInputData defines the subset of Example domain model attributes that are accepted
+// ExampleRequestData defines the subset of Example domain model attributes that are accepted
 // for input data request binding
-type ExampleInputData struct {
+type ExampleRequestData struct {
 	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
 	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
 	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
@@ -51,13 +51,14 @@ type ExampleObjectAttributes struct {
 	ModifiedBy  *uint32    `json:"modified_by"`
 }
 
-func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
-	if m.Solo {
-		resource := formatResource(&m.Data[0])
-		response := &jsonapi.Response{Data: resource}
-		return response, nil
-	}
+func (m *ExampleDomainModel) FormatDetailResponse() *jsonapi.Response[jsonapi.ResponseResource[ExampleObjectAttributes]] {
+	resource := formatResource(&m.Data[0])
+	response := &jsonapi.Response[jsonapi.ResponseResource[ExampleObjectAttributes]]{Data: resource}
 
+	return response
+}
+
+func (m *ExampleDomainModel) FormatListResponse() *jsonapi.Response[[]jsonapi.ResponseResource[ExampleObjectAttributes]] {
 	meta := &jsonapi.ResponseMetadata{
 		Paging: pagination.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
@@ -66,22 +67,22 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 		},
 	}
 
-	data := make([]jsonapi.ResponseResource, 0, len(m.Data))
+	data := make([]jsonapi.ResponseResource[ExampleObjectAttributes], 0, len(m.Data))
 	for _, domo := range m.Data {
 		resource := formatResource(&domo)
 		data = append(data, resource)
 	}
-	response := &jsonapi.Response{
+	response := &jsonapi.Response[[]jsonapi.ResponseResource[ExampleObjectAttributes]]{
 		Meta: meta,
 		Data: data,
 	}
 
-	return response, nil
+	return response
 }
 
 // serializeResource
-func formatResource(domo *ExampleObject) jsonapi.ResponseResource {
-	return jsonapi.ResponseResource{
+func formatResource(domo *ExampleObject) jsonapi.ResponseResource[ExampleObjectAttributes] {
+	return jsonapi.ResponseResource[ExampleObjectAttributes]{
 		Type: "example", // TODO
 		ID:   domo.Attributes.ID,
 		// Meta: domo.Meta,

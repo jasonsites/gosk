@@ -44,17 +44,17 @@ serve +protocol='http':
 test +pattern='--format testname -- ./...':
   gotestsum {{pattern}}
 
-# run integration tests (overridable with {{pattern}} arguments)
-test-int +pattern='--format testname -- -race ./test/integration/...':
+# run integration tests (overridable with {{scope}} arguments)
+test-int +scope='':
   just migrate-up testdb
-  POSTGRES_DB=testdb just test {{pattern}}
+  POSTGRES_DB=testdb just test --format testname -- -race ./test/integration/... {{scope}}
 
-# run unit tests (overridable with {{pattern}} arguments)
-test-unit +pattern='--format testname -- -race ./internal/...':
-  just test {{pattern}}
+# run unit tests (overridable with {{scope}} arguments)
+test-unit +scope='':
+  just test --format testname -- -race ./internal/... {{scope}}
 
 # run unit/inegration tests and generate coverage report
-coverage:
+cover:
   just migrate-up testdb
   POSTGRES_DB=testdb just test \
     --format testname \

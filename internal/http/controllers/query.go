@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"github.com/hetiansu5/urlquery"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/query"
-	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 type QueryConfig struct {
@@ -20,7 +20,7 @@ type queryHandler struct {
 }
 
 func NewQueryHandler(c *QueryConfig) (*queryHandler, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
@@ -41,7 +41,7 @@ func (q *queryHandler) parseQuery(qs []byte) *query.QueryData {
 
 	// TODO: validate query
 	urlquery.Unmarshal(qs, data)
-	// if err := validation.Validate.Struct(data); err != nil {
+	// if err := app.Validator.Validate.Struct(data); err != nil {
 	// 	return nil, err
 	// }
 	data.Paging = q.pageSettings(data.Paging)

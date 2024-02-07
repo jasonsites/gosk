@@ -11,7 +11,7 @@ help:
 # remove build related files
 clean:
   rm -rf out
-  rm -f test/coverage/profile.cov
+  rm -f test/coverage
 
 # Migrations ======================================================================================
 # migrate down

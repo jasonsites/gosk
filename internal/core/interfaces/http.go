@@ -2,13 +2,15 @@ package interfaces
 
 import (
 	"net/http"
+
+	"github.com/jasonsites/gosk/internal/core/jsonapi"
 )
 
-// Controller
-type Controller interface {
-	Create() http.HandlerFunc
+// ExampleController
+type ExampleController interface {
+	Create(func() *jsonapi.RequestBody) http.HandlerFunc
 	Delete() http.HandlerFunc
 	Detail() http.HandlerFunc
 	List() http.HandlerFunc
-	Update() http.HandlerFunc
+	Update(func() *jsonapi.RequestBody) http.HandlerFunc
 }

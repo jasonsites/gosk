@@ -8,14 +8,14 @@ import (
 	"github.com/jasonsites/gosk/internal/core/models"
 )
 
-func ComposeJSONBody[T any](body jsonapi.RequestBody[T]) *bytes.Buffer {
+func ComposeJSONBody(body jsonapi.RequestBody) *bytes.Buffer {
 	b, _ := json.Marshal(body)
 	return bytes.NewBuffer([]byte(b))
 }
 
-func ExampleRequest(model *models.ExampleRequestData) jsonapi.RequestBody[models.ExampleRequestData] {
-	return jsonapi.RequestBody[models.ExampleRequestData]{
-		Data: &jsonapi.RequestResource[models.ExampleRequestData]{
+func ExampleRequest(model *models.ExampleDTO) jsonapi.RequestBody {
+	return jsonapi.RequestBody{
+		Data: &jsonapi.RequestResource{
 			Type:       "example",
 			Attributes: model,
 		}}

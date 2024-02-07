@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/domain"
 	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 )
@@ -31,7 +31,7 @@ type Server struct {
 
 // NewServer returns a new Server instance
 func NewServer(c *ServerConfig) (*Server, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 

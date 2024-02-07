@@ -12,7 +12,6 @@ import (
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/query"
-	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/domain"
 	"github.com/jasonsites/gosk/internal/http/controllers"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
@@ -232,7 +231,7 @@ func (r *Resolver) Metadata() *app.Metadata {
 // PostgreSQLClient provides a singleton postgres pgxpool.Pool instance
 func (r *Resolver) PostgreSQLClient() *pgxpool.Pool {
 	if r.postgreSQLClient == nil {
-		if err := validation.Validate.StructPartial(r.config, "Postgres"); err != nil {
+		if err := app.Validator.Validate.StructPartial(r.config, "Postgres"); err != nil {
 			err = fmt.Errorf("invalid postgres config: %w", err)
 			slog.Error(err.Error())
 			panic(err)

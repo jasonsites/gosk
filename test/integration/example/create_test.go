@@ -14,7 +14,7 @@ type CreateSetup struct {
 	Name        string
 	Description string
 	Expected    utils.Expected
-	Model       *models.ExampleRequestData
+	Model       *models.ExampleDTO
 }
 
 func Test_Example_Create(t *testing.T) {

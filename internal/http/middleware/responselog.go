@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jasonsites/gosk/internal/core/app"
 	cl "github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 // ResponseLogData defines the data captured for response logging
@@ -32,7 +32,7 @@ type ResponseLoggerConfig struct {
 
 // ResponseLogger returns the response logger middleware
 func ResponseLogger(c *ResponseLoggerConfig) func(http.Handler) http.Handler {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		panic(err)
 	}
 
@@ -74,7 +74,6 @@ func ResponseLogger(c *ResponseLoggerConfig) func(http.Handler) http.Handler {
 	}
 }
 
-// logResponseConfig defines the input to logResponse
 type logResponseConfig struct {
 	bodyBuffer   *bytes.Buffer
 	logger       *cl.CustomLogger
@@ -83,11 +82,10 @@ type logResponseConfig struct {
 	responseTime string
 }
 
-// logResponse logs the captured response data
 func logResponse(c logResponseConfig) error {
 	if c.logger.Enabled {
 		traceID := trace.GetTraceIDFromContext(c.request.Context())
-		c.logger.Log = c.logger.CreateContextLogger(traceID)
+		log := c.logger.CreateContextLogger(traceID)
 
 		bodyBytes := c.bodyBuffer.Bytes()
 		bodySize := c.response.BytesWritten()
@@ -109,13 +107,12 @@ func logResponse(c logResponseConfig) error {
 		}
 
 		attrs := responseLogAttrs(data, c.logger.Level)
-		c.logger.Log.With(attrs...).Info("response")
+		log.With(attrs...).Info("response")
 	}
 
 	return nil
 }
 
-// responseLogAttrs returns additional response attributes for logging
 func responseLogAttrs(data *ResponseLogData, level string) []any {
 	k := cl.AttrKey
 

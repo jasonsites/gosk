@@ -5,13 +5,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/jsonapi"
 	"github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/core/models"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
@@ -22,16 +21,16 @@ type Config struct {
 	Service     interfaces.ExampleService `validate:"required"`
 }
 
-// ExampleController
-type ExampleController struct {
+// Controller
+type Controller struct {
 	logger  *logger.CustomLogger
 	query   *queryHandler
 	service interfaces.ExampleService
 }
 
-// NewExampleController returns a new ExampleController instance
-func NewExampleController(c *Config) (*ExampleController, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+// NewController returns a new Controller instance
+func NewController(c *Config) (*Controller, error) {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
@@ -39,7 +38,7 @@ func NewExampleController(c *Config) (*ExampleController, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctrl := &ExampleController{
+	ctrl := &Controller{
 		logger:  c.Logger,
 		query:   queryHandler,
 		service: c.Service,
@@ -49,36 +48,42 @@ func NewExampleController(c *Config) (*ExampleController, error) {
 }
 
 // Create
-func (c *ExampleController) Create() http.HandlerFunc {
+func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
 
-		body := &jsonapi.RequestBody[models.ExampleRequestData]{
-			Data: &jsonapi.RequestResource[models.ExampleRequestData]{
-				Attributes: &models.ExampleRequestData{},
-			},
-		}
-		if err := jsonio.DecodeRequest(w, r, body); err != nil {
-			err = cerror.NewValidationError(err, "invalid request body")
+		resource := f()
+		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
+			err = cerror.NewValidationError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		model, err := c.service.Create(ctx, body.Data.Attributes)
+		data := resource.Data.Attributes
+		model, err := c.service.Create(ctx, data)
 		if err != nil {
+			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		jsonio.EncodeResponse(w, r, http.StatusCreated, model.FormatDetailResponse())
+		response, err := model.FormatResponse()
+		if err != nil {
+			err = cerror.NewInternalServerError(err, "model format response error")
+			log.Error(err.Error())
+			jsonio.EncodeError(w, r, err)
+			return
+		}
+
+		jsonio.EncodeResponse(w, r, http.StatusCreated, response)
 	}
 }
 
 // Delete
-func (c *ExampleController) Delete() http.HandlerFunc {
+func (c *Controller) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
@@ -94,6 +99,7 @@ func (c *ExampleController) Delete() http.HandlerFunc {
 		}
 
 		if err := c.service.Delete(ctx, uuid); err != nil {
+			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
@@ -103,7 +109,7 @@ func (c *ExampleController) Delete() http.HandlerFunc {
 }
 
 // Detail
-func (c *ExampleController) Detail() http.HandlerFunc {
+func (c *Controller) Detail() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
@@ -125,30 +131,49 @@ func (c *ExampleController) Detail() http.HandlerFunc {
 			return
 		}
 
-		jsonio.EncodeResponse(w, r, http.StatusOK, model.FormatDetailResponse())
+		response, err := model.FormatResponse()
+		if err != nil {
+			err = cerror.NewInternalServerError(err, "error formatting response from model")
+			log.Error(err.Error())
+			jsonio.EncodeError(w, r, err)
+			return
+		}
+
+		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
 
 // List
-func (c *ExampleController) List() http.HandlerFunc {
+func (c *Controller) List() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
+		traceID := trace.GetTraceIDFromContext(ctx)
+		log := c.logger.CreateContextLogger(traceID)
 
 		qs := []byte(r.URL.RawQuery)
 		query := c.query.parseQuery(qs)
 
 		model, err := c.service.List(ctx, *query)
 		if err != nil {
+			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		jsonio.EncodeResponse(w, r, http.StatusOK, model.FormatListResponse())
+		response, err := model.FormatResponse()
+		if err != nil {
+			err = cerror.NewInternalServerError(err, "error formatting response from model")
+			log.Error(err.Error())
+			jsonio.EncodeError(w, r, err)
+			return
+		}
+
+		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }
 
 // Update
-func (c *ExampleController) Update() http.HandlerFunc {
+func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
@@ -157,31 +182,36 @@ func (c *ExampleController) Update() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError(err, "resource id parse error")
+			err = cerror.NewValidationError(err, "resource id parse error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		body := &jsonapi.RequestBody[models.ExampleRequestData]{
-			Data: &jsonapi.RequestResource[models.ExampleRequestData]{
-				Attributes: &models.ExampleRequestData{},
-			},
-		}
-		if err := jsonio.DecodeRequest(w, r, body); err != nil {
-			err = cerror.NewValidationError(err, "invalid request body")
+		resource := f()
+		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
+			err = cerror.NewValidationError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		data := body.Data.Attributes
+		data := resource.Data.Attributes // TODO: problem here with ID
 		model, err := c.service.Update(ctx, data, uuid)
 		if err != nil {
+			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
 		}
 
-		jsonio.EncodeResponse(w, r, http.StatusOK, model.FormatDetailResponse())
+		response, err := model.FormatResponse()
+		if err != nil {
+			err = cerror.NewInternalServerError(err, "model format response error")
+			log.Error(err.Error())
+			jsonio.EncodeError(w, r, err)
+			return
+		}
+
+		jsonio.EncodeResponse(w, r, http.StatusOK, response)
 	}
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/entities"
 	"github.com/jasonsites/gosk/internal/core/logger"
@@ -14,7 +15,6 @@ import (
 	"github.com/jasonsites/gosk/internal/core/pagination"
 	"github.com/jasonsites/gosk/internal/core/query"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 // exampleEntityDefinition
@@ -69,7 +69,7 @@ type exampleRepository struct {
 
 // NewExampleRepository returns a new exampleRepository instance
 func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
@@ -83,7 +83,7 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 }
 
 // Create
-func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleRequestData) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -232,7 +232,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.E
 
 	// create new entity for db row scan and execute query
 	entity := entities.ExampleEntity{}
-	if scanErr := r.db.QueryRow(ctx, query).Scan(
+	if err := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
 		&entity.CreatedOn,
 		&entity.Deleted,
@@ -243,9 +243,9 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.E
 		&entity.ModifiedOn,
 		&entity.Status,
 		&entity.Title,
-	); scanErr != nil {
-		log.Error(scanErr.Error())
-		err := cerror.NewNotFoundError(scanErr, fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id))
+	); err != nil {
+		log.Error(err.Error())
+		err := cerror.NewNotFoundError(nil, fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id))
 		return nil, err
 	}
 
@@ -363,7 +363,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*model
 }
 
 // Update
-func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleRequestData, id uuid.UUID) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 

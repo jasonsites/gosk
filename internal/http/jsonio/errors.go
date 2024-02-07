@@ -46,6 +46,19 @@ func defaultErrorData() jsonapi.ErrorData {
 	}
 }
 
+func defaultValidationErrorData(e cerror.CustomError) jsonapi.ErrorData {
+	detail := "validation error"
+	if e.ErrorMessage() != "" {
+		detail = e.ErrorMessage()
+	}
+
+	return jsonapi.ErrorData{
+		Status: http.StatusBadRequest,
+		Title:  cerror.ErrorType.Validation,
+		Detail: detail,
+	}
+}
+
 func errorData(code int, detail, title string) jsonapi.ErrorData {
 	return jsonapi.ErrorData{
 		Status: code,
@@ -69,7 +82,7 @@ func handleCustomError(e cerror.CustomError) (int, jsonapi.ErrorResponse) {
 	}
 
 	var (
-		response = errorResponse(defaultErrorData())
+		response = errorResponse(defaultValidationErrorData(e))
 		verrors  validation.Errors
 	)
 	if errors.As(e, &verrors) {

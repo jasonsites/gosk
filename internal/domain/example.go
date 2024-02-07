@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/models"
 	"github.com/jasonsites/gosk/internal/core/query"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/jasonsites/gosk/internal/core/validation"
 )
 
 // ExampleServiceConfig defines the input to NewExampleService
@@ -27,7 +27,7 @@ type exampleService struct {
 
 // NewExampleService returns a new exampleService instance
 func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
@@ -44,7 +44,7 @@ func (s *exampleService) Create(ctx context.Context, data any) (*models.ExampleD
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleRequestData)
+	d, ok := data.(*models.ExampleDTO)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())
@@ -106,7 +106,7 @@ func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*m
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleRequestData)
+	d, ok := data.(*models.ExampleDTO)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())

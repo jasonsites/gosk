@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/jasonsites/gosk/internal/core/validation"
+	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/spf13/viper"
 )
 
@@ -129,7 +129,7 @@ func LoadConfiguration() (*Configuration, error) {
 		slog.Error(err.Error())
 		return &conf, err
 	}
-	if err := validation.Validate.Struct(&conf); err != nil {
+	if err := app.Validator.Validate.Struct(&conf); err != nil {
 		return &conf, fmt.Errorf("invalid configuration: %v", err)
 	}
 

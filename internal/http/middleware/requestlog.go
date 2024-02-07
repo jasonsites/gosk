@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/jasonsites/gosk/internal/core/app"
 	cl "github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/trace"
-	"github.com/jasonsites/gosk/internal/core/validation"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 
@@ -30,7 +30,7 @@ type RequestLoggerConfig struct {
 
 // RequestLogger returns the request logger middleware
 func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
-	if err := validation.Validate.Struct(c); err != nil {
+	if err := app.Validator.Validate.Struct(c); err != nil {
 		panic(err)
 	}
 
@@ -51,11 +51,10 @@ func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
 	}
 }
 
-// logRequest logs the captured request data
 func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger) error {
 	if logger.Enabled {
 		traceID := trace.GetTraceIDFromContext(r.Context())
-		logger.Log = logger.CreateContextLogger(traceID)
+		log := logger.CreateContextLogger(traceID)
 
 		var body map[string]any
 		if logger.Level == cl.LevelDebug {
@@ -83,13 +82,12 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger)
 			Path:     r.URL.Path,
 		}
 		attrs := requestLogAttrs(data, logger.Level)
-		logger.Log.With(attrs...).Info("request")
+		log.With(attrs...).Info("request")
 	}
 
 	return nil
 }
 
-// requestLogAttrs returns additional request attributes for logging
 func requestLogAttrs(data *RequestLogData, level string) []any {
 	k := cl.AttrKey
 

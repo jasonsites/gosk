@@ -13,7 +13,7 @@ type Response struct {
 
 // ListMeta
 type ResponseMetadata struct {
-	Paging pagination.PageMetadata `json:"paging,omitempty"`
+	Page pagination.PageMetadata `json:"page,omitempty"`
 }
 
 // Resource

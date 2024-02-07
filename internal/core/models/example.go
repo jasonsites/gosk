@@ -9,9 +9,9 @@ import (
 	"github.com/jasonsites/gosk/internal/core/pagination"
 )
 
-// ExampleInputData defines the subset of Example domain model attributes that are accepted
+// ExampleDTO defines the subset of Example domain model attributes that are accepted
 // for input data request binding
-type ExampleInputData struct {
+type ExampleDTO struct {
 	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
 	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
 	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
@@ -20,7 +20,7 @@ type ExampleInputData struct {
 }
 
 // Validate validates a Notification instance
-func (e ExampleInputData) Validate() error {
+func (e ExampleDTO) Validate() error {
 	if err := v.ValidateStruct(&e,
 		v.Field(&e.Title, v.Required),
 	); err != nil {
@@ -71,7 +71,7 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 	}
 
 	meta := &jsonapi.ResponseMetadata{
-		Paging: pagination.PageMetadata{
+		Page: pagination.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
 			Total:  m.Meta.Paging.Total,

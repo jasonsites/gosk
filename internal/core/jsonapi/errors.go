@@ -15,5 +15,6 @@ type ErrorData struct {
 
 // ErrorSource
 type ErrorSource struct {
+	// TODO: add header and query options
 	Pointer string `json:"pointer,omitempty"`
 }

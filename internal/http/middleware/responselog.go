@@ -85,7 +85,7 @@ type logResponseConfig struct {
 func logResponse(c logResponseConfig) error {
 	if c.logger.Enabled {
 		traceID := trace.GetTraceIDFromContext(c.request.Context())
-		c.logger.Log = c.logger.CreateContextLogger(traceID)
+		log := c.logger.CreateContextLogger(traceID)
 
 		bodyBytes := c.bodyBuffer.Bytes()
 		bodySize := c.response.BytesWritten()
@@ -107,7 +107,7 @@ func logResponse(c logResponseConfig) error {
 		}
 
 		attrs := responseLogAttrs(data, c.logger.Level)
-		c.logger.Log.With(attrs...).Info("response")
+		log.With(attrs...).Info("response")
 	}
 
 	return nil

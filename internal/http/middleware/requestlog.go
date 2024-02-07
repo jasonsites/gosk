@@ -54,7 +54,7 @@ func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
 func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger) error {
 	if logger.Enabled {
 		traceID := trace.GetTraceIDFromContext(r.Context())
-		logger.Log = logger.CreateContextLogger(traceID)
+		log := logger.CreateContextLogger(traceID)
 
 		var body map[string]any
 		if logger.Level == cl.LevelDebug {
@@ -82,7 +82,7 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger)
 			Path:     r.URL.Path,
 		}
 		attrs := requestLogAttrs(data, logger.Level)
-		logger.Log.With(attrs...).Info("request")
+		log.With(attrs...).Info("request")
 	}
 
 	return nil

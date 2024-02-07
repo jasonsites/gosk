@@ -15,7 +15,7 @@ type UpdateSetup struct {
 	Name        string
 	Description string
 	Expected    utils.Expected
-	Model       *models.ExampleInputData
+	Model       *models.ExampleDTO
 }
 
 func Test_Example_Update(t *testing.T) {

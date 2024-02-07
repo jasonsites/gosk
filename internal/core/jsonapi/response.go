@@ -11,7 +11,7 @@ type Response struct {
 	Data any               `json:"data"`
 }
 
-// ListMeta
+// ResponseMetadata
 type ResponseMetadata struct {
 	Page pagination.PageMetadata `json:"page,omitempty"`
 }

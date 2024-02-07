@@ -84,7 +84,7 @@ func (r *Resolver) ExampleRepository() interfaces.ExampleRepository {
 }
 
 // ExampleService provides a singleton domain.exampleService instance
-func (r *Resolver) ExampleService() interfaces.Service {
+func (r *Resolver) ExampleService() interfaces.ExampleService {
 	if r.exampleService == nil {
 		c := r.Config()
 

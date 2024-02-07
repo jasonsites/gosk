@@ -10,7 +10,6 @@ import (
 	"github.com/jasonsites/gosk/internal/core/app"
 	"github.com/jasonsites/gosk/internal/core/cerror"
 	"github.com/jasonsites/gosk/internal/core/entities"
-	"github.com/jasonsites/gosk/internal/core/interfaces"
 	"github.com/jasonsites/gosk/internal/core/logger"
 	"github.com/jasonsites/gosk/internal/core/models"
 	"github.com/jasonsites/gosk/internal/core/pagination"
@@ -84,7 +83,7 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 }
 
 // Create
-func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleInputData) (interfaces.DomainModel, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -203,7 +202,7 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interfaces.DomainModel, error) {
+func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -261,7 +260,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (interface
 }
 
 // List
-func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interfaces.DomainModel, error) {
+func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -364,7 +363,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (interf
 }
 
 // Update
-func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleInputData, id uuid.UUID) (interfaces.DomainModel, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 

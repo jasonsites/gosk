@@ -10,9 +10,9 @@ type Domain struct {
 	Services *Services
 }
 
-// Services contains all individual resource services
+// Services contains all individual domain services
 type Services struct {
-	Example interfaces.Service `validate:"required"`
+	Example interfaces.ExampleService `validate:"required"`
 }
 
 // NewDomain creates a new Domain instance

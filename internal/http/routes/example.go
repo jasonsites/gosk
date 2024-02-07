@@ -10,7 +10,7 @@ import (
 )
 
 // ExampleRouter implements a router group for an Example resource
-func ExampleRouter(r *chi.Mux, ns string, c interfaces.ResourceController) {
+func ExampleRouter(r *chi.Mux, ns string, c interfaces.ExampleController) {
 	prefix := fmt.Sprintf("/%s/examples", ns)
 
 	// resource provides a RequestBody with data binding for the Example model
@@ -18,7 +18,7 @@ func ExampleRouter(r *chi.Mux, ns string, c interfaces.ResourceController) {
 	resource := func() *jsonapi.RequestBody {
 		return &jsonapi.RequestBody{
 			Data: &jsonapi.RequestResource{
-				Attributes: &models.ExampleInputData{},
+				Attributes: &models.ExampleDTO{},
 			},
 		}
 	}

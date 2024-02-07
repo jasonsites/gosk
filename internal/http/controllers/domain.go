@@ -16,16 +16,16 @@ import (
 
 // Config defines the input to NewController
 type Config struct {
-	Logger      *logger.CustomLogger `validate:"required"`
-	QueryConfig *QueryConfig         `validate:"required"`
-	Service     interfaces.Service   `validate:"required"`
+	Logger      *logger.CustomLogger      `validate:"required"`
+	QueryConfig *QueryConfig              `validate:"required"`
+	Service     interfaces.ExampleService `validate:"required"`
 }
 
 // Controller
 type Controller struct {
 	logger  *logger.CustomLogger
 	query   *queryHandler
-	service interfaces.Service
+	service interfaces.ExampleService
 }
 
 // NewController returns a new Controller instance
@@ -56,7 +56,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError(err, "request body decode error")
+			err = cerror.NewValidationError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -182,7 +182,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		uuid, err := uuid.Parse(id)
 		if err != nil {
-			err = cerror.NewInternalServerError(err, "resource id parse error")
+			err = cerror.NewValidationError(err, "resource id parse error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return
@@ -190,7 +190,7 @@ func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 
 		resource := f()
 		if err := jsonio.DecodeRequest(w, r, resource); err != nil {
-			err = cerror.NewInternalServerError(err, "request body decode error")
+			err = cerror.NewValidationError(err, "request body decode error")
 			log.Error(err.Error())
 			jsonio.EncodeError(w, r, err)
 			return

@@ -18,7 +18,7 @@ type Config struct {
 	Config           *config.Configuration
 	Domain           *domain.Domain
 	ExampleRepo      interfaces.ExampleRepository
-	ExampleService   interfaces.Service
+	ExampleService   interfaces.ExampleService
 	HTTPServer       *httpserver.Server
 	Log              *slog.Logger
 	Metadata         *app.Metadata
@@ -31,7 +31,7 @@ type Resolver struct {
 	config           *config.Configuration
 	domain           *domain.Domain
 	exampleRepo      interfaces.ExampleRepository
-	exampleService   interfaces.Service
+	exampleService   interfaces.ExampleService
 	httpServer       *httpserver.Server
 	log              *slog.Logger
 	metadata         *app.Metadata

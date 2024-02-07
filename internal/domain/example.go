@@ -40,11 +40,11 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 }
 
 // Create
-func (s *exampleService) Create(ctx context.Context, data any) (interfaces.DomainModel, error) {
+func (s *exampleService) Create(ctx context.Context, data any) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleInputData)
+	d, ok := data.(*models.ExampleDTO)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())
@@ -74,7 +74,7 @@ func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (interfaces.DomainModel, error) {
+func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
@@ -88,7 +88,7 @@ func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (interfaces.D
 }
 
 // List
-func (s *exampleService) List(ctx context.Context, q query.QueryData) (interfaces.DomainModel, error) {
+func (s *exampleService) List(ctx context.Context, q query.QueryData) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
@@ -102,11 +102,11 @@ func (s *exampleService) List(ctx context.Context, q query.QueryData) (interface
 }
 
 // Update
-func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (interfaces.DomainModel, error) {
+func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*models.ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleInputData)
+	d, ok := data.(*models.ExampleDTO)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())

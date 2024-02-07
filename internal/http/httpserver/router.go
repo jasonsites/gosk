@@ -22,7 +22,7 @@ type RouterConfig struct {
 }
 
 type controllerRegistry struct {
-	ExampleController interfaces.ResourceController
+	ExampleController interfaces.ExampleController
 }
 
 // configureMiddleware

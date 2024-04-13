@@ -9,20 +9,18 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/goddtriffin/helmet"
-	"github.com/jasonsites/gosk/internal/core/interfaces"
-	"github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/domain"
-	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
 	mw "github.com/jasonsites/gosk/internal/http/middleware"
-	"github.com/jasonsites/gosk/internal/http/routes"
+	"github.com/jasonsites/gosk/internal/logger"
+	"github.com/jasonsites/gosk/internal/modules/example"
+	"github.com/jasonsites/gosk/internal/modules/health"
 )
+
+type ControllerRegistry struct {
+	ExampleController example.ExampleController
+}
 
 type RouterConfig struct {
 	Namespace string `validate:"required"`
-}
-
-type controllerRegistry struct {
-	ExampleController interfaces.ExampleController
 }
 
 // configureMiddleware
@@ -49,28 +47,10 @@ func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.CustomLo
 	}))
 }
 
-// registerControllers
-func registerControllers(services *domain.Services, logger *logger.CustomLogger, qc *ctrl.QueryConfig) (*controllerRegistry, error) {
-	controller, err := ctrl.NewController(&ctrl.Config{
-		QueryConfig: qc,
-		Logger:      logger,
-		Service:     services.Example,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	registry := &controllerRegistry{
-		ExampleController: controller,
-	}
-
-	return registry, nil
-}
-
 // registerRoutes
-func registerRoutes(conf *RouterConfig, r *chi.Mux, c *controllerRegistry) {
+func registerRoutes(conf *RouterConfig, r *chi.Mux, c *ControllerRegistry) {
 	ns := conf.Namespace
-	routes.BaseRouter(r, ns)
-	routes.HealthRouter(r, ns)
-	routes.ExampleRouter(r, ns, c.ExampleController)
+	BaseRouter(r, ns)
+	health.HealthRouter(r, ns)
+	example.ExampleRouter(r, ns, c.ExampleController)
 }

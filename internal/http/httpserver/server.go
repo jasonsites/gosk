@@ -6,19 +6,16 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jasonsites/gosk/internal/core/app"
-	"github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/domain"
-	ctrl "github.com/jasonsites/gosk/internal/http/controllers"
+	app "github.com/jasonsites/gosk/internal/app"
+	"github.com/jasonsites/gosk/internal/logger"
 )
 
 // ServerConfig defines the input to NewServer
 type ServerConfig struct {
-	Domain       *domain.Domain       `validate:"required"`
+	Controllers  *ControllerRegistry  `validate:"required"`
 	Host         string               `validate:"required"`
 	Logger       *logger.CustomLogger `validate:"required"`
 	Port         uint                 `validate:"required"`
-	QueryConfig  *ctrl.QueryConfig    `validate:"required"`
 	RouterConfig *RouterConfig        `validate:"required"`
 }
 
@@ -36,13 +33,8 @@ func NewServer(c *ServerConfig) (*Server, error) {
 	}
 
 	mux := chi.NewRouter()
-	controllers, err := registerControllers(c.Domain.Services, c.Logger, c.QueryConfig)
-	if err != nil {
-		return nil, err
-	}
-
 	configureMiddleware(c.RouterConfig, mux, c.Logger)
-	registerRoutes(c.RouterConfig, mux, controllers)
+	registerRoutes(c.RouterConfig, mux, c.Controllers)
 
 	addr := fmt.Sprintf(":%s", strconv.FormatUint(uint64(c.Port), 10))
 	s := &Server{

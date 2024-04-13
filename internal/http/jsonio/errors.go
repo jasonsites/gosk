@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/invopop/validation"
-	cerror "github.com/jasonsites/gosk/internal/core/cerror"
-	"github.com/jasonsites/gosk/internal/core/jsonapi"
+	cerror "github.com/jasonsites/gosk/internal/cerror"
+	"github.com/jasonsites/gosk/internal/http/jsonapi"
 )
 
 // HTTPStatusMap maps custom error types to relevant HTTP status codes
@@ -40,7 +40,6 @@ func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
 
 func defaultErrorData() jsonapi.ErrorData {
 	return jsonapi.ErrorData{
-		Status: http.StatusInternalServerError,
 		Title:  cerror.ErrorType.InternalServer,
 		Detail: "internal server error",
 	}
@@ -53,7 +52,6 @@ func defaultValidationErrorData(e cerror.CustomError) jsonapi.ErrorData {
 	}
 
 	return jsonapi.ErrorData{
-		Status: http.StatusBadRequest,
 		Title:  cerror.ErrorType.Validation,
 		Detail: detail,
 	}
@@ -61,7 +59,6 @@ func defaultValidationErrorData(e cerror.CustomError) jsonapi.ErrorData {
 
 func errorData(code int, detail, title string) jsonapi.ErrorData {
 	return jsonapi.ErrorData{
-		Status: code,
 		Title:  title,
 		Detail: detail,
 	}
@@ -99,8 +96,7 @@ func validationErrorResponse(path string, ve validation.Errors, er jsonapi.Error
 		switch v := val.(type) {
 		case validation.Error:
 			er.Errors = append(er.Errors, jsonapi.ErrorData{
-				Status: http.StatusBadRequest,
-				Source: &jsonapi.ErrorSource{Pointer: path},
+				Source: &jsonapi.ErrorSourcePointer{Pointer: path},
 				Title:  cerror.ErrorType.Validation,
 				Detail: v.Error(),
 			})

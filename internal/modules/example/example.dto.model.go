@@ -1,12 +1,12 @@
-package models
+package example
 
 import (
 	"time"
 
 	"github.com/google/uuid"
 	v "github.com/invopop/validation"
-	"github.com/jasonsites/gosk/internal/core/jsonapi"
-	"github.com/jasonsites/gosk/internal/core/pagination"
+	"github.com/jasonsites/gosk/internal/http/jsonapi"
+	"github.com/jasonsites/gosk/internal/modules/common/pagination"
 )
 
 // ExampleDTO defines the subset of Example domain model attributes that are accepted

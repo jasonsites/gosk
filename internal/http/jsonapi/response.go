@@ -2,7 +2,7 @@ package jsonapi
 
 import (
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk/internal/core/pagination"
+	"github.com/jasonsites/gosk/internal/modules/common/pagination"
 )
 
 // Response

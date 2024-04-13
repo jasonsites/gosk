@@ -1,16 +1,24 @@
-package routes
+package example
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jasonsites/gosk/internal/core/interfaces"
-	"github.com/jasonsites/gosk/internal/core/jsonapi"
-	"github.com/jasonsites/gosk/internal/core/models"
+	"github.com/jasonsites/gosk/internal/http/jsonapi"
 )
 
+// ExampleController
+type ExampleController interface {
+	Create(func() *jsonapi.RequestBody) http.HandlerFunc
+	Delete() http.HandlerFunc
+	Detail() http.HandlerFunc
+	List() http.HandlerFunc
+	Update(func() *jsonapi.RequestBody) http.HandlerFunc
+}
+
 // ExampleRouter implements a router group for an Example resource
-func ExampleRouter(r *chi.Mux, ns string, c interfaces.ExampleController) {
+func ExampleRouter(r *chi.Mux, ns string, c ExampleController) {
 	prefix := fmt.Sprintf("/%s/examples", ns)
 
 	// resource provides a RequestBody with data binding for the Example model
@@ -18,7 +26,7 @@ func ExampleRouter(r *chi.Mux, ns string, c interfaces.ExampleController) {
 	resource := func() *jsonapi.RequestBody {
 		return &jsonapi.RequestBody{
 			Data: &jsonapi.RequestResource{
-				Attributes: &models.ExampleDTO{},
+				Attributes: &ExampleDTO{},
 			},
 		}
 	}

@@ -7,10 +7,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/jasonsites/gosk/internal/core/app"
-	cl "github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
+	"github.com/jasonsites/gosk/internal/http/trace"
+	cl "github.com/jasonsites/gosk/internal/logger"
 )
 
 // RequestLogData defines the data captured for request logging

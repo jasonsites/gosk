@@ -1,9 +1,8 @@
-package controllers
+package query
 
 import (
 	"github.com/hetiansu5/urlquery"
-	"github.com/jasonsites/gosk/internal/core/app"
-	"github.com/jasonsites/gosk/internal/core/query"
+	"github.com/jasonsites/gosk/internal/app"
 )
 
 type QueryConfig struct {
@@ -11,15 +10,15 @@ type QueryConfig struct {
 }
 
 type QueryDefaults struct {
-	Paging  *query.QueryPaging  `validate:"required"`
-	Sorting *query.QuerySorting `validate:"required"`
+	Paging  QueryPaging   `validate:"required"`
+	Sorting *QuerySorting `validate:"required"`
 }
 
-type queryHandler struct {
+type QueryHandler struct {
 	defaults *QueryDefaults
 }
 
-func NewQueryHandler(c *QueryConfig) (*queryHandler, error) {
+func NewQueryHandler(c *QueryConfig) (*QueryHandler, error) {
 	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
@@ -29,15 +28,15 @@ func NewQueryHandler(c *QueryConfig) (*queryHandler, error) {
 		c.Defaults.Paging.Offset = &offset
 	}
 
-	handler := &queryHandler{
+	handler := &QueryHandler{
 		defaults: c.Defaults,
 	}
 
 	return handler, nil
 }
 
-func (q *queryHandler) parseQuery(qs []byte) *query.QueryData {
-	data := &query.QueryData{}
+func (q *QueryHandler) ParseQuery(qs []byte) *QueryData {
+	data := &QueryData{}
 
 	// TODO: validate query
 	urlquery.Unmarshal(qs, data)
@@ -50,8 +49,8 @@ func (q *queryHandler) parseQuery(qs []byte) *query.QueryData {
 	return data
 }
 
-func (q *queryHandler) pageSettings(p query.QueryPaging) query.QueryPaging {
-	page := query.QueryPaging{
+func (q *QueryHandler) pageSettings(p QueryPaging) QueryPaging {
+	page := QueryPaging{
 		Limit:  q.defaults.Paging.Limit,
 		Offset: q.defaults.Paging.Offset,
 	}
@@ -66,8 +65,8 @@ func (q *queryHandler) pageSettings(p query.QueryPaging) query.QueryPaging {
 	return page
 }
 
-func (q *queryHandler) sortSettings(s query.QuerySorting) query.QuerySorting {
-	sort := query.QuerySorting{
+func (q *QueryHandler) sortSettings(s QuerySorting) QuerySorting {
+	sort := QuerySorting{
 		Order: q.defaults.Sorting.Order,
 		Attr:  q.defaults.Sorting.Attr,
 	}

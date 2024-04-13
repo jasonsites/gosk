@@ -1,4 +1,4 @@
-package repos
+package example
 
 import (
 	"context"
@@ -7,14 +7,14 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk/internal/core/app"
-	"github.com/jasonsites/gosk/internal/core/cerror"
-	"github.com/jasonsites/gosk/internal/core/entities"
-	"github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/core/models"
-	"github.com/jasonsites/gosk/internal/core/pagination"
-	"github.com/jasonsites/gosk/internal/core/query"
-	"github.com/jasonsites/gosk/internal/core/trace"
+
+	"github.com/jasonsites/gosk/internal/app"
+	cerror "github.com/jasonsites/gosk/internal/cerror"
+	"github.com/jasonsites/gosk/internal/http/trace"
+	"github.com/jasonsites/gosk/internal/logger"
+	"github.com/jasonsites/gosk/internal/modules/common/pagination"
+	"github.com/jasonsites/gosk/internal/modules/common/query"
+	repo "github.com/jasonsites/gosk/internal/modules/common/repository"
 )
 
 // exampleEntityDefinition
@@ -83,7 +83,7 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 }
 
 // Create
-func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *ExampleDTO) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -95,7 +95,7 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO)
 			name      = r.Entity.Name
 		)
 
-		insertFields, values := buildInsertFieldsAndValues(
+		insertFields, values := repo.BuildInsertFieldsAndValues(
 			field.CreatedBy,
 			field.Deleted,
 			field.Description,
@@ -104,7 +104,7 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO)
 			field.Title,
 		)
 
-		returnFields := buildReturnFields(
+		returnFields := repo.BuildReturnFields(
 			field.CreatedBy,
 			field.CreatedOn,
 			field.Deleted,
@@ -137,7 +137,7 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO)
 	}
 
 	// create new entity for db row scan and execute query
-	entity := entities.ExampleEntity{}
+	entity := ExampleEntity{}
 	if err := r.db.QueryRow(
 		ctx,
 		query,
@@ -163,8 +163,8 @@ func (r *exampleRepository) Create(ctx context.Context, data *models.ExampleDTO)
 		return nil, err
 	}
 
-	model := &entities.ExampleEntityModel{
-		Data: []entities.ExampleEntity{entity},
+	model := &ExampleEntityModel{
+		Data: []ExampleEntity{entity},
 		Solo: true,
 	}
 
@@ -186,13 +186,13 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 			name      = r.Entity.Name
 		)
 
-		returnFields := buildReturnFields(field.ID)
+		returnFields := repo.BuildReturnFields(field.ID)
 
 		return fmt.Sprintf(statement, name, id, returnFields)
 	}()
 
 	// create new entity for db row scan and execute query
-	entity := entities.ExampleEntity{}
+	entity := ExampleEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(&entity.ID); err != nil {
 		log.Error(err.Error())
 		return err
@@ -202,7 +202,7 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -214,7 +214,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.E
 			name      = r.Entity.Name
 		)
 
-		returnFields := buildReturnFields(
+		returnFields := repo.BuildReturnFields(
 			field.CreatedBy,
 			field.CreatedOn,
 			field.Deleted,
@@ -231,7 +231,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.E
 	}()
 
 	// create new entity for db row scan and execute query
-	entity := entities.ExampleEntity{}
+	entity := ExampleEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(
 		&entity.CreatedBy,
 		&entity.CreatedOn,
@@ -249,8 +249,8 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.E
 		return nil, err
 	}
 
-	model := &entities.ExampleEntityModel{
-		Data: []entities.ExampleEntity{entity},
+	model := &ExampleEntityModel{
+		Data: []ExampleEntity{entity},
 		Solo: true,
 	}
 
@@ -260,7 +260,7 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*models.E
 }
 
 // List
-func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -281,7 +281,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*model
 			offset     = fmt.Sprint(offset)
 		)
 
-		returnFields := buildReturnFields(
+		returnFields := repo.BuildReturnFields(
 			field.CreatedBy,
 			field.CreatedOn,
 			field.Deleted,
@@ -306,14 +306,14 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*model
 	defer rows.Close()
 
 	// create new entity model
-	model := &entities.ExampleEntityModel{
-		Data: make([]entities.ExampleEntity, 0, limit),
+	model := &ExampleEntityModel{
+		Data: make([]ExampleEntity, 0, limit),
 		Solo: false,
 	}
 
 	// scan row data into new entities, appending to repo result
 	for rows.Next() {
-		entity := entities.ExampleEntity{}
+		entity := ExampleEntity{}
 
 		if err := rows.Scan(
 			&entity.CreatedBy,
@@ -349,7 +349,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*model
 	}
 
 	// populate repo result paging metadata
-	model.Meta = &models.ModelMetadata{
+	model.Meta = &ModelMetadata{
 		Paging: pagination.PageMetadata{
 			Limit:  uint32(limit),
 			Offset: uint32(offset),
@@ -363,7 +363,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*model
 }
 
 // Update
-func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO, id uuid.UUID) (*models.ExampleDomainModel, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *ExampleDTO, id uuid.UUID) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -375,7 +375,7 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO,
 			field     = r.Entity.Field
 		)
 
-		values := buildUpdateValues(
+		values := repo.BuildUpdateValues(
 			field.Deleted,
 			field.Description,
 			field.Enabled,
@@ -385,7 +385,7 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO,
 			field.Title,
 		)
 
-		returnFields := buildReturnFields(
+		returnFields := repo.BuildReturnFields(
 			field.CreatedBy,
 			field.CreatedOn,
 			field.Deleted,
@@ -419,7 +419,7 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO,
 	}
 
 	// create new entity for db row scan and execute query
-	entity := entities.ExampleEntity{}
+	entity := ExampleEntity{}
 	if err := r.db.QueryRow(
 		ctx,
 		query,
@@ -446,8 +446,8 @@ func (r *exampleRepository) Update(ctx context.Context, data *models.ExampleDTO,
 		return nil, err
 	}
 
-	model := &entities.ExampleEntityModel{
-		Data: []entities.ExampleEntity{entity},
+	model := &ExampleEntityModel{
+		Data: []ExampleEntity{entity},
 		Solo: true,
 	}
 

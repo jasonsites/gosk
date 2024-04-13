@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/jasonsites/gosk/internal/core/entities"
+	"github.com/jasonsites/gosk/internal/modules/example"
 	"github.com/jasonsites/gosk/internal/resolver"
 	utils "github.com/jasonsites/gosk/test/testutils"
 )
@@ -47,7 +47,7 @@ func (s *Suite) SetupTest(tb testing.TB) func(tb testing.TB) {
 }
 
 // insertExampleRecord inserts a db record for use in test setup
-func insertExampleRecord(e *entities.ExampleEntity, db *pgxpool.Pool) (*entities.ExampleEntity, error) {
+func insertExampleRecord(e *example.ExampleEntity, db *pgxpool.Pool) (*example.ExampleEntity, error) {
 	var (
 		statement    = "INSERT INTO %s %s VALUES %s RETURNING id"
 		name         = "example_entity"
@@ -66,7 +66,7 @@ func insertExampleRecord(e *entities.ExampleEntity, db *pgxpool.Pool) (*entities
 	)
 
 	// create new entity for db row scan and execute query
-	entity := &entities.ExampleEntity{}
+	entity := &example.ExampleEntity{}
 	if err := db.QueryRow(
 		context.Background(),
 		query,

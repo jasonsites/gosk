@@ -3,7 +3,7 @@ package logger
 import (
 	"log/slog"
 
-	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/http/trace"
 )
 
 const (

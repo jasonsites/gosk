@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/jasonsites/gosk/internal/core/models"
+	"github.com/jasonsites/gosk/internal/modules/example"
 	fx "github.com/jasonsites/gosk/test/fixtures"
 	utils "github.com/jasonsites/gosk/test/testutils"
 )
@@ -14,7 +14,7 @@ type CreateSetup struct {
 	Name        string
 	Description string
 	Expected    utils.Expected
-	Model       *models.ExampleDTO
+	Model       *example.ExampleDTO
 }
 
 func Test_Example_Create(t *testing.T) {

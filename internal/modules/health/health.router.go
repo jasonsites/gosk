@@ -1,11 +1,11 @@
-package routes
+package health
 
 import (
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jasonsites/gosk/internal/core/jsonapi"
+	"github.com/jasonsites/gosk/internal/http/jsonapi"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 

@@ -1,28 +1,35 @@
-package domain
+package example
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk/internal/core/app"
-	"github.com/jasonsites/gosk/internal/core/interfaces"
-	"github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/core/models"
-	"github.com/jasonsites/gosk/internal/core/query"
-	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/app"
+	"github.com/jasonsites/gosk/internal/http/trace"
+	"github.com/jasonsites/gosk/internal/logger"
+	"github.com/jasonsites/gosk/internal/modules/common/query"
 )
+
+// ExampleRepository defines the interface for a repository managing the Example domain/entity model
+type ExampleRepository interface {
+	Create(context.Context, *ExampleDTO) (*ExampleDomainModel, error)
+	Delete(context.Context, uuid.UUID) error
+	Detail(context.Context, uuid.UUID) (*ExampleDomainModel, error)
+	List(context.Context, query.QueryData) (*ExampleDomainModel, error)
+	Update(context.Context, *ExampleDTO, uuid.UUID) (*ExampleDomainModel, error)
+}
 
 // ExampleServiceConfig defines the input to NewExampleService
 type ExampleServiceConfig struct {
-	Logger *logger.CustomLogger         `validate:"required"`
-	Repo   interfaces.ExampleRepository `validate:"required"`
+	Logger *logger.CustomLogger `validate:"required"`
+	Repo   ExampleRepository    `validate:"required"`
 }
 
 // exampleService
 type exampleService struct {
 	logger *logger.CustomLogger
-	repo   interfaces.ExampleRepository
+	repo   ExampleRepository
 }
 
 // NewExampleService returns a new exampleService instance
@@ -40,11 +47,11 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 }
 
 // Create
-func (s *exampleService) Create(ctx context.Context, data any) (*models.ExampleDomainModel, error) {
+func (s *exampleService) Create(ctx context.Context, data any) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleDTO)
+	d, ok := data.(*ExampleDTO)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())
@@ -74,7 +81,7 @@ func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*models.ExampleDomainModel, error) {
+func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
@@ -88,7 +95,7 @@ func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*models.Exam
 }
 
 // List
-func (s *exampleService) List(ctx context.Context, q query.QueryData) (*models.ExampleDomainModel, error) {
+func (s *exampleService) List(ctx context.Context, q query.QueryData) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
@@ -102,11 +109,11 @@ func (s *exampleService) List(ctx context.Context, q query.QueryData) (*models.E
 }
 
 // Update
-func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*models.ExampleDomainModel, error) {
+func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*ExampleDomainModel, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*models.ExampleDTO)
+	d, ok := data.(*ExampleDTO)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())

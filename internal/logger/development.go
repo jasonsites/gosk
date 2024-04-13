@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jasonsites/gosk/internal/core/app"
+	"github.com/jasonsites/gosk/internal/app"
 )
 
 const (

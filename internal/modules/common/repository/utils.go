@@ -1,12 +1,12 @@
-package repos
+package repository
 
 import (
 	"fmt"
 	"strings"
 )
 
-// buildInsertFieldsAndValues builds the insert fields and values strings used in SQL query string builders
-func buildInsertFieldsAndValues(fields ...string) (string, string) {
+// BuildInsertFieldsAndValues builds the insert fields and values strings used in SQL query string builders
+func BuildInsertFieldsAndValues(fields ...string) (string, string) {
 	var insert, values strings.Builder
 
 	length := len(fields)
@@ -29,8 +29,8 @@ func buildInsertFieldsAndValues(fields ...string) (string, string) {
 	return insert.String(), values.String()
 }
 
-// buildReturnFields builds the return fields string used in SQL query string builders
-func buildReturnFields(fields ...string) string {
+// BuildReturnFields builds the return fields string used in SQL query string builders
+func BuildReturnFields(fields ...string) string {
 	var returnFields strings.Builder
 
 	length := len(fields)
@@ -45,8 +45,8 @@ func buildReturnFields(fields ...string) string {
 	return returnFields.String()
 }
 
-// buildUpdateValues builds the update values string used in SQL query string builders
-func buildUpdateValues(fields ...string) string {
+// BuildUpdateValues builds the update values string used in SQL query string builders
+func BuildUpdateValues(fields ...string) string {
 	var values strings.Builder
 
 	length := len(fields)

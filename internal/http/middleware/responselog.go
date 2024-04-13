@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jasonsites/gosk/internal/core/app"
-	cl "github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/app"
+	"github.com/jasonsites/gosk/internal/http/trace"
+	cl "github.com/jasonsites/gosk/internal/logger"
 )
 
 // ResponseLogData defines the data captured for response logging

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/jasonsites/gosk/config"
-	"github.com/jasonsites/gosk/internal/core/logger"
+	"github.com/jasonsites/gosk/internal/logger"
 )
 
 func logLevel(l string) slog.Leveler {

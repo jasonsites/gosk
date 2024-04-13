@@ -5,10 +5,10 @@ import (
 
 	fake "github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk/internal/core/entities"
+	"github.com/jasonsites/gosk/internal/modules/example"
 )
 
-func ExampleEntityRecord(input *entities.ExampleEntity, id *uuid.UUID) *entities.ExampleEntity {
+func ExampleEntityRecord(input *example.ExampleEntity, id *uuid.UUID) *example.ExampleEntity {
 	createdBy := uint32(fake.IntRange(1, 9999))
 	createdOn := fake.Date()
 	deleted := fake.Bool()
@@ -58,7 +58,7 @@ func ExampleEntityRecord(input *entities.ExampleEntity, id *uuid.UUID) *entities
 		}
 	}
 
-	record := &entities.ExampleEntity{
+	record := &example.ExampleEntity{
 		CreatedBy:   createdBy,
 		CreatedOn:   createdOn,
 		Deleted:     deleted,

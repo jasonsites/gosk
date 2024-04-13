@@ -29,7 +29,7 @@ type RunConfig struct {
 	HTTPServer bool
 }
 
-// Run creates a new Resolver with associated context group, then runs goroutines for bootstrapping
+// Run creates a new Resolver with associated context group, then runs goroutines for initializing
 // the application and handling graceful shutdown
 func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 	c, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)

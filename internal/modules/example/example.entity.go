@@ -1,12 +1,11 @@
-package entities
+package example
 
 import (
 	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk/internal/core/models"
-	"github.com/jasonsites/gosk/internal/core/pagination"
+	"github.com/jasonsites/gosk/internal/modules/common/pagination"
 )
 
 // ExampleEntity defines an Example database entity
@@ -25,16 +24,16 @@ type ExampleEntity struct {
 
 type ExampleEntityModel struct {
 	Data []ExampleEntity
-	Meta *models.ModelMetadata
+	Meta *ModelMetadata
 	Solo bool
 }
 
-func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
+func (m *ExampleEntityModel) Unmarshal() *ExampleDomainModel {
 	// single entity model
 	if m.Solo {
 		edo := unmarshalEntity(m.Data[0])
-		model := &models.ExampleDomainModel{
-			Data: []models.ExampleObject{*edo},
+		model := &ExampleDomainModel{
+			Data: []ExampleObject{*edo},
 			Solo: m.Solo,
 		}
 
@@ -42,7 +41,7 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 	}
 
 	// multiple entity model
-	meta := &models.ModelMetadata{
+	meta := &ModelMetadata{
 		Paging: pagination.PageMetadata{
 			Limit:  m.Meta.Paging.Limit,
 			Offset: m.Meta.Paging.Offset,
@@ -50,14 +49,14 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 		},
 	}
 
-	data := make([]models.ExampleObject, 0, len(m.Data))
+	data := make([]ExampleObject, 0, len(m.Data))
 	// TODO: go routine?
 	for _, record := range m.Data {
 		edo := unmarshalEntity(record)
 		data = append(data, *edo)
 	}
 
-	result := &models.ExampleDomainModel{
+	result := &ExampleDomainModel{
 		Meta: meta,
 		Data: data,
 	}
@@ -65,7 +64,7 @@ func (m *ExampleEntityModel) Unmarshal() *models.ExampleDomainModel {
 	return result
 }
 
-func unmarshalEntity(e ExampleEntity) *models.ExampleObject {
+func unmarshalEntity(e ExampleEntity) *ExampleObject {
 	var (
 		description *string
 		modifiedBy  *uint32
@@ -88,7 +87,7 @@ func unmarshalEntity(e ExampleEntity) *models.ExampleObject {
 		status = &s
 	}
 
-	attributes := models.ExampleObjectAttributes{
+	attributes := ExampleObjectAttributes{
 		CreatedBy:   e.CreatedBy,
 		CreatedOn:   e.CreatedOn,
 		Deleted:     e.Deleted,
@@ -101,7 +100,7 @@ func unmarshalEntity(e ExampleEntity) *models.ExampleObject {
 		Title:       e.Title,
 	}
 
-	return &models.ExampleObject{
+	return &ExampleObject{
 		Attributes: attributes,
 	}
 }

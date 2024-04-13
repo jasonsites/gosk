@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/jasonsites/gosk/internal/core/app"
+	"github.com/jasonsites/gosk/internal/app"
 	"github.com/spf13/viper"
 )
 

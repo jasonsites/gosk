@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jasonsites/gosk/internal/core/cerror"
+	"github.com/jasonsites/gosk/internal/cerror"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 )
 

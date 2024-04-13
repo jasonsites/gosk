@@ -1,46 +1,52 @@
-package controllers
+package example
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk/internal/core/app"
-	"github.com/jasonsites/gosk/internal/core/cerror"
-	"github.com/jasonsites/gosk/internal/core/interfaces"
-	"github.com/jasonsites/gosk/internal/core/jsonapi"
-	"github.com/jasonsites/gosk/internal/core/logger"
-	"github.com/jasonsites/gosk/internal/core/trace"
+	"github.com/jasonsites/gosk/internal/app"
+	cerror "github.com/jasonsites/gosk/internal/cerror"
+	"github.com/jasonsites/gosk/internal/http/jsonapi"
 	"github.com/jasonsites/gosk/internal/http/jsonio"
+	"github.com/jasonsites/gosk/internal/http/trace"
+	"github.com/jasonsites/gosk/internal/logger"
+	"github.com/jasonsites/gosk/internal/modules/common/query"
 )
 
-// Config defines the input to NewController
-type Config struct {
-	Logger      *logger.CustomLogger      `validate:"required"`
-	QueryConfig *QueryConfig              `validate:"required"`
-	Service     interfaces.ExampleService `validate:"required"`
+// ExampleService
+type ExampleService interface {
+	Create(context.Context, any) (*ExampleDomainModel, error)
+	Delete(context.Context, uuid.UUID) error
+	Detail(context.Context, uuid.UUID) (*ExampleDomainModel, error)
+	List(context.Context, query.QueryData) (*ExampleDomainModel, error)
+	Update(context.Context, any, uuid.UUID) (*ExampleDomainModel, error)
 }
 
-// Controller
-type Controller struct {
+// ControllerConfig defines the input to NewController
+type ControllerConfig struct {
+	Logger  *logger.CustomLogger `validate:"required"`
+	Query   *query.QueryHandler  `validate:"required"`
+	Service ExampleService       `validate:"required"`
+}
+
+// exampleController
+type exampleController struct {
 	logger  *logger.CustomLogger
-	query   *queryHandler
-	service interfaces.ExampleService
+	query   *query.QueryHandler
+	service ExampleService
 }
 
 // NewController returns a new Controller instance
-func NewController(c *Config) (*Controller, error) {
+func NewController(c *ControllerConfig) (*exampleController, error) {
 	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
 
-	queryHandler, err := NewQueryHandler(c.QueryConfig)
-	if err != nil {
-		return nil, err
-	}
-	ctrl := &Controller{
+	ctrl := &exampleController{
 		logger:  c.Logger,
-		query:   queryHandler,
+		query:   c.Query,
 		service: c.Service,
 	}
 
@@ -48,7 +54,7 @@ func NewController(c *Config) (*Controller, error) {
 }
 
 // Create
-func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
+func (c *exampleController) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
@@ -83,7 +89,7 @@ func (c *Controller) Create(f func() *jsonapi.RequestBody) http.HandlerFunc {
 }
 
 // Delete
-func (c *Controller) Delete() http.HandlerFunc {
+func (c *exampleController) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
@@ -109,7 +115,7 @@ func (c *Controller) Delete() http.HandlerFunc {
 }
 
 // Detail
-func (c *Controller) Detail() http.HandlerFunc {
+func (c *exampleController) Detail() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
@@ -144,14 +150,14 @@ func (c *Controller) Detail() http.HandlerFunc {
 }
 
 // List
-func (c *Controller) List() http.HandlerFunc {
+func (c *exampleController) List() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)
 		log := c.logger.CreateContextLogger(traceID)
 
 		qs := []byte(r.URL.RawQuery)
-		query := c.query.parseQuery(qs)
+		query := c.query.ParseQuery(qs)
 
 		model, err := c.service.List(ctx, *query)
 		if err != nil {
@@ -173,7 +179,7 @@ func (c *Controller) List() http.HandlerFunc {
 }
 
 // Update
-func (c *Controller) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
+func (c *exampleController) Update(f func() *jsonapi.RequestBody) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		traceID := trace.GetTraceIDFromContext(ctx)

@@ -13,6 +13,14 @@ import (
 	"github.com/jasonsites/gosk/internal/modules/example"
 )
 
+type ResolverEntry string
+
+const (
+	Unset ResolverEntry = ""
+	HTTP  ResolverEntry = "http"
+	gRPC  ResolverEntry = "grpc"
+)
+
 // Config defines the input to NewResolver
 type Config struct {
 	Config            *config.Configuration
@@ -62,16 +70,10 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 	return r
 }
 
-// LoadEntries provides option strings for loading the resolver from various entry nodes
-// in the app component graph (cli, grpc, http)
-var LoadEntries = struct{ HTTPServer string }{
-	HTTPServer: "http",
-}
-
 // Load resolves app components starting from the given entry node of the component graph
-func (r *Resolver) Load(entry string) {
+func (r *Resolver) Load(entry ResolverEntry) {
 	switch entry {
-	case LoadEntries.HTTPServer:
+	case "http":
 		r.HTTPServer()
 	default:
 		panic(fmt.Errorf("invalid resolver load entry point '%s'", entry))

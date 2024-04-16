@@ -22,7 +22,7 @@ type Suite struct {
 
 func (s *Suite) SetupSuite(tb testing.TB) func(tb testing.TB) {
 	conf := &resolver.Config{}
-	resolver, err := utils.InitializeResolver(conf, "")
+	resolver, err := utils.InitializeResolver(conf, "") // TODO
 	if err != nil {
 		tb.Fatalf("app initialization error: %+v\n", err)
 	}

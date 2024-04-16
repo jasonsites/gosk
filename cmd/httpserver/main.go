@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	runconf := &runtime.RunConfig{HTTPServer: true}
+	runconf := &runtime.RunConfig{Entry: "http"}
 	runtime.NewRuntime(nil).Run(runconf)
 }

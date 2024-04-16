@@ -26,7 +26,7 @@ func NewRuntime(c *resolver.Config) *Runtime {
 // RunConfig provides configuration options for running the application in various modes
 // WARNING: only one option should be enabled per build/process
 type RunConfig struct {
-	HTTPServer bool
+	Entry resolver.ResolverEntry
 }
 
 // Run creates a new Resolver with associated context group, then runs goroutines for initializing
@@ -42,14 +42,18 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 
 	// load resolver app components and start the configured application
 	g.Go(func() error {
-		if conf.HTTPServer {
-			slog.Info("loading resolver app components")
-			r.Load(resolver.LoadEntries.HTTPServer)
+		slog.Info("loading resolver app components")
 
-			slog.Info("starting http server")
-			server := r.HTTPServer()
-			if err := server.Serve(); err != nil {
-				return err
+		switch conf.Entry {
+		case "http":
+			{
+				r.Load(conf.Entry)
+
+				slog.Info("starting http server")
+				server := r.HTTPServer()
+				if err := server.Serve(); err != nil {
+					return err
+				}
 			}
 		}
 
@@ -62,12 +66,15 @@ func (rt *Runtime) Run(conf *RunConfig) *resolver.Resolver {
 
 		slog.Info("shutdown initiated")
 
-		if conf.HTTPServer {
-			server := r.HTTPServer()
-			if err := server.Server.Shutdown(context.Background()); err != nil {
-				return err
+		switch conf.Entry {
+		case "http":
+			{
+				server := r.HTTPServer()
+				if err := server.Server.Shutdown(context.Background()); err != nil {
+					return err
+				}
+				slog.Info("http server shut down")
 			}
-			slog.Info("http server shut down")
 		}
 
 		pool := r.PostgreSQLClient()

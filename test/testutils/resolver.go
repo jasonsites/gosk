@@ -7,11 +7,8 @@ import (
 )
 
 // InitializeResolver creates a new Resolver from the given config and returns a reference to the configured Resolver
-func InitializeResolver(conf *resolver.Config, entry string) (*resolver.Resolver, error) {
+func InitializeResolver(conf *resolver.Config, entry resolver.ResolverEntry) (*resolver.Resolver, error) {
 	r := resolver.NewResolver(context.Background(), conf)
-	if entry == "" {
-		entry = resolver.LoadEntries.HTTPServer
-	}
 	r.Load(entry)
 	return r, nil
 }

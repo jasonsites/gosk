@@ -3,9 +3,6 @@
 # NOTE: for a given config key, if a bound environment variable exists, changes here will have no effect on its value
 
 [logger]
-enabled = true
+format = "json"
 level = "info"
 verbose = true
-
-[metadata]
-environment = "development"

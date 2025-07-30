@@ -52,38 +52,36 @@ func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
 }
 
 func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger) error {
-	if logger.Enabled {
-		traceID := trace.GetTraceIDFromContext(r.Context())
-		log := logger.CreateContextLogger(traceID)
+	traceID := trace.GetTraceIDFromContext(r.Context())
+	log := logger.CreateContextLogger(traceID)
 
-		var body map[string]any
-		if logger.Level == cl.LevelDebug {
-			r.Body = http.MaxBytesReader(w, r.Body, int64(1048576))
+	var body map[string]any
+	if logger.Level == cl.LevelDebug {
+		r.Body = http.MaxBytesReader(w, r.Body, int64(1048576))
 
-			copy, err := io.ReadAll(r.Body)
-			if err != nil {
+		copy, err := io.ReadAll(r.Body)
+		if err != nil {
+			return err
+		}
+
+		if len(copy) > 0 {
+			if err := json.Unmarshal(copy, &body); err != nil {
 				return err
 			}
-
-			if len(copy) > 0 {
-				if err := json.Unmarshal(copy, &body); err != nil {
-					return err
-				}
-			}
-
-			r.Body = io.NopCloser(bytes.NewBuffer(copy))
 		}
 
-		data := &RequestLogData{
-			Body:     body,
-			ClientIP: r.RemoteAddr,
-			Headers:  r.Header,
-			Method:   r.Method,
-			Path:     r.URL.Path,
-		}
-		attrs := requestLogAttrs(data, logger.Level)
-		log.With(attrs...).Info("request")
+		r.Body = io.NopCloser(bytes.NewBuffer(copy))
 	}
+
+	data := &RequestLogData{
+		Body:     body,
+		ClientIP: r.RemoteAddr,
+		Headers:  r.Header,
+		Method:   r.Method,
+		Path:     r.URL.Path,
+	}
+	attrs := requestLogAttrs(data, logger.Level)
+	log.With(attrs...).Info("request")
 
 	return nil
 }

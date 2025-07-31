@@ -2,6 +2,7 @@ package example
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -12,8 +13,7 @@ import (
 	cerror "github.com/jasonsites/gosk/internal/cerror"
 	"github.com/jasonsites/gosk/internal/http/trace"
 	"github.com/jasonsites/gosk/internal/logger"
-	"github.com/jasonsites/gosk/internal/modules/common/pagination"
-	"github.com/jasonsites/gosk/internal/modules/common/query"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 	repo "github.com/jasonsites/gosk/internal/modules/common/repository"
 )
 
@@ -25,32 +25,28 @@ type exampleEntityDefinition struct {
 
 // exampleEntityFields
 type exampleEntityFields struct {
-	CreatedBy   string
-	CreatedOn   string
-	Deleted     string
-	Description string
-	Enabled     string
-	ID          string
-	ModifiedBy  string
-	ModifiedOn  string
-	Status      string
-	Title       string
+	ID              string
+	Title           string
+	Description     string
+	Status          string
+	CreatedContext  string
+	CreatedOn       string
+	ModifiedContext string
+	ModifiedOn      string
 }
 
 // exampleEntity
 var exampleEntity = exampleEntityDefinition{
 	Name: "example_entity",
 	Field: exampleEntityFields{
-		CreatedBy:   "created_by",
-		CreatedOn:   "created_on",
-		Deleted:     "deleted",
-		Description: "description",
-		Enabled:     "enabled",
-		ID:          "id",
-		ModifiedBy:  "modified_by",
-		ModifiedOn:  "modified_on",
-		Status:      "status",
-		Title:       "title",
+		ID:              "id",
+		Title:           "title",
+		Description:     "description",
+		Status:          "status",
+		CreatedContext:  "created_context",
+		CreatedOn:       "created_on",
+		ModifiedContext: "modified_context",
+		ModifiedOn:      "modified_on",
 	},
 }
 
@@ -83,7 +79,7 @@ func NewExampleRepository(c *ExampleRepoConfig) (*exampleRepository, error) {
 }
 
 // Create
-func (r *exampleRepository) Create(ctx context.Context, data *ExampleDTO) (*ExampleDomainModel, error) {
+func (r *exampleRepository) Create(ctx context.Context, data *ExampleDTORequest) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -96,25 +92,20 @@ func (r *exampleRepository) Create(ctx context.Context, data *ExampleDTO) (*Exam
 		)
 
 		insertFields, values := repo.BuildInsertFieldsAndValues(
-			field.CreatedBy,
-			field.Deleted,
-			field.Description,
-			field.Enabled,
-			field.Status,
 			field.Title,
+			field.Description,
+			field.CreatedContext,
 		)
 
 		returnFields := repo.BuildReturnFields(
-			field.CreatedBy,
-			field.CreatedOn,
-			field.Deleted,
-			field.Description,
-			field.Enabled,
 			field.ID,
-			field.ModifiedBy,
-			field.ModifiedOn,
-			field.Status,
 			field.Title,
+			field.Description,
+			field.Status,
+			field.CreatedContext,
+			field.CreatedOn,
+			field.ModifiedContext,
+			field.ModifiedOn,
 		)
 
 		return fmt.Sprintf(statement, name, insertFields, values, returnFields)
@@ -124,16 +115,22 @@ func (r *exampleRepository) Create(ctx context.Context, data *ExampleDTO) (*Exam
 	requestData := data
 
 	var (
-		createdBy   = 9999 // TODO: temp mock for user id
 		description *string
-		status      *uint32
+		// Create a default created context - in a real app this would come from auth
+		createdContext = map[string]any{
+			"user_id": "system", // placeholder
+		}
 	)
 
 	if requestData.Description != nil {
 		description = requestData.Description
 	}
-	if requestData.Status != nil {
-		status = requestData.Status
+
+	// Marshal context to JSON
+	createdContextJSON, err := json.Marshal(createdContext)
+	if err != nil {
+		log.Error("Failed to marshal created context: " + err.Error())
+		return nil, err
 	}
 
 	// create new entity for db row scan and execute query
@@ -141,34 +138,28 @@ func (r *exampleRepository) Create(ctx context.Context, data *ExampleDTO) (*Exam
 	if err := r.db.QueryRow(
 		ctx,
 		query,
-		createdBy,
-		requestData.Deleted,
-		description,
-		requestData.Enabled,
-		status,
 		requestData.Title,
+		description,
+		createdContextJSON,
 	).Scan(
-		&entity.CreatedBy,
-		&entity.CreatedOn,
-		&entity.Deleted,
-		&entity.Description,
-		&entity.Enabled,
 		&entity.ID,
-		&entity.ModifiedBy,
-		&entity.ModifiedOn,
-		&entity.Status,
 		&entity.Title,
+		&entity.Description,
+		&entity.Status,
+		&entity.CreatedContext,
+		&entity.CreatedOn,
+		&entity.ModifiedContext,
+		&entity.ModifiedOn,
 	); err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 
-	model := &ExampleEntityModel{
-		Data: []ExampleEntity{entity},
-		Solo: true,
+	em := &ExampleEntityModel{
+		Record: entity,
 	}
 
-	result := model.Unmarshal()
+	result := MarshalEntityModel(em)
 
 	return result, nil
 }
@@ -202,7 +193,7 @@ func (r *exampleRepository) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*ExampleDomainModel, error) {
+func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -215,16 +206,14 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*ExampleD
 		)
 
 		returnFields := repo.BuildReturnFields(
-			field.CreatedBy,
-			field.CreatedOn,
-			field.Deleted,
-			field.Description,
-			field.Enabled,
 			field.ID,
-			field.ModifiedBy,
-			field.ModifiedOn,
-			field.Status,
 			field.Title,
+			field.Description,
+			field.Status,
+			field.CreatedContext,
+			field.CreatedOn,
+			field.ModifiedContext,
+			field.ModifiedOn,
 		)
 
 		return fmt.Sprintf(statement, returnFields, name, id)
@@ -233,65 +222,70 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*ExampleD
 	// create new entity for db row scan and execute query
 	entity := ExampleEntity{}
 	if err := r.db.QueryRow(ctx, query).Scan(
-		&entity.CreatedBy,
-		&entity.CreatedOn,
-		&entity.Deleted,
-		&entity.Description,
-		&entity.Enabled,
 		&entity.ID,
-		&entity.ModifiedBy,
-		&entity.ModifiedOn,
-		&entity.Status,
 		&entity.Title,
+		&entity.Description,
+		&entity.Status,
+		&entity.CreatedContext,
+		&entity.CreatedOn,
+		&entity.ModifiedContext,
+		&entity.ModifiedOn,
 	); err != nil {
 		log.Error(err.Error())
 		err := cerror.NewNotFoundError(nil, fmt.Sprintf("unable to find %s with id '%s'", r.Entity.Name, id))
 		return nil, err
 	}
 
-	model := &ExampleEntityModel{
-		Data: []ExampleEntity{entity},
-		Solo: true,
+	em := &ExampleEntityModel{
+		Record: entity,
 	}
 
-	result := model.Unmarshal()
+	result := MarshalEntityModel(em)
 
 	return result, nil
 }
 
 // List
-func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*ExampleDomainModel, error) {
+func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
 	var (
-		limit  = *q.Paging.Limit
-		offset = *q.Paging.Offset
+		limit  = *q.Page.Limit
+		offset = *q.Page.Offset
 	)
 
 	// build sql query
 	query := func() string {
 		var (
-			statement  = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
-			field      = r.Entity.Field
-			name       = r.Entity.Name
-			orderField = *q.Sorting.Attr
-			orderDir   = *q.Sorting.Order
-			limit      = fmt.Sprint(limit)
-			offset     = fmt.Sprint(offset)
+			statement = "SELECT %s FROM %s ORDER BY %s %s LIMIT %s OFFSET %s"
+			field     = r.Entity.Field
+			name      = r.Entity.Name
+			limit     = fmt.Sprint(limit)
+			offset    = fmt.Sprint(offset)
 		)
 
+		// Get the first sort pair from the query
+		sortPairs := q.Sort.GetSortPairs()
+		var orderField, orderDir string
+		if len(sortPairs) > 0 {
+			orderField = sortPairs[0].Field
+			orderDir = string(sortPairs[0].Order)
+		} else {
+			// Fallback to default
+			orderField = "modified_on"
+			orderDir = "desc"
+		}
+
 		returnFields := repo.BuildReturnFields(
-			field.CreatedBy,
-			field.CreatedOn,
-			field.Deleted,
-			field.Description,
-			field.Enabled,
 			field.ID,
-			field.ModifiedBy,
-			field.ModifiedOn,
-			field.Status,
 			field.Title,
+			field.Description,
+			field.Status,
+			field.CreatedContext,
+			field.CreatedOn,
+			field.ModifiedContext,
+			field.ModifiedOn,
 		)
 
 		return fmt.Sprintf(statement, returnFields, name, orderField, orderDir, limit, offset)
@@ -306,32 +300,31 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*Examp
 	defer rows.Close()
 
 	// create new entity model
-	model := &ExampleEntityModel{
-		Data: make([]ExampleEntity, 0, limit),
-		Solo: false,
-	}
+	ems := make([]*ExampleEntityModel, 0, limit)
 
 	// scan row data into new entities, appending to repo result
 	for rows.Next() {
 		entity := ExampleEntity{}
 
 		if err := rows.Scan(
-			&entity.CreatedBy,
-			&entity.CreatedOn,
-			&entity.Deleted,
-			&entity.Description,
-			&entity.Enabled,
 			&entity.ID,
-			&entity.ModifiedBy,
-			&entity.ModifiedOn,
-			&entity.Status,
 			&entity.Title,
+			&entity.Description,
+			&entity.Status,
+			&entity.CreatedContext,
+			&entity.CreatedOn,
+			&entity.ModifiedContext,
+			&entity.ModifiedOn,
 		); err != nil {
 			log.Error(err.Error())
 			return nil, err
 		}
 
-		model.Data = append(model.Data, entity)
+		em := &ExampleEntityModel{
+			Record: entity,
+		}
+
+		ems = append(ems, em)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -348,22 +341,22 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*Examp
 		return nil, err
 	}
 
-	// populate repo result paging metadata
-	model.Meta = &ModelMetadata{
-		Paging: pagination.PageMetadata{
-			Limit:  uint32(limit),
-			Offset: uint32(offset),
-			Total:  uint32(total),
+	gmd := ListQueryData{
+		Page: repo.PageData{
+			Limit:  limit,
+			Offset: offset,
+			Total:  total,
 		},
+		Sort: q.Sort.ToSortMetadata(),
 	}
 
-	result := model.Unmarshal()
+	result := MarshalEntityModelList(ems, gmd)
 
 	return result, nil
 }
 
 // Update
-func (r *exampleRepository) Update(ctx context.Context, data *ExampleDTO, id uuid.UUID) (*ExampleDomainModel, error) {
+func (r *exampleRepository) Update(ctx context.Context, data *ExampleDTORequest, id uuid.UUID) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
@@ -376,26 +369,21 @@ func (r *exampleRepository) Update(ctx context.Context, data *ExampleDTO, id uui
 		)
 
 		values := repo.BuildUpdateValues(
-			field.Deleted,
-			field.Description,
-			field.Enabled,
-			field.ModifiedBy,
-			field.ModifiedOn,
-			field.Status,
 			field.Title,
+			field.Description,
+			field.ModifiedContext,
+			field.ModifiedOn,
 		)
 
 		returnFields := repo.BuildReturnFields(
-			field.CreatedBy,
-			field.CreatedOn,
-			field.Deleted,
-			field.Description,
-			field.Enabled,
 			field.ID,
-			field.ModifiedBy,
-			field.ModifiedOn,
-			field.Status,
 			field.Title,
+			field.Description,
+			field.Status,
+			field.CreatedContext,
+			field.CreatedOn,
+			field.ModifiedContext,
+			field.ModifiedOn,
 		)
 
 		return fmt.Sprintf(statement, name, values, id, returnFields)
@@ -406,16 +394,22 @@ func (r *exampleRepository) Update(ctx context.Context, data *ExampleDTO, id uui
 
 	var (
 		description *string
-		modifiedBy  = 9999 // TODO: temp mock for user id
 		modifiedOn  = time.Now()
-		status      *uint32
+		// Create a default modified context - in a real app this would come from auth
+		modifiedContext = map[string]any{
+			"user_id": "system", // placeholder
+		}
 	)
 
 	if requestData.Description != nil {
 		description = requestData.Description
 	}
-	if requestData.Status != nil {
-		status = requestData.Status
+
+	// Marshal context to JSON
+	modifiedContextJSON, err := json.Marshal(modifiedContext)
+	if err != nil {
+		log.Error("Failed to marshal modified context: " + err.Error())
+		return nil, err
 	}
 
 	// create new entity for db row scan and execute query
@@ -423,35 +417,29 @@ func (r *exampleRepository) Update(ctx context.Context, data *ExampleDTO, id uui
 	if err := r.db.QueryRow(
 		ctx,
 		query,
-		requestData.Deleted,
-		description,
-		requestData.Enabled,
-		modifiedBy,
-		modifiedOn,
-		status,
 		requestData.Title,
+		description,
+		modifiedContextJSON,
+		modifiedOn,
 	).Scan(
-		&entity.CreatedBy,
-		&entity.CreatedOn,
-		&entity.Deleted,
-		&entity.Description,
-		&entity.Enabled,
 		&entity.ID,
-		&entity.ModifiedBy,
-		&entity.ModifiedOn,
-		&entity.Status,
 		&entity.Title,
+		&entity.Description,
+		&entity.Status,
+		&entity.CreatedContext,
+		&entity.CreatedOn,
+		&entity.ModifiedContext,
+		&entity.ModifiedOn,
 	); err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
 
-	model := &ExampleEntityModel{
-		Data: []ExampleEntity{entity},
-		Solo: true,
+	em := &ExampleEntityModel{
+		Record: entity,
 	}
 
-	result := model.Unmarshal()
+	result := MarshalEntityModel(em)
 
 	return result, nil
 }

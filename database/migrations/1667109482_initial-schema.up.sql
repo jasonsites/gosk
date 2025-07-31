@@ -1,19 +1,23 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-DROP TABLE IF EXISTS example_entity;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_type WHERE typname = 'record_status' AND typcategory = 'E') THEN
+        CREATE TYPE record_status AS ENUM ('active', 'archived', 'deleted');
+    END IF;
+END
+$$;
 
 CREATE TABLE IF NOT EXISTS example_entity (
-  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title       varchar(255) NOT NULL,
-  description text,
-  deleted     boolean NOT NULL DEFAULT false,
-  enabled     boolean NOT NULL DEFAULT true,
-  status      integer,
+  id                uuid                                PRIMARY KEY DEFAULT gen_random_uuid(),
+  title             text                                NOT NULL,
+  description       text,
 
-  created_on  timestamptz NOT NULL DEFAULT (now() at time zone 'utc'),
-  created_by  integer NOT NULL,
-  modified_on timestamptz,
-  modified_by integer
+  status            record_status     NOT NULL    DEFAULT 'active',
+  created_on        timestamptz       NOT NULL    DEFAULT (now() at time zone 'utc'),
+  created_context   jsonb             NOT NULL    DEFAULT '{}'::jsonb,
+  modified_on       timestamptz       NOT NULL    DEFAULT (now() at time zone 'utc'),
+  modified_context  jsonb             NOT NULL    DEFAULT '{}'::jsonb
 );
 
 CREATE INDEX example_entity_status_idx ON example_entity (status);

@@ -26,7 +26,7 @@ func ExampleRouter(r *chi.Mux, ns string, c ExampleController) {
 	resource := func() *jsonapi.RequestBody {
 		return &jsonapi.RequestBody{
 			Data: &jsonapi.RequestResource{
-				Attributes: &ExampleDTO{},
+				Attributes: &ExampleDTORequest{},
 			},
 		}
 	}

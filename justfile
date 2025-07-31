@@ -47,16 +47,16 @@ test +pattern='--format testname -- ./...':
 # run integration tests (overridable with {{scope}} arguments)
 test-int +scope='':
   just migrate-up testdb
-  POSTGRES_DB=testdb just test --format testname -- -race ./test/integration/... {{scope}}
+  CGO_ENABLED=1 POSTGRES_DB=testdb just test --format testname -- -race ./test/integration/... {{scope}}
 
 # run unit tests (overridable with {{scope}} arguments)
 test-unit +scope='':
-  just test --format testname -- -race ./internal/... {{scope}}
+  CGO_ENABLED=1 just test --format testname -- -race ./internal/... {{scope}}
 
 # run unit/inegration tests and generate coverage report
 cover:
   just migrate-up testdb
-  POSTGRES_DB=testdb just test \
+  CGO_ENABLED=1 POSTGRES_DB=testdb just test \
     --format testname \
     --jsonfile /app/test/coverage/json.log \
     --junitfile /app/test/coverage/junit.xml \

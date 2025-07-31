@@ -4,53 +4,31 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	v "github.com/invopop/validation"
 	"github.com/jasonsites/gosk/internal/http/jsonapi"
-	"github.com/jasonsites/gosk/internal/modules/common/pagination"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
-// ExampleDTO defines the subset of Example domain model attributes that are accepted
-// for input data request binding
-type ExampleDTO struct {
-	Deleted     bool    `json:"deleted" validate:"omitempty,boolean"`
-	Description *string `json:"description" validate:"omitempty,min=3,max=999"`
-	Enabled     bool    `json:"enabled"  validate:"omitempty,boolean"`
-	Status      *uint32 `json:"status" validate:"omitempty,numeric"`
-	Title       string  `json:"title" validate:"required,omitempty,min=2,max=255"`
-}
-
-// Validate validates a Notification instance
-func (e ExampleDTO) Validate() error {
-	if err := v.ValidateStruct(&e,
-		v.Field(&e.Title, v.Required),
-	); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ExampleDomainModel an Example domain model that contains one or more ExampleObject(s)
-// and related metadata
-type ExampleDomainModel struct {
-	Data []ExampleObject
-	Meta *ModelMetadata
+// ModelContainer contains one or more ExampleModel(s) and related metadata
+type ModelContainer struct {
+	Data []ExampleModel
+	Meta *ModelContainerMeta
 	Solo bool
 }
 
-type ModelMetadata struct {
-	Paging pagination.PageMetadata
+type ModelContainerMeta struct {
+	Filter *query.FilterMetadata `json:"filter,omitempty"`
+	Page   query.PageMetadata    `json:"page,omitempty"`
+	Sort   query.SortMetadata    `json:"sort,omitempty"`
 }
 
-// ExampleObject
-type ExampleObject struct {
-	Attributes ExampleObjectAttributes
+// ExampleModel
+type ExampleModel struct {
 	Meta       any
-	Related    any
+	Attributes ModelAttributes
 }
 
 // Example defines an Example domain model for application logic
-type ExampleObjectAttributes struct {
+type ModelAttributes struct {
 	ID          uuid.UUID  `json:"-"`
 	Title       string     `json:"title"`
 	Description *string    `json:"description"`
@@ -63,7 +41,7 @@ type ExampleObjectAttributes struct {
 	ModifiedBy  *uint32    `json:"modified_by"`
 }
 
-func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
+func (m *ModelContainer) FormatResponse() (*jsonapi.Response, error) {
 	if m.Solo {
 		resource := formatResource(&m.Data[0])
 		response := &jsonapi.Response{Data: resource}
@@ -71,11 +49,13 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 	}
 
 	meta := &jsonapi.ResponseMetadata{
-		Page: pagination.PageMetadata{
-			Limit:  m.Meta.Paging.Limit,
-			Offset: m.Meta.Paging.Offset,
-			Total:  m.Meta.Paging.Total,
+		Filter: m.Meta.Filter,
+		Page: query.PageMetadata{
+			Limit:  m.Meta.Page.Limit,
+			Offset: m.Meta.Page.Offset,
+			Total:  m.Meta.Page.Total,
 		},
+		Sort: &m.Meta.Sort,
 	}
 
 	data := make([]jsonapi.ResponseResource, 0, len(m.Data))
@@ -92,12 +72,12 @@ func (m *ExampleDomainModel) FormatResponse() (*jsonapi.Response, error) {
 }
 
 // serializeResource
-func formatResource(domo *ExampleObject) jsonapi.ResponseResource {
+func formatResource(domo *ExampleModel) jsonapi.ResponseResource {
 	return jsonapi.ResponseResource{
 		Type: "example", // TODO
 		ID:   domo.Attributes.ID,
 		// Meta: domo.Meta,
-		Attributes: ExampleObjectAttributes{
+		Attributes: ModelAttributes{
 			Title:       domo.Attributes.Title,
 			Description: domo.Attributes.Description,
 			Status:      domo.Attributes.Status,

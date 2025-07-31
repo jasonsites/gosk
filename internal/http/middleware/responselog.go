@@ -19,7 +19,7 @@ import (
 type ResponseLogData struct {
 	Body         map[string]any
 	BodySize     *int
-	Headers      http.Header
+	Header       http.Header
 	ResponseTime string
 	Status       int
 }
@@ -90,7 +90,7 @@ func logResponse(c logResponseConfig) error {
 	bodySize := c.response.BytesWritten()
 
 	data := &ResponseLogData{
-		Headers:      c.response.Header(),
+		Header:       c.response.Header(),
 		ResponseTime: c.responseTime,
 		Status:       c.response.Status(),
 	}
@@ -127,8 +127,8 @@ func responseLogAttrs(data *ResponseLogData, level string) []any {
 		if data.Body != nil {
 			attrs = append(attrs, k.HTTP.Body, data.Body)
 		}
-		if data.Headers != nil {
-			attrs = append(attrs, k.HTTP.Headers, data.Headers)
+		if data.Header != nil {
+			attrs = append(attrs, k.HTTP.Header, data.Header)
 		}
 	}
 

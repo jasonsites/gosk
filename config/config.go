@@ -37,10 +37,6 @@ type HTTP struct {
 		Paging    struct {
 			DefaultLimit uint `validate:"required"`
 		}
-		Sorting struct {
-			DefaultAttr  string `validate:"required"`
-			DefaultOrder string `validate:"required"`
-		} `validate:"required"`
 	} `validate:"required"`
 	Server struct {
 		Host string
@@ -92,8 +88,6 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("external.example.timeout", 25000)
 	viper.SetDefault("http.router.namespace", "domain")
 	viper.SetDefault("http.router.paging.defaultLimit", 20)
-	viper.SetDefault("http.router.sorting.defaultAttr", "created_on")
-	viper.SetDefault("http.router.sorting.defaultOrder", "desc")
 	viper.SetDefault("http.server.host", "localhost")
 	viper.SetDefault("http.server.port", 9202)
 	viper.SetDefault("logger.enabled", true)

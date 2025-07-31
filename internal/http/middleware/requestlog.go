@@ -11,21 +11,24 @@ import (
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 	"github.com/jasonsites/gosk/internal/http/trace"
 	cl "github.com/jasonsites/gosk/internal/logger"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // RequestLogData defines the data captured for request logging
 type RequestLogData struct {
 	Body     map[string]any
 	ClientIP string
-	Headers  http.Header
+	Header   http.Header
 	Method   string
 	Path     string
+	Query    *query.QueryData
 }
 
 // RequestLoggerConfig defines necessary components for the request logger middleware
 type RequestLoggerConfig struct {
-	Logger *cl.CustomLogger `validate:"required"`
-	Next   func(r *http.Request) bool
+	Logger       *cl.CustomLogger    `validate:"required"`
+	QueryHandler *query.QueryHandler `validate:"required"`
+	Next         func(r *http.Request) bool
 }
 
 // RequestLogger returns the request logger middleware
@@ -41,7 +44,7 @@ func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
 				return
 			}
 
-			if err := logRequest(w, r, c.Logger); err != nil {
+			if err := logRequest(w, r, c.Logger, c.QueryHandler); err != nil {
 				c.Logger.Log.Error(err.Error())
 				jsonio.EncodeError(w, r, err)
 			}
@@ -51,7 +54,7 @@ func RequestLogger(c *RequestLoggerConfig) func(http.Handler) http.Handler {
 	}
 }
 
-func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger) error {
+func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger, queryHandler *query.QueryHandler) error {
 	traceID := trace.GetTraceIDFromContext(r.Context())
 	log := logger.CreateContextLogger(traceID)
 
@@ -73,12 +76,19 @@ func logRequest(w http.ResponseWriter, r *http.Request, logger *cl.CustomLogger)
 		r.Body = io.NopCloser(bytes.NewBuffer(copy))
 	}
 
+	// Parse the query string using the application's query handler
+	var parsedQuery *query.QueryData
+	if r.URL.RawQuery != "" {
+		parsedQuery = queryHandler.ParseQuery([]byte(r.URL.RawQuery))
+	}
+
 	data := &RequestLogData{
 		Body:     body,
 		ClientIP: r.RemoteAddr,
-		Headers:  r.Header,
+		Header:   r.Header,
 		Method:   r.Method,
 		Path:     r.URL.Path,
+		Query:    parsedQuery,
 	}
 	attrs := requestLogAttrs(data, logger.Level)
 	log.With(attrs...).Info("request")
@@ -95,9 +105,13 @@ func requestLogAttrs(data *RequestLogData, level string) []any {
 		slog.String(k.HTTP.Path, data.Path),
 	}
 
+	if data.Query != nil {
+		attrs = append(attrs, k.HTTP.Query, data.Query)
+	}
+
 	if level == cl.LevelDebug {
-		if data.Headers != nil {
-			attrs = append(attrs, k.HTTP.Headers, data.Headers)
+		if data.Header != nil {
+			attrs = append(attrs, k.HTTP.Header, data.Header)
 		}
 		if data.Body != nil {
 			attrs = append(attrs, k.HTTP.Body, data.Body)

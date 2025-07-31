@@ -17,7 +17,7 @@ RUN apk --no-cache add curl \
 
 FROM base AS dev
 WORKDIR /app
-RUN apk --no-cache add curl bash \
+RUN apk --no-cache add curl bash gcc musl-dev \
   # just
   && curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin \
   && chmod +x /usr/local/bin/just \

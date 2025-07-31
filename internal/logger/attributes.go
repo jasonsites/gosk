@@ -17,9 +17,10 @@ type AppAttrKeys struct {
 type HTTPAttrKeys struct {
 	Body     string
 	BodySize string
-	Headers  string
+	Header   string
 	Method   string
 	Path     string
+	Query    string
 	Status   string
 }
 
@@ -31,9 +32,10 @@ var AttrKey = AttrKeys{
 	HTTP: HTTPAttrKeys{
 		Body:     "body",
 		BodySize: "body_size",
-		Headers:  "headers",
+		Header:   "header",
 		Method:   "method",
 		Path:     "path",
+		Query:    "query",
 		Status:   "status",
 	},
 	IP:           "ip",

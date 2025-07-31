@@ -22,7 +22,7 @@ type Suite struct {
 
 func (s *Suite) SetupSuite(tb testing.TB) func(tb testing.TB) {
 	conf := &resolver.Config{}
-	resolver, err := utils.InitializeResolver(conf, "") // TODO
+	resolver, err := utils.InitializeResolver(conf, "http")
 	if err != nil {
 		tb.Fatalf("app initialization error: %+v\n", err)
 	}
@@ -51,18 +51,15 @@ func insertExampleRecord(e *example.ExampleEntity, db *pgxpool.Pool) (*example.E
 	var (
 		statement    = "INSERT INTO %s %s VALUES %s RETURNING id"
 		name         = "example_entity"
-		insertFields = "(created_by,deleted,description,enabled,status,title)"
-		values       = "($1,$2,$3,$4,$5,$6)"
+		insertFields = "(title,description,created_context)"
+		values       = "($1,$2,$3)"
 		query        = fmt.Sprintf(statement, name, insertFields, values)
 	)
 
 	var (
-		createdBy   = e.CreatedBy
-		deleted     = e.Deleted
-		description = e.Description.String
-		enabled     = e.Enabled
-		status      = e.Status.Int32
-		title       = e.Title
+		title          = e.Title
+		description    = e.Description.String
+		createdContext = e.CreatedContext
 	)
 
 	// create new entity for db row scan and execute query
@@ -70,12 +67,9 @@ func insertExampleRecord(e *example.ExampleEntity, db *pgxpool.Pool) (*example.E
 	if err := db.QueryRow(
 		context.Background(),
 		query,
-		createdBy,
-		deleted,
-		description,
-		enabled,
-		status,
 		title,
+		description,
+		createdContext,
 	).Scan(
 		&entity.ID,
 	); err != nil {

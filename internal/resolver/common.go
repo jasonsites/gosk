@@ -10,7 +10,7 @@ import (
 	app "github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
 	"github.com/jasonsites/gosk/internal/logger"
-	"github.com/jasonsites/gosk/internal/modules/common/query"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // Config provides a singleton config.Configuration instance
@@ -43,7 +43,10 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 		controllers := &httpserver.ControllerRegistry{
 			ExampleController: r.ExampleController(),
 		}
-		routerConfig := &httpserver.RouterConfig{Namespace: c.HTTP.Router.Namespace}
+		routerConfig := &httpserver.RouterConfig{
+			Namespace:    c.HTTP.Router.Namespace,
+			QueryHandler: r.QueryHandler(),
+		}
 		serverConfig := &httpserver.ServerConfig{
 			Controllers:  controllers,
 			Host:         c.HTTP.Server.Host,
@@ -120,18 +123,12 @@ func (r *Resolver) QueryHandler() *query.QueryHandler {
 
 		limit := int(c.HTTP.Router.Paging.DefaultLimit)
 
-		attr := c.HTTP.Router.Sorting.DefaultAttr
-		order := c.HTTP.Router.Sorting.DefaultOrder
-
 		queryConfig := &query.QueryConfig{
 			Defaults: &query.QueryDefaults{
-				Paging: query.QueryPaging{
+				Page: query.PageQuery{
 					Limit: &limit,
 				},
-				Sorting: &query.QuerySorting{
-					Attr:  &attr,
-					Order: &order,
-				},
+				Sort: query.DefaultSortQuery(),
 			},
 		}
 

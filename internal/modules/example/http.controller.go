@@ -12,16 +12,16 @@ import (
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 	"github.com/jasonsites/gosk/internal/http/trace"
 	"github.com/jasonsites/gosk/internal/logger"
-	"github.com/jasonsites/gosk/internal/modules/common/query"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // ExampleService
 type ExampleService interface {
-	Create(context.Context, any) (*ExampleDomainModel, error)
+	Create(context.Context, any) (*ModelContainer, error)
 	Delete(context.Context, uuid.UUID) error
-	Detail(context.Context, uuid.UUID) (*ExampleDomainModel, error)
-	List(context.Context, query.QueryData) (*ExampleDomainModel, error)
-	Update(context.Context, any, uuid.UUID) (*ExampleDomainModel, error)
+	Detail(context.Context, uuid.UUID) (*ModelContainer, error)
+	List(context.Context, query.QueryData) (*ModelContainer, error)
+	Update(context.Context, any, uuid.UUID) (*ModelContainer, error)
 }
 
 // ControllerConfig defines the input to NewController

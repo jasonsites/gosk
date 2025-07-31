@@ -11,11 +11,15 @@ import (
 
 // Configuration defines application configuration
 type Configuration struct {
+	App      App      `validate:"required"`
 	External External `validate:"required"`
 	HTTP     HTTP     `validate:"required"`
 	Logger   Logger   `validate:"required"`
-	Metadata Metadata `validate:"required"`
 	Postgres Postgres `validate:"required"`
+}
+
+type App struct {
+	Metadata Metadata `validate:"required"`
 }
 
 // External defines external service configuration
@@ -33,10 +37,6 @@ type HTTP struct {
 		Paging    struct {
 			DefaultLimit uint `validate:"required"`
 		}
-		Sorting struct {
-			DefaultAttr  string `validate:"required"`
-			DefaultOrder string `validate:"required"`
-		} `validate:"required"`
 	} `validate:"required"`
 	Server struct {
 		Host string
@@ -46,7 +46,7 @@ type HTTP struct {
 
 // Logger defines the primary logger configuration
 type Logger struct {
-	Enabled bool
+	Format  string `validate:"oneof=json styled"`
 	Level   string `validate:"oneof=debug info warn error"`
 	Verbose bool
 }
@@ -81,18 +81,19 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.WatchConfig()
 
 	// default values
+	viper.SetDefault("app.metadata.environment", "production")
+	viper.SetDefault("app.metadata.name", "gosk")
+	viper.SetDefault("app.metadata.version", "local")
 	viper.SetDefault("external.example.baseURL", "http://www.example.com")
 	viper.SetDefault("external.example.timeout", 25000)
 	viper.SetDefault("http.router.namespace", "domain")
 	viper.SetDefault("http.router.paging.defaultLimit", 20)
-	viper.SetDefault("http.router.sorting.defaultAttr", "created_on")
-	viper.SetDefault("http.router.sorting.defaultOrder", "desc")
 	viper.SetDefault("http.server.host", "localhost")
 	viper.SetDefault("http.server.port", 9202)
 	viper.SetDefault("logger.enabled", true)
+	viper.SetDefault("logger.format", "json")
 	viper.SetDefault("logger.level", "info")
 	viper.SetDefault("logger.verbose", false)
-	viper.SetDefault("metadata.environment", "production")
 	viper.SetDefault("postgres.database", "svcdb")
 	viper.SetDefault("postgres.host", "postgres")
 	viper.SetDefault("postgres.password", "postgres")
@@ -100,13 +101,13 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("postgres.user", "postgres")
 
 	// environment variables
+	viper.BindEnv("app.metadata.environment", "APP_ENV")
+	viper.BindEnv("app.metadata.version", "APP_VERSION")
 	viper.BindEnv("http.server.host", "HTTP_SERVER_HOST")
 	viper.BindEnv("http.server.port", "HTTP_SERVER_PORT")
-	viper.BindEnv("logger.enabled", "LOG_ENABLED")
-	viper.BindEnv("logger.level", "LOG_LEVEL")
-	viper.BindEnv("logger.verbose", "LOG_VERBOSE")
-	viper.BindEnv("metadata.environment", "APP_ENV")
-	viper.BindEnv("metadata.version", "APP_VERSION")
+	viper.BindEnv("logger.format", "LOGGER_FORMAT")
+	viper.BindEnv("logger.level", "LOGGER_LEVEL")
+	viper.BindEnv("logger.verbose", "LOGGER_VERBOSE")
 	viper.BindEnv("postgres.database", "POSTGRES_DB")
 	viper.BindEnv("postgres.host", "POSTGRES_HOST")
 	viper.BindEnv("postgres.password", "POSTGRES_PASSWORD")

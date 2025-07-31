@@ -19,7 +19,7 @@ import (
 type ResponseLogData struct {
 	Body         map[string]any
 	BodySize     *int
-	Headers      http.Header
+	Header       http.Header
 	ResponseTime string
 	Status       int
 }
@@ -83,32 +83,30 @@ type logResponseConfig struct {
 }
 
 func logResponse(c logResponseConfig) error {
-	if c.logger.Enabled {
-		traceID := trace.GetTraceIDFromContext(c.request.Context())
-		log := c.logger.CreateContextLogger(traceID)
+	traceID := trace.GetTraceIDFromContext(c.request.Context())
+	log := c.logger.CreateContextLogger(traceID)
 
-		bodyBytes := c.bodyBuffer.Bytes()
-		bodySize := c.response.BytesWritten()
+	bodyBytes := c.bodyBuffer.Bytes()
+	bodySize := c.response.BytesWritten()
 
-		data := &ResponseLogData{
-			Headers:      c.response.Header(),
-			ResponseTime: c.responseTime,
-			Status:       c.response.Status(),
-		}
-
-		var body map[string]any
-		if bodySize > 0 {
-			if err := json.Unmarshal(bodyBytes, &body); err != nil {
-				return err
-			}
-
-			data.Body = body
-			data.BodySize = &bodySize
-		}
-
-		attrs := responseLogAttrs(data, c.logger.Level)
-		log.With(attrs...).Info("response")
+	data := &ResponseLogData{
+		Header:       c.response.Header(),
+		ResponseTime: c.responseTime,
+		Status:       c.response.Status(),
 	}
+
+	var body map[string]any
+	if bodySize > 0 {
+		if err := json.Unmarshal(bodyBytes, &body); err != nil {
+			return err
+		}
+
+		data.Body = body
+		data.BodySize = &bodySize
+	}
+
+	attrs := responseLogAttrs(data, c.logger.Level)
+	log.With(attrs...).Info("response")
 
 	return nil
 }
@@ -129,8 +127,8 @@ func responseLogAttrs(data *ResponseLogData, level string) []any {
 		if data.Body != nil {
 			attrs = append(attrs, k.HTTP.Body, data.Body)
 		}
-		if data.Headers != nil {
-			attrs = append(attrs, k.HTTP.Headers, data.Headers)
+		if data.Header != nil {
+			attrs = append(attrs, k.HTTP.Header, data.Header)
 		}
 	}
 

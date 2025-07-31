@@ -8,16 +8,16 @@ import (
 	"github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/trace"
 	"github.com/jasonsites/gosk/internal/logger"
-	"github.com/jasonsites/gosk/internal/modules/common/query"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // ExampleRepository defines the interface for a repository managing the Example domain/entity model
 type ExampleRepository interface {
-	Create(context.Context, *ExampleDTO) (*ExampleDomainModel, error)
+	Create(context.Context, *ExampleDTORequest) (*ModelContainer, error)
 	Delete(context.Context, uuid.UUID) error
-	Detail(context.Context, uuid.UUID) (*ExampleDomainModel, error)
-	List(context.Context, query.QueryData) (*ExampleDomainModel, error)
-	Update(context.Context, *ExampleDTO, uuid.UUID) (*ExampleDomainModel, error)
+	Detail(context.Context, uuid.UUID) (*ModelContainer, error)
+	List(context.Context, query.QueryData) (*ModelContainer, error)
+	Update(context.Context, *ExampleDTORequest, uuid.UUID) (*ModelContainer, error)
 }
 
 // ExampleServiceConfig defines the input to NewExampleService
@@ -47,11 +47,11 @@ func NewExampleService(c *ExampleServiceConfig) (*exampleService, error) {
 }
 
 // Create
-func (s *exampleService) Create(ctx context.Context, data any) (*ExampleDomainModel, error) {
+func (s *exampleService) Create(ctx context.Context, data any) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*ExampleDTO)
+	d, ok := data.(*ExampleDTORequest)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())
@@ -81,7 +81,7 @@ func (s *exampleService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 // Detail
-func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*ExampleDomainModel, error) {
+func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
@@ -95,7 +95,7 @@ func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*ExampleDoma
 }
 
 // List
-func (s *exampleService) List(ctx context.Context, q query.QueryData) (*ExampleDomainModel, error) {
+func (s *exampleService) List(ctx context.Context, q query.QueryData) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
@@ -109,11 +109,11 @@ func (s *exampleService) List(ctx context.Context, q query.QueryData) (*ExampleD
 }
 
 // Update
-func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*ExampleDomainModel, error) {
+func (s *exampleService) Update(ctx context.Context, data any, id uuid.UUID) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
-	d, ok := data.(*ExampleDTO)
+	d, ok := data.(*ExampleDTORequest)
 	if !ok {
 		err := fmt.Errorf("example input data assertion error")
 		log.Error(err.Error())

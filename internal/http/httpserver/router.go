@@ -11,6 +11,7 @@ import (
 	"github.com/goddtriffin/helmet"
 	mw "github.com/jasonsites/gosk/internal/http/middleware"
 	"github.com/jasonsites/gosk/internal/logger"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 	"github.com/jasonsites/gosk/internal/modules/example"
 	"github.com/jasonsites/gosk/internal/modules/health"
 )
@@ -20,7 +21,8 @@ type ControllerRegistry struct {
 }
 
 type RouterConfig struct {
-	Namespace string `validate:"required"`
+	Namespace    string              `validate:"required"`
+	QueryHandler *query.QueryHandler `validate:"required"`
 }
 
 // configureMiddleware
@@ -33,8 +35,7 @@ func configureMiddleware(conf *RouterConfig, r *chi.Mux, logger *logger.CustomLo
 	r.Use(mw.Correlation(&mw.CorrelationConfig{Next: skipHealth}))
 	r.Use(mw.ResponseLogger(&mw.ResponseLoggerConfig{Logger: logger, Next: skipHealth}))
 	r.Use(helmet.Default().Secure)
-	// r.Use(middleware.RealIP)
-	r.Use(mw.RequestLogger(&mw.RequestLoggerConfig{Logger: logger, Next: skipHealth}))
+	r.Use(mw.RequestLogger(&mw.RequestLoggerConfig{Logger: logger, QueryHandler: conf.QueryHandler, Next: skipHealth}))
 	r.Use(mw.NotFound)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{

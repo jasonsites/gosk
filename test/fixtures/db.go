@@ -2,72 +2,67 @@ package fixtures
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	fake "github.com/brianvoe/gofakeit/v6"
 	"github.com/google/uuid"
+	repo "github.com/jasonsites/gosk/internal/modules/common/repository"
 	"github.com/jasonsites/gosk/internal/modules/example"
 )
 
 func ExampleEntityRecord(input *example.ExampleEntity, id *uuid.UUID) *example.ExampleEntity {
-	createdBy := uint32(fake.IntRange(1, 9999))
 	createdOn := fake.Date()
-	deleted := fake.Bool()
 	description := sql.NullString{
 		String: fake.Sentence(4),
 		Valid:  true,
 	}
-	enabled := fake.Bool()
-	modifiedBy := sql.NullInt32{
-		Int32: int32(fake.IntRange(1, 9999)),
-		Valid: true,
-	}
-	modifiedOn := sql.NullTime{
-		Time:  fake.Date(),
-		Valid: true,
-	}
-	status := sql.NullInt32{
-		Int32: int32(fake.IntRange(1, 9)),
-		Valid: true,
-	}
+	modifiedOn := fake.Date()
+	status := repo.RecordStatusActive
 	title := fake.JobTitle()
 
-	if input != nil {
-		deleted = input.Deleted
-		enabled = input.Enabled
+	// Create default contexts
+	createdContext := map[string]any{
+		"user_id": "test_user",
+	}
+	modifiedContext := map[string]any{
+		"user_id": "test_user",
+	}
 
-		if input.CreatedBy != 0 {
-			createdBy = input.CreatedBy
-		}
+	createdContextJSON, _ := json.Marshal(createdContext)
+	modifiedContextJSON, _ := json.Marshal(modifiedContext)
+
+	if input != nil {
 		if !input.CreatedOn.IsZero() {
 			createdOn = input.CreatedOn
 		}
 		if input.Description.String != "" {
 			description = input.Description
 		}
-		if input.ModifiedBy.Int32 != 0 {
-			modifiedBy = input.ModifiedBy
-		}
-		if !input.ModifiedOn.Time.IsZero() {
+		if !input.ModifiedOn.IsZero() {
 			modifiedOn = input.ModifiedOn
 		}
-		if input.Status.Int32 != 0 {
+		if input.Status != "" {
 			status = input.Status
 		}
 		if input.Title != "" {
 			title = input.Title
 		}
+		if len(input.CreatedContext) > 0 {
+			createdContextJSON = input.CreatedContext
+		}
+		if len(input.ModifiedContext) > 0 {
+			modifiedContextJSON = input.ModifiedContext
+		}
 	}
 
 	record := &example.ExampleEntity{
-		CreatedBy:   createdBy,
-		CreatedOn:   createdOn,
-		Deleted:     deleted,
-		Description: description,
-		Enabled:     enabled,
-		ModifiedBy:  modifiedBy,
-		ModifiedOn:  modifiedOn,
-		Status:      status,
-		Title:       title,
+		CreatedOn:       createdOn,
+		CreatedContext:  createdContextJSON,
+		Description:     description,
+		ModifiedOn:      modifiedOn,
+		ModifiedContext: modifiedContextJSON,
+		Status:          status,
+		Title:           title,
 	}
 
 	if id != nil {

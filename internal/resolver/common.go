@@ -1,7 +1,6 @@
 package resolver
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,7 +10,7 @@ import (
 	app "github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
 	"github.com/jasonsites/gosk/internal/logger"
-	"github.com/jasonsites/gosk/internal/modules/common/query"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // Config provides a singleton config.Configuration instance
@@ -37,15 +36,17 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 
 		log := r.Log().With(slog.String("tags", "http"))
 		cLogger := &logger.CustomLogger{
-			Enabled: c.Logger.Enabled,
-			Level:   c.Logger.Level,
-			Log:     log,
+			Level: c.Logger.Level,
+			Log:   log,
 		}
 
 		controllers := &httpserver.ControllerRegistry{
 			ExampleController: r.ExampleController(),
 		}
-		routerConfig := &httpserver.RouterConfig{Namespace: c.HTTP.Router.Namespace}
+		routerConfig := &httpserver.RouterConfig{
+			Namespace:    c.HTTP.Router.Namespace,
+			QueryHandler: r.QueryHandler(),
+		}
 		serverConfig := &httpserver.ServerConfig{
 			Controllers:  controllers,
 			Host:         c.HTTP.Server.Host,
@@ -86,7 +87,7 @@ func (r *Resolver) Log() *slog.Logger {
 			slog.String(logger.AttrKey.App.Version, r.Metadata().Version),
 		}
 
-		if c.Metadata.Environment == app.Env.Development {
+		if c.Logger.Format == logger.Format.Styled {
 			handler = logger.NewDevHandler(*r.Metadata(), opts).WithAttrs(attrs)
 		} else {
 			handler = slog.NewJSONHandler(os.Stdout, opts).WithAttrs(attrs)
@@ -104,23 +105,10 @@ func (r *Resolver) Log() *slog.Logger {
 // Metadata provides a singleton application Metadata instance
 func (r *Resolver) Metadata() *app.Metadata {
 	if r.metadata == nil {
-		var metadata app.Metadata
-
-		jsondata, err := os.ReadFile("/app/package.json")
-		if err != nil {
-			err = fmt.Errorf("package.json read error: %w", err)
-			slog.Error(err.Error())
-			panic(err)
-		}
-
-		if err := json.Unmarshal(jsondata, &metadata); err != nil {
-			err = fmt.Errorf("package.json unmarshall error: %w", err)
-			slog.Error(err.Error())
-			panic(err)
-		}
-
-		if r.Config().Metadata.Version != "" {
-			metadata.Version = r.Config().Metadata.Version
+		metadata := app.Metadata{
+			Environment: r.Config().App.Metadata.Environment,
+			Name:        r.Config().App.Metadata.Name,
+			Version:     r.Config().App.Metadata.Version,
 		}
 
 		r.metadata = &metadata
@@ -135,18 +123,12 @@ func (r *Resolver) QueryHandler() *query.QueryHandler {
 
 		limit := int(c.HTTP.Router.Paging.DefaultLimit)
 
-		attr := c.HTTP.Router.Sorting.DefaultAttr
-		order := c.HTTP.Router.Sorting.DefaultOrder
-
 		queryConfig := &query.QueryConfig{
 			Defaults: &query.QueryDefaults{
-				Paging: query.QueryPaging{
+				Page: query.PageQuery{
 					Limit: &limit,
 				},
-				Sorting: &query.QuerySorting{
-					Attr:  &attr,
-					Order: &order,
-				},
+				Sort: query.DefaultSortQuery(),
 			},
 		}
 

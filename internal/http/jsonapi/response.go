@@ -2,7 +2,7 @@ package jsonapi
 
 import (
 	"github.com/google/uuid"
-	"github.com/jasonsites/gosk/internal/modules/common/pagination"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // Response
@@ -13,7 +13,9 @@ type Response struct {
 
 // ResponseMetadata
 type ResponseMetadata struct {
-	Page pagination.PageMetadata `json:"page,omitempty"`
+	Filter *query.FilterMetadata `json:"filter,omitempty"`
+	Page   query.PageMetadata    `json:"page,omitempty"`
+	Sort   *query.SortMetadata   `json:"sort,omitempty"`
 }
 
 // Resource

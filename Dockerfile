@@ -2,7 +2,7 @@
 
 FROM golang:1.24-alpine3.22 AS base
 WORKDIR /src
-COPY go.* package.json ./
+COPY go.* ./
 RUN go mod download && go mod verify
 
 
@@ -17,7 +17,7 @@ RUN apk --no-cache add curl \
 
 FROM base AS dev
 WORKDIR /app
-RUN apk --no-cache add curl bash \
+RUN apk --no-cache add curl bash gcc musl-dev \
   # just
   && curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin \
   && chmod +x /usr/local/bin/just \
@@ -45,7 +45,7 @@ RUN CGO_ENABLED=0 go build -o bin/server cmd/httpserver/main.go
 
 FROM alpine:3.22 AS prod
 WORKDIR /app
-COPY --from=build /src/package.json /src/config/config.toml /src/bin/server /app/
+COPY --from=build /src/config/config.toml /src/bin/server /app/
 COPY --from=build /src/database/migrations /app/database/migrations
 COPY --from=migrate-tools /usr/bin/migrate /usr/bin/migrate
 

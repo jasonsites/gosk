@@ -10,7 +10,7 @@ require (
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/goddtriffin/helmet v1.0.2
 	github.com/google/uuid v1.6.0
-	github.com/hetiansu5/urlquery v1.2.7
+	github.com/gorilla/schema v1.4.1
 	github.com/invopop/validation v0.8.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/spf13/viper v1.20.1

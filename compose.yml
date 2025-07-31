@@ -23,7 +23,6 @@ services:
       - ./internal:/app/internal
       - ./test:/app/test
       - ./justfile:/app/justfile
-      - ./package.json:/app/package.json
 
   postgres:
     image: postgres:17

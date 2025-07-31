@@ -15,9 +15,8 @@ const (
 
 // CustomLogger encapsulates a logger with an associated log level and toggle
 type CustomLogger struct {
-	Enabled bool
-	Level   string
-	Log     *slog.Logger
+	Level string
+	Log   *slog.Logger
 }
 
 // CreateContextLogger returns a new child logger with attached trace ID

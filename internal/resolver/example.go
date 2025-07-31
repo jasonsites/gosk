@@ -15,9 +15,8 @@ func (r *Resolver) ExampleController() example.ExampleController {
 
 		log := r.Log().With(slog.String("tags", "controller,example"))
 		cLogger := &logger.CustomLogger{
-			Enabled: c.Logger.Enabled,
-			Level:   c.Logger.Level,
-			Log:     log,
+			Level: c.Logger.Level,
+			Log:   log,
 		}
 
 		ctrlConfig := &example.ControllerConfig{
@@ -45,9 +44,8 @@ func (r *Resolver) ExampleRepository() example.ExampleRepository {
 
 		log := r.Log().With(slog.String("tags", "repo,example"))
 		cLogger := &logger.CustomLogger{
-			Enabled: c.Logger.Enabled,
-			Level:   c.Logger.Level,
-			Log:     log,
+			Level: c.Logger.Level,
+			Log:   log,
 		}
 		repoConfig := &example.ExampleRepoConfig{
 			DBClient: r.PostgreSQLClient(),
@@ -74,9 +72,8 @@ func (r *Resolver) ExampleService() example.ExampleService {
 
 		log := r.Log().With(slog.String("tags", "service,example"))
 		cLogger := &logger.CustomLogger{
-			Enabled: c.Logger.Enabled,
-			Level:   c.Logger.Level,
-			Log:     log,
+			Level: c.Logger.Level,
+			Log:   log,
 		}
 		svcConfig := &example.ExampleServiceConfig{
 			Logger: cLogger,

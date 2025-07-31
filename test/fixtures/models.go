@@ -5,16 +5,12 @@ import (
 	"github.com/jasonsites/gosk/internal/modules/example"
 )
 
-func ExampleModel(input *example.ExampleDTO) *example.ExampleDTO {
+func ExampleModel(input *example.ExampleDTORequest) *example.ExampleDTORequest {
 
 	description := fake.Sentence(4)
-	status := uint32(fake.IntRange(0, 9))
 
-	return &example.ExampleDTO{
-		Deleted:     false,
+	return &example.ExampleDTORequest{
 		Description: &description,
-		Enabled:     fake.Bool(),
-		Status:      &status,
 		Title:       fake.JobTitle(),
 	}
 }

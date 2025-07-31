@@ -9,7 +9,7 @@ import (
 	"github.com/jasonsites/gosk/config"
 	app "github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
-	"github.com/jasonsites/gosk/internal/modules/common/query"
+	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 	"github.com/jasonsites/gosk/internal/modules/example"
 )
 

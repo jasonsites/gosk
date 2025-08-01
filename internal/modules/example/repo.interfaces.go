@@ -23,3 +23,36 @@ type ExampleEntity struct {
 type ExampleEntityModel struct {
 	Record ExampleEntity
 }
+
+// exampleEntityDefinition
+type exampleEntityDefinition struct {
+	Field exampleEntityFieldMap
+	Name  string
+}
+
+// exampleEntityFields
+type exampleEntityFieldMap struct {
+	ID              string
+	Title           string
+	Description     string
+	Status          string
+	CreatedContext  string
+	CreatedOn       string
+	ModifiedContext string
+	ModifiedOn      string
+}
+
+// exampleEntity
+var exampleEntity = exampleEntityDefinition{
+	Name: "example_entity",
+	Field: exampleEntityFieldMap{
+		ID:              "id",
+		Title:           "title",
+		Description:     "description",
+		Status:          "status",
+		CreatedContext:  "created_context",
+		CreatedOn:       "created_on",
+		ModifiedContext: "modified_context",
+		ModifiedOn:      "modified_on",
+	},
+}

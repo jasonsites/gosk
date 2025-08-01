@@ -13,42 +13,8 @@ import (
 	cerror "github.com/jasonsites/gosk/internal/cerror"
 	"github.com/jasonsites/gosk/internal/http/trace"
 	"github.com/jasonsites/gosk/internal/logger"
-	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 	repo "github.com/jasonsites/gosk/internal/modules/common/repository"
 )
-
-// exampleEntityDefinition
-type exampleEntityDefinition struct {
-	Field exampleEntityFields
-	Name  string
-}
-
-// exampleEntityFields
-type exampleEntityFields struct {
-	ID              string
-	Title           string
-	Description     string
-	Status          string
-	CreatedContext  string
-	CreatedOn       string
-	ModifiedContext string
-	ModifiedOn      string
-}
-
-// exampleEntity
-var exampleEntity = exampleEntityDefinition{
-	Name: "example_entity",
-	Field: exampleEntityFields{
-		ID:              "id",
-		Title:           "title",
-		Description:     "description",
-		Status:          "status",
-		CreatedContext:  "created_context",
-		CreatedOn:       "created_on",
-		ModifiedContext: "modified_context",
-		ModifiedOn:      "modified_on",
-	},
-}
 
 // ExampleRepoConfig defines the input to NewExampleRepository
 type ExampleRepoConfig struct {
@@ -246,13 +212,13 @@ func (r *exampleRepository) Detail(ctx context.Context, id uuid.UUID) (*ModelCon
 }
 
 // List
-func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*ModelContainer, error) {
+func (r *exampleRepository) List(ctx context.Context, eqd ExampleQueryData) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := r.logger.CreateContextLogger(traceID)
 
 	var (
-		limit  = *q.Page.Limit
-		offset = *q.Page.Offset
+		limit  = *eqd.Page.Limit
+		offset = *eqd.Page.Offset
 	)
 
 	// build sql query
@@ -266,7 +232,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*Model
 		)
 
 		// Get the first sort pair from the query
-		sortPairs := q.Sort.GetSortPairs()
+		sortPairs := eqd.Sort.GetSortPairs()
 		var orderField, orderDir string
 		if len(sortPairs) > 0 {
 			orderField = sortPairs[0].Field
@@ -347,7 +313,7 @@ func (r *exampleRepository) List(ctx context.Context, q query.QueryData) (*Model
 			Offset: offset,
 			Total:  total,
 		},
-		Sort: q.Sort.ToSortMetadata(),
+		Sort: ExampleSortMetadata(eqd.Sort.ToSortMetadata()),
 	}
 
 	result := MarshalEntityModelList(ems, gmd)

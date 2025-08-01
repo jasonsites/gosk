@@ -12,7 +12,6 @@ import (
 	"github.com/jasonsites/gosk/internal/http/jsonio"
 	"github.com/jasonsites/gosk/internal/http/trace"
 	"github.com/jasonsites/gosk/internal/logger"
-	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // ExampleService
@@ -20,21 +19,21 @@ type ExampleService interface {
 	Create(context.Context, any) (*ModelContainer, error)
 	Delete(context.Context, uuid.UUID) error
 	Detail(context.Context, uuid.UUID) (*ModelContainer, error)
-	List(context.Context, query.QueryData) (*ModelContainer, error)
+	List(context.Context, ExampleQueryData) (*ModelContainer, error)
 	Update(context.Context, any, uuid.UUID) (*ModelContainer, error)
 }
 
 // ControllerConfig defines the input to NewController
 type ControllerConfig struct {
 	Logger  *logger.CustomLogger `validate:"required"`
-	Query   *query.QueryHandler  `validate:"required"`
+	Query   *ExampleQueryHandler `validate:"required"`
 	Service ExampleService       `validate:"required"`
 }
 
 // exampleController
 type exampleController struct {
 	logger  *logger.CustomLogger
-	query   *query.QueryHandler
+	query   *ExampleQueryHandler
 	service ExampleService
 }
 

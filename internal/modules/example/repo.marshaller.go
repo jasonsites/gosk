@@ -38,7 +38,7 @@ func MarshalEntityModelList(ems []*ExampleEntityModel, lqd ListQueryData) *Model
 
 type ListQueryData struct {
 	Page repo.PageData
-	Sort query.SortMetadata
+	Sort ExampleSortMetadata
 }
 
 func MarshalListMetadata(lqd ListQueryData) *ModelContainerMeta {

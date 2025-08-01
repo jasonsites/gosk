@@ -9,26 +9,28 @@ import (
 )
 
 // QueryData composes all query parameters into a single struct for use across the app
-type QueryData struct {
+type QueryData[T SortableEntry] struct {
 	Filter *FilterQuery `schema:"filter" json:"filter,omitempty"`
 	Page   PageQuery    `schema:"page" json:"page,omitempty"`
-	Sort   SortQuery    `schema:"sort" json:"sort,omitempty"`
+	Sort   SortQuery[T] `schema:"sort" json:"sort,omitempty"`
 }
 
-type QueryConfig struct {
-	Defaults *QueryDefaults `validate:"required"`
+type QueryConfig[T SortableEntry] struct {
+	Defaults     *QueryDefaults[T] `validate:"required"`
+	EntryFactory func() T          `validate:"required"`
 }
 
-type QueryDefaults struct {
-	Page PageQuery `validate:"required"`
-	Sort SortQuery `validate:"required"`
+type QueryDefaults[T SortableEntry] struct {
+	Page PageQuery    `validate:"required"`
+	Sort SortQuery[T] `validate:"required"`
 }
 
-type QueryHandler struct {
-	defaults *QueryDefaults
+type QueryHandler[T SortableEntry] struct {
+	defaults     *QueryDefaults[T]
+	entryFactory func() T
 }
 
-func NewQueryHandler(c *QueryConfig) (*QueryHandler, error) {
+func NewQueryHandler[T SortableEntry](c *QueryConfig[T]) (*QueryHandler[T], error) {
 	if err := app.Validator.Validate.Struct(c); err != nil {
 		return nil, err
 	}
@@ -38,21 +40,22 @@ func NewQueryHandler(c *QueryConfig) (*QueryHandler, error) {
 		c.Defaults.Page.Offset = &offset
 	}
 
-	handler := &QueryHandler{
-		defaults: c.Defaults,
+	handler := &QueryHandler[T]{
+		defaults:     c.Defaults,
+		entryFactory: c.EntryFactory,
 	}
 
 	return handler, nil
 }
 
-func (q *QueryHandler) ParseQuery(qs []byte) *QueryData {
-	data := &QueryData{}
+func (q *QueryHandler[T]) ParseQuery(qs []byte) *QueryData[T] {
+	data := &QueryData[T]{}
 	queryString := string(qs)
 
 	// Check if we have the deeply nested bracket notation for sort
 	if strings.Contains(queryString, "sort[") && strings.Contains(queryString, "][") {
 		// Use custom parser for bracket notation
-		sortQuery, err := ParseDeepNestedQuery(queryString)
+		sortQuery, err := ParseDeepNestedQuery(queryString, q.entryFactory)
 		if err == nil {
 			data.Sort = sortQuery
 		} else {
@@ -91,7 +94,7 @@ func (q *QueryHandler) ParseQuery(qs []byte) *QueryData {
 	return data
 }
 
-func (q *QueryHandler) normalizePage(p PageQuery) PageQuery {
+func (q *QueryHandler[T]) normalizePage(p PageQuery) PageQuery {
 	page := PageQuery{
 		Limit:  q.defaults.Page.Limit,
 		Offset: q.defaults.Page.Offset,
@@ -107,7 +110,7 @@ func (q *QueryHandler) normalizePage(p PageQuery) PageQuery {
 	return page
 }
 
-func (q *QueryHandler) normalizeSort(s SortQuery) SortQuery {
+func (q *QueryHandler[T]) normalizeSort(s SortQuery[T]) SortQuery[T] {
 	// If no sort query provided, use defaults
 	if len(s) == 0 {
 		return q.defaults.Sort

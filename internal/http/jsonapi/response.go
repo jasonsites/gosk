@@ -15,7 +15,7 @@ type Response struct {
 type ResponseMetadata struct {
 	Filter *query.FilterMetadata `json:"filter,omitempty"`
 	Page   query.PageMetadata    `json:"page,omitempty"`
-	Sort   *query.SortMetadata   `json:"sort,omitempty"`
+	Sort   any                   `json:"sort,omitempty"`
 }
 
 // Resource

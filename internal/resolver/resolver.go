@@ -9,7 +9,6 @@ import (
 	"github.com/jasonsites/gosk/config"
 	app "github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
-	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 	"github.com/jasonsites/gosk/internal/modules/example"
 )
 
@@ -31,21 +30,20 @@ type Config struct {
 	Log               *slog.Logger
 	Metadata          *app.Metadata
 	PostgreSQLClient  *pgxpool.Pool
-	QueryHandler      *query.QueryHandler
 }
 
 // Resolver provides a configurable app component graph
 type Resolver struct {
-	appContext        context.Context
-	config            *config.Configuration
-	exampleController example.ExampleController
-	exampleRepo       example.ExampleRepository
-	exampleService    example.ExampleService
-	httpServer        *httpserver.Server
-	log               *slog.Logger
-	metadata          *app.Metadata
-	postgreSQLClient  *pgxpool.Pool
-	queryHandler      *query.QueryHandler
+	appContext          context.Context
+	config              *config.Configuration
+	exampleController   example.ExampleController
+	exampleQueryHandler *example.ExampleQueryHandler
+	exampleRepo         example.ExampleRepository
+	exampleService      example.ExampleService
+	httpServer          *httpserver.Server
+	log                 *slog.Logger
+	metadata            *app.Metadata
+	postgreSQLClient    *pgxpool.Pool
 }
 
 // NewResolver returns a new Resolver instance
@@ -64,7 +62,6 @@ func NewResolver(ctx context.Context, c *Config) *Resolver {
 		log:               c.Log,
 		metadata:          c.Metadata,
 		postgreSQLClient:  c.PostgreSQLClient,
-		queryHandler:      c.QueryHandler,
 	}
 
 	return r

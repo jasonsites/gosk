@@ -10,7 +10,6 @@ import (
 	app "github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/httpserver"
 	"github.com/jasonsites/gosk/internal/logger"
-	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // Config provides a singleton config.Configuration instance
@@ -44,8 +43,7 @@ func (r *Resolver) HTTPServer() *httpserver.Server {
 			ExampleController: r.ExampleController(),
 		}
 		routerConfig := &httpserver.RouterConfig{
-			Namespace:    c.HTTP.Router.Namespace,
-			QueryHandler: r.QueryHandler(),
+			Namespace: c.HTTP.Router.Namespace,
 		}
 		serverConfig := &httpserver.ServerConfig{
 			Controllers:  controllers,
@@ -115,34 +113,6 @@ func (r *Resolver) Metadata() *app.Metadata {
 	}
 
 	return r.metadata
-}
-
-func (r *Resolver) QueryHandler() *query.QueryHandler {
-	if r.queryHandler == nil {
-		c := r.Config()
-
-		limit := int(c.HTTP.Router.Paging.DefaultLimit)
-
-		queryConfig := &query.QueryConfig{
-			Defaults: &query.QueryDefaults{
-				Page: query.PageQuery{
-					Limit: &limit,
-				},
-				Sort: query.DefaultSortQuery(),
-			},
-		}
-
-		queryHandler, err := query.NewQueryHandler(queryConfig)
-		if err != nil {
-			err = fmt.Errorf("http server load error: %w", err)
-			slog.Error(err.Error())
-			panic(err)
-		}
-
-		r.queryHandler = queryHandler
-	}
-
-	return r.queryHandler
 }
 
 // PostgreSQLClient provides a singleton postgres pgxpool.Pool instance

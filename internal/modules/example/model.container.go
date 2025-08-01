@@ -18,7 +18,7 @@ type ModelContainer struct {
 type ModelContainerMeta struct {
 	Filter *query.FilterMetadata `json:"filter,omitempty"`
 	Page   query.PageMetadata    `json:"page,omitempty"`
-	Sort   query.SortMetadata    `json:"sort,omitempty"`
+	Sort   ExampleSortMetadata   `json:"sort,omitempty"`
 }
 
 // ExampleModel

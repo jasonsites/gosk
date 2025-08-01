@@ -8,7 +8,6 @@ import (
 	"github.com/jasonsites/gosk/internal/app"
 	"github.com/jasonsites/gosk/internal/http/trace"
 	"github.com/jasonsites/gosk/internal/logger"
-	query "github.com/jasonsites/gosk/internal/modules/common/models/query"
 )
 
 // ExampleRepository defines the interface for a repository managing the Example domain/entity model
@@ -16,7 +15,7 @@ type ExampleRepository interface {
 	Create(context.Context, *ExampleDTORequest) (*ModelContainer, error)
 	Delete(context.Context, uuid.UUID) error
 	Detail(context.Context, uuid.UUID) (*ModelContainer, error)
-	List(context.Context, query.QueryData) (*ModelContainer, error)
+	List(context.Context, ExampleQueryData) (*ModelContainer, error)
 	Update(context.Context, *ExampleDTORequest, uuid.UUID) (*ModelContainer, error)
 }
 
@@ -95,7 +94,7 @@ func (s *exampleService) Detail(ctx context.Context, id uuid.UUID) (*ModelContai
 }
 
 // List
-func (s *exampleService) List(ctx context.Context, q query.QueryData) (*ModelContainer, error) {
+func (s *exampleService) List(ctx context.Context, q ExampleQueryData) (*ModelContainer, error) {
 	traceID := trace.GetTraceIDFromContext(ctx)
 	log := s.logger.CreateContextLogger(traceID)
 
